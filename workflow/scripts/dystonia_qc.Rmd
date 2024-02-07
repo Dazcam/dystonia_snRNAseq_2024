@@ -1,0 +1,42 @@
+---
+title: "Dystonia study - Stiletti data analysis"
+author: "Darren Cameron"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+### Regional information
+
++ Frontal Cortex (9): `r `paste(fcx_anns, collapse = ', ')`
++ Striatum (2): `r paste(str_anns, collapse = ', ')`
++ Globus Pallidus (2): `r paste(glp_anns, collapse = ', ')`
++ Cerebellum (3): `r paste(cer_anns, collapse = ', ')`
+
+***
+
+#### QC Plots {.tabset}
+
+```{r QC plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', regions[i], ' \n')
+  plot <- get(paste0('qc_plot_', regions[i]))
+  print(plot)
+  cat('\n \n')
+}
+
+```
+
+***
+
+#### Integration Plots {.tabset}
+
+```{r Integration plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', regions[i], ' \n')
+  plot <- get(paste0('int_plot_', regions[i]))
+  print(plot)
+  cat('\n \n')
+}
+```
+
+***
