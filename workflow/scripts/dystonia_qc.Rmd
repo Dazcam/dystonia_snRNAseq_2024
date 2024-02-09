@@ -5,21 +5,83 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-### Regional information
+*** 
 
-+ Frontal Cortex (9): `r `paste(fcx_anns, collapse = ', ')`
+### **Regional information** {.tabset}
+
+**Dissections**
+
++ Frontal Cortex (9): `r paste(fcx_anns, collapse = ', ')`
 + Striatum (2): `r paste(str_anns, collapse = ', ')`
 + Globus Pallidus (2): `r paste(glp_anns, collapse = ', ')`
 + Cerebellum (3): `r paste(cer_anns, collapse = ', ')`
 
 ***
 
-#### QC Plots {.tabset}
+```{r counts, results='asis', echo=FALSE}
+counts <- tibble('Cells' = c(ncol(seurat_fcx), ncol(seurat_str), ncol(seurat_glp), ncol(seurat_cer)),
+                 'Genes' = c(nrow(seurat_fcx), nrow(seurat_str), nrow(seurat_glp), nrow(seurat_cer)))
+knitr::kable(counts, caption = "Counts")
+```
 
-```{r QC plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+***
+
+```{r umi_dist, results='asis', echo=FALSE}
+umi_dist <- rbind(summary(seurat_fcx$nCount_RNA),
+      summary(seurat_str$nCount_RNA),
+      summary(seurat_glp$nCount_RNA),
+      summary(seurat_cer$nCount_RNA)) %>%
+  t() %>%
+  as_tibble(rownames = 'measure') %>%
+  dplyr::rename(fcx = V1,
+                str = V2,
+                glp = V3,
+                cer = V4)
+knitr::kable(umi_dist, caption = "UMI distribution summary")
+
+```
+
+***
+
+```{r gene_dist, results='asis', echo=FALSE}
+gene_dist <- rbind(summary(seurat_fcx$nFeature_RNA),
+                      summary(seurat_str$nFeature_RNA),
+                      summary(seurat_glp$nFeature_RNA),
+                      summary(seurat_cer$nFeature_RNA)) %>%
+  t() %>%
+  as_tibble(rownames = 'measure') %>%
+  dplyr::rename(fcx = V1,
+                str = V2,
+                glp = V3,
+                cer = V4)
+knitr::kable(gene_dist, caption = "Gene distribution summary")
+
+```
+
+***
+
+#### Basic QC Plots {.tabset}
+
+```{r basic_qc_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
   cat('##### ', regions[i], ' \n')
-  plot <- get(paste0('qc_plot_', regions[i]))
+  plot <- get(paste0('basic_qc_plot_', regions[i]))
+  print(plot)
+  cat('\n \n')
+}
+
+```
+
+***
+
+#### Cluster QC Plots {.tabset}
+
++ Note that NAs are generated as we're using a Sketch object here (i.e. only 5K cells)
+
+```{r cluster_qc_plots, results='asis', fig.dim = c(20,20), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', regions[i], ' \n')
+  plot <- get(paste0('cluster_qc_plot_', regions[i]))
   print(plot)
   cat('\n \n')
 }
@@ -37,6 +99,49 @@ for(i in 1:length(regions)) {
   print(plot)
   cat('\n \n')
 }
+
 ```
 
 ***
+
+#### PCA {.tabset}
+
+```{r pca_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', regions[i], ' \n')
+  DimHeatmap(get(paste0('seurat_sk_', regions[i])), dims = 20:30, cells = 500, balanced = TRUE) 
+  cat('\n \n')
+}
+
+```
+
+#### Violin (General) {.tabset}
+
+```{r vln_general_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', toupper(regions[i]), ' \n')
+  plot <- get(paste0('vln_plot_general_', regions[i]))
+  print(plot)
+  cat('\n \n')
+}
+
+```
+
+***
+
+#### Violin (dystonia genes) {.tabset}
+
+```{r vln_dyst_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+for(i in 1:length(regions)) {
+  cat('##### ', toupper(regions[i]), ' \n')
+  plot <- get(paste0('vln_plot_dyst_', regions[i]))
+  print(plot)
+  cat('\n \n')
+}
+
+```
+
+#### Stiletti QCs {.tabset}
+
+> 10x Chromium samples that captured more than 15,000 cells were not analyzed further. All remaining samples were pooled with their replicates and analyzed with “cytograph qc”, which uses a modified version of DoubletFinder to calculate a doublet score for each cell. We captured a median 6224 cells from each sample and then filtered cells based on their total number of mRNA molecules—as counted by unique molecular identifiers (UMIs)—and percentages of unspliced RNA, as well as doublet scores. Cells with fewer than 800 UMIs, fewer than 40% unspliced molecules, or a doublet score below 0.3 were removed from further analysis. These thresholds were determined by examining distributions across the dataset (fig. S1).
+Total genes captured per cell varied across dissections partly due to biological variation in cell size. For example, nonneuronal cells are small and yield fewer molecules. Although we aimed to collect 90% neurons and 10% nonneuronal cells from each sample, we were not able to achieve this proportion in many noncortical regions due to an abundance of oligodendrocytes (fig. S1B). We also noted variability across donors that likely reflected tissue quality (fig. S1C).

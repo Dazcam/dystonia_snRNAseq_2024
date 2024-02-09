@@ -151,7 +151,26 @@ create_sketch_object <- function(
   
 }
 
-create_qc_plot <- function(
+# Basic QC plot
+create_basic_qc_plots <- function(seurat_obj = NULL,
+                                  point_size = 0) {
+  
+  
+  seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
+  seurat_obj$complexity <- log10(seurat_obj$nFeature_RNA) / log10(seurat_obj$nCount_RNA)
+  vln_plot <- VlnPlot(seurat_obj, features = c("nFeature_RNA", "nCount_RNA", 
+                                               "fraction_mitochondrial", "complexity"), 
+                      ncol = 4, pt.size = 0)
+  fs_plot_1 <- FeatureScatter(seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mt")
+  fs_plot_2 <- FeatureScatter(seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+  fs_plot <- cowplot::plot_grid(fs_plot_1, fs_plot_2)
+  big_plot <- cowplot::plot_grid(vln_plot, fs_plot, ncol = 1)
+  
+  return(big_plot)
+  
+}
+
+create_cluster_qc_plot <- function(
     
   seurat_obj = NULL, 
   dims = 30
@@ -159,10 +178,15 @@ create_qc_plot <- function(
 ) {
   
   cluster_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap")
-  dataset_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'dataset')
   elbow_plot <- Seurat::ElbowPlot(seurat_obj, ndims = dims)
+  dataset_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'dataset') 
+  donor_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'orig.ident')
+  bar_plot_dataset <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'dataset')
+  bar_plot_donor <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'orig.ident')
   
-  qc_plot <- cowplot::plot_grid(cluster_plot, dataset_plot, elbow_plot)
+  qc_plot <- cowplot::plot_grid(cluster_plot, elbow_plot, 
+                                dataset_plot, bar_plot_dataset,
+                                donor_plot, bar_plot_donor, ncol = 2)
   
 }
 
@@ -279,5 +303,29 @@ create_integration_compare_plot <- function(
   group_plot <- plot_grid(plotlist = plot_list, ncol = 3)
   
   return(group_plot)
+  
+}
+
+create_stacked_vln_plot <- function(
+    
+  seurat_obj = NULL,
+  genes = NULL,
+  plot_title = NULL
+  
+) {
+  
+  Idents(seurat_obj) <- seurat_obj$seurat_clusters
+  VlnPlot(seurat_obj, genes, stack = TRUE, flip = TRUE, 
+          same.y.lims = TRUE, fill.by = 'ident') +
+    theme(legend.position = "none",
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          text = element_text(size = 18),
+          axis.text.x  = element_text(colour = "#000000", size = 16),
+          axis.text.y  = element_text(colour = "#000000", size = 16)) +
+    xlab('Cell type') +
+    ggtitle(plot_title)
   
 }

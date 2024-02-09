@@ -22,6 +22,8 @@ library(scCustomize)
 library(readxl)
 library(cowplot)
 options(future.globals.maxSize = 3e+09) # set this option when analyzing large datasets
+options(digits = 1) # Set default decimal points
+options(scipen = 999)
 
 
 ## Set variables  ---------------------------------------------------------------------
@@ -39,7 +41,9 @@ cer_anns <- c('CBL', 'CBV', 'CbDN')
 glp_anns <- c('GPi', 'GPe')
 all_anns <- c(fcx_anns, str_anns, cer_anns, glp_anns)
 anns_table <- read_excel(paste0(data_dir, 'sheets/Stiletti_downloads_table.xlsx'))
-
+dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), range = 'D1:D26') %>%
+  pull(GeneName) 
+  
 
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
   
@@ -61,6 +65,12 @@ seurat_glp <- create_BPCell_seurat_object(glp_anns, '.rds', '~/Desktop/test/')
 seurat_cer <- create_BPCell_seurat_object(cer_anns, '.rds', '~/Desktop/test/')
 seurat_fcx <- create_BPCell_seurat_object(fcx_anns, '.rds', '~/Desktop/test/') 
 
+# Basic qc plots
+basic_qc_plot_str <- create_basic_qc_plots(seurat_str) 
+basic_qc_plot_glp <- create_basic_qc_plots(seurat_glp) 
+basic_qc_plot_cer <- create_basic_qc_plots(seurat_cer) 
+basic_qc_plot_fcx <- create_basic_qc_plots(seurat_fcx) 
+
 # Join and splitting object - not necessary here as objects are already split
 # seurat_str[["RNA"]] <- split(seurat_str[["RNA"]], f = seurat_str$dataset)
 # seurat_join <- JoinLayers(seurat_str[["RNA"]])
@@ -70,10 +80,19 @@ seurat_sk_cer <- create_sketch_object(seurat_cer, 30)
 seurat_sk_fcx <- create_sketch_object(seurat_fcx, 30)
 
 # Plot QCs
-qc_plot_str <- create_qc_plot(seurat_sk_str, 30)
-qc_plot_glp <- create_qc_plot(seurat_sk_glp, 30)
-qc_plot_cer <- create_qc_plot(seurat_sk_cer, 30)
-qc_plot_fcx <- create_qc_plot(seurat_sk_fcx, 30)
+cluster_qc_plot_str <- create_cluster_qc_plot(seurat_sk_str, 30)
+cluster_qc_plot_glp <- create_cluster_qc_plot(seurat_sk_glp, 30)
+cluster_qc_plot_cer <- create_cluster_qc_plot(seurat_sk_cer, 30)
+cluster_qc_plot_fcx <- create_cluster_qc_plot(seurat_sk_fcx, 30)
+
+# Cluster counts - Need to change to full dataset first data first
+seurat_sk_fcx$seurat_clusters
+
+# Choose PC threshold
+pca_plot_str <- DimHeatmap(seurat_sk_str, dims = 20:30, cells = 500, balanced = TRUE)
+pca_plot_glp <- DimHeatmap(seurat_sk_glp, dims = 20:30, cells = 500, balanced = TRUE)
+pca_plot_cer <- DimHeatmap(seurat_sk_cer, dims = 20:30, cells = 500, balanced = TRUE)
+pca_plot_fcx <- DimHeatmap(seurat_sk_fcx, dims = 20:30, cells = 500, balanced = TRUE)
 
 ## Integration
 seurat_sk_str <- run_integration_all(seurat_sk_str)
@@ -86,13 +105,42 @@ int_plot_glp <- create_integration_compare_plot(seurat_sk_glp, c('harmony', 'cca
 int_plot_cer <- create_integration_compare_plot(seurat_sk_cer, c('harmony', 'cca', 'rpca', 'fastmnn'), 'dataset') 
 int_plot_fcx <- create_integration_compare_plot(seurat_sk_fcx, c('harmony', 'cca', 'rpca', 'fastmnn'), 'dataset') 
 
+# Join layers - Need to do this before stacked vln plotting
+seurat_sk_str <- JoinLayers(seurat_sk_str)
+seurat_sk_glp <- JoinLayers(seurat_sk_glp)
+seurat_sk_cer <- JoinLayers(seurat_sk_cer)
+seurat_sk_fcx <- JoinLayers(seurat_sk_fcx)
+
+# Gene check
+vln_plot_general_str <- create_stacked_vln_plot(seurat_sk_str, general_genes, 'Striatum')
+vln_plot_general_glp <- create_stacked_vln_plot(seurat_sk_glp, general_genes, 'Globus Pallidus')
+vln_plot_general_cer <- create_stacked_vln_plot(seurat_sk_cer, general_genes, 'Cerebellum')
+vln_plot_general_fcx <- create_stacked_vln_plot(seurat_sk_fcx, general_genes, 'Frontal Cortex')
+
+# Dystonia gene check
+vln_plot_dyst_str <- create_stacked_vln_plot(seurat_sk_str, dystonia_genes, 'Striatum')
+vln_plot_dyst_glp <- create_stacked_vln_plot(seurat_sk_glp, dystonia_genes, 'Globus Pallidus')
+vln_plot_dyst_cer <- create_stacked_vln_plot(seurat_sk_cer, dystonia_genes, 'Cerebellum')
+vln_plot_dyst_fcx <- create_stacked_vln_plot(seurat_sk_fcx, dystonia_genes, 'Frontal Cortex')
+
+## ------ Still to do
+mad_stats <- MAD_Stats(seurat_object = seurat_sk_fcx, group_by_var = "orig.ident", mad_num = 3)
+
+# Number of undetected genes
+detected_genes <- rowSums(counts(sce)) > 0
+table(detected_genes)
+
 
 ## Create markdown doc  ---------------------------------------------------------------
 rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = markdown_dir)
 
 
+#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------
+
+
 # Join the layers
-seurat_sketch[["sketch"]] <- JoinLayers(seurat_sketch[["sketch"]])
+seurat_fcx[["sketch"]] <- JoinLayers(seurat_fcx[["sketch"]])
 
 # Add cluster annotations to seurat metadata
 ann <- seurat_sketch@meta.data %>%
@@ -102,25 +150,7 @@ ann <- seurat_sketch@meta.data %>%
   pull(clusterAnn)
   
 
-fc_features <- c("GAD1", "SLC17A7", "EOMES", "GLI3", "OLIG1", 
-                 "MKI67", "C3", "ITM2A", "SST", "CALB2", 
-                 "SCGN", "TLE3", "FEZF2", "CRYM", "LHX2")
-ge_features <- c("GAD1", "SLC17A7", "EOMES", "GLI3", "OLIG1", 
-                 "MKI67", "C3", "ITM2A", "LHX6", "SIX3", 
-                 "PROX1", "TSHZ1", "DLX1", "SCGN")
-hip_features <- c("NEUROD1", "GRIK4", "EOMES", "GLI3", "OLIG1", 
-                  "MKI67", "C3", "ITM2A", "SLC17A6", "ADARB2",
-                  "GAD2", "TNC", "PROX1", "RELN", "LHX6")
-tha_features <- c("EOMES", "GLI3", "OLIG1", "MKI67", "C3", 
-                  "ITM2A", "SLC1A6", "LHX9", "TNC", "GAD2", 
-                  "PAX6", "SLC17A6")
-cer_features <- c("GAD1", "EOMES", "GLI3", "OLIG1", "MKI67", 
-                  "C3", "ITM2A", "CA8", "ITPR1", "RBFOX3", 
-                  "RELN")
-
-general_features <- c('VGLUT1', 'VGLUT2', 'SST', 'NPY', 'GAD2', 'C3',
-                      'OLIG1', 'OLIG2')
-
+          
 
 
 seurat_merged <- SCTransform(seurat_str) %>%
