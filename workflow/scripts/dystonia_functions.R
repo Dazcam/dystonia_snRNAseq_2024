@@ -47,9 +47,9 @@ get_dissection_data <- function(
     seurat_obj <- readRDS(paste0(out_dir, region_abbr, file_format))
     
     meta_obj <- seurat_obj@meta.data %>%
-      as_tibble() %>%
-      group_by(dissection) %>%
-      count()
+      tibble::as_tibble() %>%
+      dplyr::group_by(dissection) %>%
+      dplyr::count()
 
     message('Dissections present in Seurat object:\n')
     message(paste0(capture.output(meta_obj), collapse = "\n"), '\n')
@@ -190,8 +190,15 @@ create_cluster_qc_plot <- function(
   
 }
 
-run_integration_all <- function(seurat_obj = NULL) {
+run_integration <- function(
+    
+  seurat_obj = NULL,
+  reductions = 'harmony',
+  dimensions = 30
   
+  ) {
+  
+  if ('harmony' %in% reductions) { 
   message('Running Harmony integration ...')
   seurat_obj <- IntegrateLayers(
     object = seurat_obj,
@@ -203,10 +210,13 @@ run_integration_all <- function(seurat_obj = NULL) {
   )
   
   message('Finding Harmony clusters and generating UMAP ...')
-  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:30, reduction = "harmony") %>%
+  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "harmony") %>%
     FindClusters(cluster.name = "harmony_clusters") %>%
-    RunUMAP(reduction = "harmony", dims = 1:30, reduction.name = "umap.harmony")
+    RunUMAP(reduction = "harmony", dims = 1:dimensions, reduction.name = "umap.harmony")
   
+  }
+  
+  if ('cca' %in% reductions) { 
   message('Running CCA integration ...')
   seurat_obj <- IntegrateLayers(
     object = seurat_obj,
@@ -218,10 +228,13 @@ run_integration_all <- function(seurat_obj = NULL) {
   )
   
   message('Finding CCA clusters and generating UMAP ...')
-  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:30, reduction = "cca") %>%
+  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "cca") %>%
     FindClusters(cluster.name = "cca_clusters") %>%
-    RunUMAP(reduction = "cca", dims = 1:30, reduction.name = "umap.cca")
+    RunUMAP(reduction = "cca", dims = 1:dimensions, reduction.name = "umap.cca")
   
+  }
+  
+  if ('rpca' %in% reductions) { 
   message('Running RPCA integration ...')
   seurat_obj <- IntegrateLayers(
     object = seurat_obj,
@@ -233,10 +246,13 @@ run_integration_all <- function(seurat_obj = NULL) {
   )
   
   message('Finding RPCA clusters and generating UMAP ...')
-  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:30, reduction = "rpca") %>%
+  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "rpca") %>%
     FindClusters(cluster.name = "rpca_clusters") %>%
-    RunUMAP(reduction = "rpca", dims = 1:30, reduction.name = "umap.rpca")
+    RunUMAP(reduction = "rpca", dims = 1:dimensions, reduction.name = "umap.rpca")
   
+  }
+  
+  if ('fastmnn' %in% reductions) { 
   message('Running FastMNN integration ...')
   seurat_obj <- IntegrateLayers(
     object = seurat_obj,
@@ -248,9 +264,11 @@ run_integration_all <- function(seurat_obj = NULL) {
   )
   
   message('Finding FastMNN clusters and generating UMAP ...')
-  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:30, reduction = "fastmnn") %>%
+  seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "fastmnn") %>%
     FindClusters(cluster.name = "fastmnn_clusters") %>%
-    RunUMAP(reduction = "fastmnn", dims = 1:30, reduction.name = "umap.fastmnn")
+    RunUMAP(reduction = "fastmnn", dims = 1:dimensions, reduction.name = "umap.fastmnn")
+  
+  }
   
   return(seurat_obj)
   
@@ -280,8 +298,8 @@ create_proportion_barplot <- function(seurat_obj = NULL,
 create_integration_compare_plot <- function(
     
   seurat_obj = seurat_sk_str, 
-  reductions = c('harmony', 'cca', 'rpca', 'fastmnn'), 
-  meta_id = 'dataset',
+  reductions = c('harmony'), 
+  meta_id = 'orig.ident',
   dims = 30
   
 ) {
@@ -327,5 +345,22 @@ create_stacked_vln_plot <- function(
           axis.text.y  = element_text(colour = "#000000", size = 16)) +
     xlab('Cell type') +
     ggtitle(plot_title)
+  
+}
+
+calculate_average_expression <- function(
+    
+  seurat_obj = NULL,
+  region = NULL,
+  gene_list = NULL
+  
+) {
+  
+  message('Calculating average expression ...')
+  av_exp_mat <- AverageExpression(seurat_obj, layer = 'counts', features = gene_list)
+  av_exp_mat <- av_exp_mat$RNA
+  colnames(av_exp_mat) <- paste0(region, '_', seq(0, ncol(av_exp_mat) - 1, 1))
+  
+  return(av_exp_mat)
   
 }
