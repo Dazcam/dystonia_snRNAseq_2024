@@ -16,6 +16,12 @@ output: html_document
 + Globus Pallidus (2): `r paste(glp_anns, collapse = ', ')`
 + Cerebellum (3): `r paste(cer_anns, collapse = ', ')`
 
+#### Basic Stats {.tabset}
+
++ May need an additional UMI filter
++ Need more stringent Mito filter
++ Are there still doublets here?
+
 ***
 
 ```{r counts, results='asis', echo=FALSE}
@@ -62,6 +68,11 @@ knitr::kable(gene_dist, caption = "Gene distribution summary")
 
 #### Basic QC Plots {.tabset}
 
++ May need an additional UMI filter
++ Need more stringent Mito filter
++ Are there still doublets here?
++ Check ribosome gene exp
+
 ```{r basic_qc_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
   cat('##### ', regions[i], ' \n')
@@ -77,6 +88,9 @@ for(i in 1:length(regions)) {
 #### Cluster QC Plots {.tabset}
 
 + Note that NAs are generated as we're using a Sketch object here (i.e. only 5K cells)
++ Some evidence of batch effects 
++ Get cell counts per cluster
++ PC threshold probs between 20-30 for all regions except FCX
 
 ```{r cluster_qc_plots, results='asis', fig.dim = c(20,20), echo=FALSE}
 for(i in 1:length(regions)) {
@@ -92,6 +106,9 @@ for(i in 1:length(regions)) {
 
 #### Integration Plots {.tabset}
 
++ Some evidence of batch effects 
++ Similar scenario for CCA, RPCA and FastMNN
+
 ```{r Integration plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
   cat('##### ', regions[i], ' \n')
@@ -106,6 +123,8 @@ for(i in 1:length(regions)) {
 
 #### PCA {.tabset}
 
++ PC threshold probs between 20-30 for all regions except FCX
+
 ```{r pca_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
   cat('##### ', regions[i], ' \n')
@@ -116,6 +135,10 @@ for(i in 1:length(regions)) {
 ```
 
 #### Violin (General) {.tabset}
+
++ Nice distinction between cell types using general gene set
++ Need to refine gene set for each region
++ Need to refine cluster numbers and cluster IDs (and colour Vln plots by general cell type)
 
 ```{r vln_general_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
@@ -131,6 +154,9 @@ for(i in 1:length(regions)) {
 
 #### Violin (dystonia genes) {.tabset}
 
++ Broad expression of dystonia genes, difficult to pull out patterns in this format
++ Will improve (a bit) when cluster IDs are determined
+
 ```{r vln_dyst_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
 for(i in 1:length(regions)) {
   cat('##### ', toupper(regions[i]), ' \n')
@@ -139,6 +165,39 @@ for(i in 1:length(regions)) {
   cat('\n \n')
 }
 
+```
+
+
+#### Aggregate?? {.tabset}
+
++ How can we aggregate the dystonia data to more easily see patterns?
++ PCA?
++ Heatmap?
++ WGCNA?
+
+##### Heatmap
+
++ Average gene expression per cluster 
++ Only showing adult for now
++ Try `AggregateExpression()`
+
+***
+
+```{r heatmap_all, results='asis', fig.dim = c(10,10), echo=FALSE}
+ComplexHeatmap::Heatmap(t(av_exp_mat_scaled), column_labels = rownames(av_exp_mat_scaled), cluster_columns = F, cluster_rows = T)
+```
+
+
+##### PCA
+
+```{r pca_all, results='asis', fig.dim = c(10,10), echo=FALSE}
+plot_grid(pca_plot, pca_load_plot, scree_plot, ncol = 2, align = 'hvlr')
+```
+
+***
+
+```{r pca_facet, results='asis', fig.dim = c(10,10), echo=FALSE}
+pairs_plot
 ```
 
 #### Stiletti QCs {.tabset}

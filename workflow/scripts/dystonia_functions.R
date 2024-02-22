@@ -295,7 +295,7 @@ create_proportion_barplot <- function(seurat_obj = NULL,
   
 }
 
-create_integration_compare_plot <- function(
+create_integration_plot <- function(
     
   seurat_obj = seurat_sk_str, 
   reductions = c('harmony'), 
@@ -318,7 +318,7 @@ create_integration_compare_plot <- function(
     
   } 
   
-  group_plot <- plot_grid(plotlist = plot_list, ncol = 3)
+  group_plot <- plot_grid(plotlist = plot_list, ncol = 2)
   
   return(group_plot)
   
