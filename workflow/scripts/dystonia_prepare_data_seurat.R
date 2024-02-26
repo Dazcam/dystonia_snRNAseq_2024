@@ -21,10 +21,11 @@ library(tidyverse)
 library(scCustomize)
 library(readxl)
 library(cowplot)
+library(scuttle)
+library(scater)
 options(future.globals.maxSize = 3e+09) # set this option when analyzing large datasets
 options(digits = 1) # Set default decimal points
 options(scipen = 999)
-
 
 ## Set variables  ---------------------------------------------------------------------
 data_dir <- '~/Desktop/dystonia_snRNAseq_2024/resources/'
@@ -72,6 +73,73 @@ basic_qc_plot_glp <- create_basic_qc_plots(seurat_glp)
 basic_qc_plot_cer <- create_basic_qc_plots(seurat_cer) 
 basic_qc_plot_fcx <- create_basic_qc_plots(seurat_fcx) 
 
+# Join layers to apply filters
+seurat_str_join <- JoinLayers(seurat_str)
+
+
+# Not finished
+# Necessary?
+# remove_undetected_genes <- function(
+#     
+#   seurat_obj = NULL
+#     
+#   ) {
+#   
+#   genes_per_cell <- colSums(seurat_obj[["RNA"]]$counts)
+#   plot(density(genes_per_cell), main="", xlab="Genes per cell")
+#   detected_genes <- rowSums(seurat_str_join[["RNA"]]$counts) > 0
+#   seurat_obj <- seurat_obj[detected_genes, ]
+#   
+#   #return(seurat_obj)
+#   
+# }
+
+###. NEW FILTERING SECTION. -----------------------------------------------------------
+
+# Biol Psych thresholds set for fetal samples
+# Cells exp < 1000 genes > 5000 genes
+# > 5% mito
+# > 10% ribo
+# Genes from mito genome excluded
+# Genes expressed in fewer than 3 cells excluded
+# Doublets
+
+#Note: Big difference in UMI / Genes captured may be worth downsampling as control / check
+
+# Convert to single cell experiment
+sce_str <- SingleCellExperiment(list(counts = as(seurat_str_join[["RNA"]]$counts, "dgCMatrix")),
+                                colData = seurat_str_join@meta.data)
+
+sce_str <- get_cell_outliers(sce_str, 3, 'both', 5, 5)
+
+# Remove genes from the seurat object - not SCE!!
+sce.cer <- sce.cer[!grepl("MALAT1", rownames(sce.cer)), ]
+sce.cer <- sce.cer[!grepl("^MT-", rownames(sce.cer)), ]
+
+# Discard cell outliers
+discard <- !all_outliers
+seurat_str_join$discard <- discard
+subset(x = seurat_str_join, subset = discard == TRUE)
+
+create_outlier_plots(sce_str)
+
+            
+# These are scCustomize functions - decided to go Bioconductor route            
+# sum(duplicated(rownames(sce)))
+# seurat_str_join <-  Add_Mito_Ribo_Seurat(seurat_object = seurat_str_join, species = "Human", overwrite = T)
+# seurat_str_join <-  Add_Cell_Complexity_Seurat(seurat_object = seurat_str_join, species = "Human", overwrite = T)       
+# 
+# MAD_stats <- Median_Stats(seurat_object = seurat_str_join, group_by_var = "orig.ident")[1:3] %>%
+#   mutate(mad_x_3_nCount = 3 * mad(seurat_str_join$nCount_RNA))
+#   mutate()
+
+
+
+get_meta_col_counts(seurat_str, 'dissection')
+
+### END FILTERING SECTION. ------------------------------------------------------------
+
+
 # Join and splitting object - not necessary here as objects are already split
 # seurat_str[["RNA"]] <- split(seurat_str[["RNA"]], f = seurat_str$dataset)
 # seurat_join <- JoinLayers(seurat_str[["RNA"]])
@@ -81,9 +149,9 @@ seurat_sk_cer <- create_sketch_object(seurat_cer, 30)
 seurat_sk_fcx <- create_sketch_object(seurat_fcx, 30)
 
 saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
-saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
-saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
-saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
+saveRDS(object = seurat_sk_glp, file = paste0(R_dir, "seurat_sk_glp.Rds"))
+saveRDS(object = seurat_sk_cer, file = paste0(R_dir, "seurat_sk_cer.Rds"))
+saveRDS(object = seurat_sk_fcx, file = paste0(R_dir, "seurat_sk_fcx.Rds"))
 
 # Plot QCs
 cluster_qc_plot_str <- create_cluster_qc_plot(seurat_sk_str, 30)
@@ -155,16 +223,12 @@ av_exp_mat_hip_ftl <- calculate_average_expression(seurat_fetal_hip, 'hip_fetal'
 av_exp_mat_tha_ftl <- calculate_average_expression(seurat_fetal_tha, 'tha_fetal', dystonia_genes)
 av_exp_mat_gem_ftl <- calculate_average_expression(seurat_fetal_wge, 'gem_fetal', dystonia_genes)
 
-
 av_exp_mat_str <- calculate_average_expression(seurat_sk_str, 'str_adult', dystonia_genes)
 av_exp_mat_glp <- calculate_average_expression(seurat_sk_glp, 'glp_adult', dystonia_genes)
 av_exp_mat_cer <- calculate_average_expression(seurat_sk_cer, 'cer_adult', dystonia_genes)
 av_exp_mat_fcx <- calculate_average_expression(seurat_sk_fcx, 'fcx_adult', dystonia_genes)
 
 # AggregateExpression(seurat_sk_cer, features = dystonia_genes)
-
-
-
 av_exp_mat <- cbind(av_exp_mat_str, av_exp_mat_glp, av_exp_mat_cer, av_exp_mat_fcx)
 av_exp_mat_scaled <- t(apply(av_exp_mat, 1, scale)) # centre and scale each col (Z-Score) then t
 colnames(av_exp_mat_scaled) <- colnames(av_exp_mat) 

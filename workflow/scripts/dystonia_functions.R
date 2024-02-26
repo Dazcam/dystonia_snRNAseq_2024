@@ -121,6 +121,133 @@ create_BPCell_seurat_object <- function(
   
 }
 
+get_meta_col_counts <- function(
+    
+  seurat_obj = NULL,
+  meta_col = NULL
+  
+  
+) {
+  
+  seurat_obj@meta.data %>%
+    as_tibble(rownames = 'cell_id') %>%
+    dplyr::select(any_of(c(meta_col))) %>%
+    group_by(.data[[meta_col]]) %>%
+    count()
+  
+}
+
+# Identify cell outliers in sce object
+get_cell_outliers <- function(
+    
+  sce_obj = NULL,
+  mad_thresh = 3,
+  mad_range = 'both',
+  mito_thresh = 5,
+  ribo_tresh = 5 
+  
+) {
+  
+  message('Identifying outliers in sce object ...')
+  # Pull out Mito / Ribo gene names
+  mt_genes <- rownames(sce_obj)[grepl("^MT-", rownames(sce_obj))]
+  ribo_genes <- rownames(sce_obj)[grepl("^RP[LS]", rownames(sce_obj))]
+  
+  # Add per cell QC
+  sce_obj <- addPerCellQC(sce_obj, subsets = list(Mito = mt_genes, Ribo = ribo_genes, HB = hb_genes))
+  
+  # Need log to avoid negative lower threshold
+  sum_outlier <- scater::isOutlier(sce_obj$sum, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  detected_outlier <- scater::isOutlier(sce_obj$detected, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  mito_outlier <- sce_obj$subsets_Mito_percent > mito_thresh
+  ribo_outlier <- sce_obj$subsets_Ribo_percent > ribo_tresh
+  
+  all_outliers <- sum_outlier | detected_outlier | mito_outlier | ribo_outlier
+  
+  outlier_cnts_tbl <- tibble(
+    measure = c('umi', 'genes', 'mito', 'ribo', 'total'), 
+    count = c(sum(sum_outlier), sum(detected_outlier), sum(mito_outlier),
+              sum(ribo_outlier), sum(all_outliers))  
+  ) 
+  
+  message('Cell numbers that will be excluded at specified thresholds:')
+  message(paste0(capture.output(outlier_cnts_tbl), collapse = "\n"), '\n')
+  
+  # Plot outliers
+  message('Plotting ...')
+  create_outlier_plots(sce_obj)
+  
+  return(sce_obj)
+  
+  
+}
+
+# Create outlier plots, run within `get_cell_outliers` function
+# Need to fix the top 50 gene plot
+create_outlier_plots <- function(
+    
+  sce_obj = NULL
+  
+) {
+  
+  # Generate main outlier plots
+  umi_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "sum",
+                                  colour_by = I(sum_outlier)) + ggtitle('UMI per cell')
+  gene_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "detected",
+                                   colour_by = I(detected_outlier)) + ggtitle('Genes per cell')
+  mito_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "subsets_Mito_percent",
+                                   colour_by = I(mito_outlier)) + ggtitle('Mito genes per cell')
+  ribo_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "subsets_Ribo_percent",
+                                   colour_by = I(ribo_outlier)) + ggtitle('Ribo genes per cell')
+  
+  # Get relative expression of each gene per cell and plot
+  # C.sce = counts(sce_obj)
+  # C.sce@x = C.sce@x/rep.int(colSums(C.sce), diff(C.sce@p))
+  # most_expressed <- order(Matrix::rowSums(C.sce), decreasing = T)[50:1]
+  # top_50_plot <- boxplot(as.matrix(t(C.sce[most_expressed, ])), cex = 0.05, 
+  #                        las = 1, xlab = "% total count per cell", cex.axis=0.5,
+  #                        col = (scales::hue_pal())(50)[50:1], horizontal = TRUE)
+  # 
+  outliers_plot <- cowplot::plot_grid(umi_plot, gene_plot, mito_plot, ribo_plot)
+  outliers_plot
+
+}
+
+# Assess hard thresholds for seurat objects / combine with get_cell_outliers?
+# Produces plots and counts for thresholds
+# Need to get it working per batch
+# Probs better doing batch specific thresholds maybe 3 X MAD??
+get_hard_thresholds <- function(
+    
+  seurat_obj = NULL,
+  exclusion_vec = c(5, 5, 1000, 5000, 3)
+  
+) {
+  
+  exclusion_tbl <- tibble(
+    Criterion = c('Mito', 'Ribo', 'Low gene thresh', 'High gene thresh', 'No. genes exp in cells'),
+    Threshold = c(paste0('> ', exclusion_vec[1], '% per cell'), 
+                  paste0('> ', exclusion_vec[2], '% per cell'), 
+                  paste('< ', exclusion_vec[3], ' per cell'), 
+                  paste('< ', exclusion_vec[4], ' per cell'), 
+                  paste('< ', exclusion_vec[5], ' per cell')),
+    'Type excluded' = c('Cell', 'Cell', 'Cell', 'Cell', 'Gene'),
+    'No Excluded' = c(sum(seurat_obj@meta.data$percent_mito > exclusion_vec[1]), 
+                      sum(seurat_obj@meta.data$percent_ribo > exclusion_vec[2]),
+                      sum(seurat_obj@meta.data$nFeature_RNA < exclusion_vec[3]),
+                      sum(seurat_obj@meta.data$nFeature_RNA > exclusion_vec[4]),
+                      sum(rowSums(seurat_obj[["RNA"]]$counts) < exclusion_vec[5]))
+  )
+  
+  message('Cell / Gene numbers that will be excluded at specified thresholds:')
+  message(paste0(capture.output(exclusion_tbl), collapse = "\n"), '\n')
+  QC_Plots_Combined_Vln(seurat_object = seurat_obj, 
+                        feature_cutoffs = c(exclusion_vec[3], exclusion_vec[4]), 
+                        UMI_cutoffs = c(1200, 45000), 
+                        mito_cutoffs = exclusion_vec[1], pt.size = 0.1)
+}
+
+
 create_sketch_object <- function(
     
   seurat_obj = NULL, 
