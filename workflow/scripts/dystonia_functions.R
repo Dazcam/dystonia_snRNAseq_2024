@@ -137,18 +137,19 @@ get_meta_col_counts <- function(
   
 }
 
-# Identify cell outliers in sce object
+# Adds per cell QCs and identifies cell outliers in sce object
 get_cell_outliers <- function(
     
   sce_obj = NULL,
   mad_thresh = 3,
   mad_range = 'both',
   mito_thresh = 5,
-  ribo_tresh = 5 
+  ribo_tresh = 5,
+  genesExpInCell_thresh = 3
   
 ) {
   
-  message('Identifying outliers in sce object ...')
+  message('Identifying cell outliers in sce object ...')
   # Pull out Mito / Ribo gene names
   mt_genes <- rownames(sce_obj)[grepl("^MT-", rownames(sce_obj))]
   ribo_genes <- rownames(sce_obj)[grepl("^RP[LS]", rownames(sce_obj))]
@@ -156,19 +157,21 @@ get_cell_outliers <- function(
   # Add per cell QC
   sce_obj <- addPerCellQC(sce_obj, subsets = list(Mito = mt_genes, Ribo = ribo_genes, HB = hb_genes))
   
-  # Need log to avoid negative lower threshold
-  sum_outlier <- scater::isOutlier(sce_obj$sum, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
-  detected_outlier <- scater::isOutlier(sce_obj$detected, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  # Need log to avoid negative numbers lower threshold
+  sum_outlier <- scuttle::isOutlier(sce_obj$sum, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  detected_outlier <- scuttle::isOutlier(sce_obj$detected, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
   mito_outlier <- sce_obj$subsets_Mito_percent > mito_thresh
   ribo_outlier <- sce_obj$subsets_Ribo_percent > ribo_tresh
-  
-  all_outliers <- sum_outlier | detected_outlier | mito_outlier | ribo_outlier
+
+  cell_outliers <- sum_outlier | detected_outlier | mito_outlier | ribo_outlier 
   
   outlier_cnts_tbl <- tibble(
     measure = c('umi', 'genes', 'mito', 'ribo', 'total'), 
     count = c(sum(sum_outlier), sum(detected_outlier), sum(mito_outlier),
-              sum(ribo_outlier), sum(all_outliers))  
+              sum(ribo_outlier), sum(cell_outliers))  
   ) 
+  
+  sce_obj$cell_outlier <- cell_outliers
   
   message('Cell numbers that will be excluded at specified thresholds:')
   message(paste0(capture.output(outlier_cnts_tbl), collapse = "\n"), '\n')
@@ -209,8 +212,48 @@ create_outlier_plots <- function(
   #                        col = (scales::hue_pal())(50)[50:1], horizontal = TRUE)
   # 
   outliers_plot <- cowplot::plot_grid(umi_plot, gene_plot, mito_plot, ribo_plot)
-  outliers_plot
+  plot(outliers_plot) 
 
+}
+
+# Cell_col is bool vector to append to seurat obj - to ID cells for removal
+# Could streamline this by collating all genes for removal in one var
+subset_seurat_object <- function(
+    
+  seurat_obj = NULL,
+  cell_outliers = NULL,
+  genesExpInCell_thresh = 3
+  
+) {
+  
+  seurat_obj$cell_outlier <- cell_outliers
+  
+  # Check seurat obj dimensions before filters
+  message('Before filtering:')
+  message(paste0(capture.output(seurat_obj), collapse = "\n"), '\n')
+  
+  # Keep cells that are not outliers
+  message('Filtering ', sum(seurat_obj$cell_outlier), ' outlier cells ...')
+  seurat_obj <- subset(x = seurat_obj, subset = cell_outlier == FALSE)
+  
+  # Remove MT genes and MALAT1
+  genes_rm <- c(rownames(seurat_str)[grepl("^MT-", rownames(seurat_str))], "MALAT1")
+  genes_in_many_cells <- rowSums(seurat_obj[["RNA"]]$counts) > genesExpInCell_thresh
+  message('Filtering MT genes and MALAT1, ', length(genes_rm), ' genes will be removed ...\n')
+  seurat_obj <- subset(seurat_obj, features = setdiff(rownames(seurat_str), genes_rm))
+  
+  # Remove genes expresssed in fewer than 3 cells
+  genes_in_many_cells <- rowSums(seurat_obj[["RNA"]]$counts) > genesExpInCell_thresh
+  message('Filtering genes expressed in fewer than 3 cells, removing a further ', 
+          sum(!genes_in_many_cells),  ' genes...\n')
+  seurat_obj <- subset(seurat_obj, features = names(genes_in_many_cells[genes_in_many_cells]))
+  
+  # Check seurat obj dimensions after filters
+  message('After filtering:')
+  message(paste0(capture.output(seurat_obj), collapse = "\n"), '\n')
+  
+  return(seurat_obj)
+  
 }
 
 # Assess hard thresholds for seurat objects / combine with get_cell_outliers?

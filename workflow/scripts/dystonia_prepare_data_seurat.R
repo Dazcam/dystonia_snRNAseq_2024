@@ -77,7 +77,7 @@ basic_qc_plot_fcx <- create_basic_qc_plots(seurat_fcx)
 seurat_str_join <- JoinLayers(seurat_str)
 
 
-# Not finished
+# Not finished - This is picked up in the subset_seurat_object() function
 # Necessary?
 # remove_undetected_genes <- function(
 #     
@@ -102,28 +102,17 @@ seurat_str_join <- JoinLayers(seurat_str)
 # > 10% ribo
 # Genes from mito genome excluded
 # Genes expressed in fewer than 3 cells excluded
-# Doublets
-
-#Note: Big difference in UMI / Genes captured may be worth downsampling as control / check
+# Doublets - will skip this for now
+# Note: Big difference in UMI / Genes captured may be worth down-sampling as control / check
 
 # Convert to single cell experiment
 sce_str <- SingleCellExperiment(list(counts = as(seurat_str_join[["RNA"]]$counts, "dgCMatrix")),
                                 colData = seurat_str_join@meta.data)
 
-sce_str <- get_cell_outliers(sce_str, 3, 'both', 5, 5)
+# Identify cell outliers and apply filters
+sce_str <- get_cell_outliers(sce_str, 3, 'higher', 5, 5)
+seurat_str_join <- subset_seurat_object(seurat_str_join, cell_outliers = sce_str$cell_outlier)
 
-# Remove genes from the seurat object - not SCE!!
-sce.cer <- sce.cer[!grepl("MALAT1", rownames(sce.cer)), ]
-sce.cer <- sce.cer[!grepl("^MT-", rownames(sce.cer)), ]
-
-# Discard cell outliers
-discard <- !all_outliers
-seurat_str_join$discard <- discard
-subset(x = seurat_str_join, subset = discard == TRUE)
-
-create_outlier_plots(sce_str)
-
-            
 # These are scCustomize functions - decided to go Bioconductor route            
 # sum(duplicated(rownames(sce)))
 # seurat_str_join <-  Add_Mito_Ribo_Seurat(seurat_object = seurat_str_join, species = "Human", overwrite = T)
@@ -132,8 +121,6 @@ create_outlier_plots(sce_str)
 # MAD_stats <- Median_Stats(seurat_object = seurat_str_join, group_by_var = "orig.ident")[1:3] %>%
 #   mutate(mad_x_3_nCount = 3 * mad(seurat_str_join$nCount_RNA))
 #   mutate()
-
-
 
 get_meta_col_counts(seurat_str, 'dissection')
 
