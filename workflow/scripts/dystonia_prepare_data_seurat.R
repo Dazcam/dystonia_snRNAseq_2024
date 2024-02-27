@@ -39,142 +39,146 @@ regions <- c('fcx', 'str', 'glp', 'cer')
 fcx_anns <- c('A13', 'A14', 'A25', 'A32', 'A44-A45', 'A46', 'FI', 'M1C')
 str_anns <- c('CaB', 'Pu')
 cer_anns <- c('CBL', 'CBV', 'CbDN')
-glp_anns <- c('GPi', 'GPe')
-all_anns <- c(fcx_anns, str_anns, cer_anns, glp_anns)
+#glp_anns <- c('GPi', 'GPe')
+all_anns <- c(fcx_anns, str_anns, cer_anns)
 anns_table <- read_excel(paste0(data_dir, 'sheets/Stiletti_downloads_table.xlsx'))
 dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), range = 'D1:D26') %>%
   pull(GeneName) 
   
-
+## Load functions and larger varaiables  ----------------------------------------------
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R')
   
 ## Load Data --------------------------------------------------------------------------
-# Download dissection data
-get_dissection_data(glp_anns, anns_table, R_dir, file_format = '.rds')
-get_dissection_data(fcx_anns, anns_table, R_dir, file_format = '.rds')
-get_dissection_data(str_anns, anns_table, R_dir, file_format = '.rds')
-get_dissection_data(cer_anns, anns_table, R_dir, file_format = '.rds')
+# Download dissection data - run once
+# get_dissection_data(fcx_anns, anns_table, R_dir, file_format = '.rds')
+# get_dissection_data(str_anns, anns_table, R_dir, file_format = '.rds')
+# get_dissection_data(cer_anns, anns_table, R_dir, file_format = '.rds')
 
-# Get the original cluster annotations
-stiletti_cluster_anns <- get_cluster_anns(stiletti_dir)
+# Get the original cluster annotations - will probs omit
+# stiletti_cluster_anns <- get_cluster_anns(stiletti_dir)
 
-# Write the counts layer to a directory
-# write_matrix_dir(mat = gpi_obj[["RNA"]]$data, dir = '~/Desktop/test/gpi')
-# counts.mat <- open_matrix_dir(dir = '~/Desktop/test/gpi')
+# Import Seurat object as BPCells object
 seurat_str <- create_BPCell_seurat_object(str_anns, '.rds', R_dir) 
-seurat_glp <- create_BPCell_seurat_object(glp_anns, '.rds', R_dir) 
 seurat_cer <- create_BPCell_seurat_object(cer_anns, '.rds', R_dir)
 seurat_fcx <- create_BPCell_seurat_object(fcx_anns, '.rds', R_dir) 
 
-# Basic qc plots
+# Initial qc plots
 basic_qc_plot_str <- create_basic_qc_plots(seurat_str) 
-basic_qc_plot_glp <- create_basic_qc_plots(seurat_glp) 
 basic_qc_plot_cer <- create_basic_qc_plots(seurat_cer) 
 basic_qc_plot_fcx <- create_basic_qc_plots(seurat_fcx) 
 
-# Join layers to apply filters
-seurat_str_join <- JoinLayers(seurat_str)
-
-
-# Not finished - This is picked up in the subset_seurat_object() function
-# Necessary?
-# remove_undetected_genes <- function(
-#     
-#   seurat_obj = NULL
-#     
-#   ) {
-#   
-#   genes_per_cell <- colSums(seurat_obj[["RNA"]]$counts)
-#   plot(density(genes_per_cell), main="", xlab="Genes per cell")
-#   detected_genes <- rowSums(seurat_str_join[["RNA"]]$counts) > 0
-#   seurat_obj <- seurat_obj[detected_genes, ]
-#   
-#   #return(seurat_obj)
-#   
-# }
-
-###. NEW FILTERING SECTION. -----------------------------------------------------------
-
+### Filtering  -----------------------------------------------------------
 # Biol Psych thresholds set for fetal samples
-# Cells exp < 1000 genes > 5000 genes
+# Cells exp < 1000 genes > 5000 genes (used 3 X MAD [high only] for adult)
 # > 5% mito
-# > 10% ribo
+# > 10% ribo (used 5% for adult)
 # Genes from mito genome excluded
 # Genes expressed in fewer than 3 cells excluded
-# Doublets - will skip this for now
+# Doublets - will skip this for now as done by Stiletti
 # Note: Big difference in UMI / Genes captured may be worth down-sampling as control / check
 
+# Join layers to apply filters
+seurat_str <- JoinLayers(seurat_str)
+seurat_cer <- JoinLayers(seurat_cer)
+
 # Convert to single cell experiment
-sce_str <- SingleCellExperiment(list(counts = as(seurat_str_join[["RNA"]]$counts, "dgCMatrix")),
-                                colData = seurat_str_join@meta.data)
+sce_str <- SingleCellExperiment(list(counts = as(seurat_str[["RNA"]]$counts, "dgCMatrix")),
+                                colData = seurat_str@meta.data)
+sce_cer <- SingleCellExperiment(list(counts = as(seurat_cer[["RNA"]]$counts, "dgCMatrix")),
+                                colData = seurat_cer@meta.data)
 
 # Identify cell outliers and apply filters
 sce_str <- get_cell_outliers(sce_str, 3, 'higher', 5, 5)
-seurat_str_join <- subset_seurat_object(seurat_str_join, cell_outliers = sce_str$cell_outlier)
+sce_cer <- get_cell_outliers(sce_cer, 3, 'higher', 5, 5)
+sce_fcx <- get_cell_outliers(sce_fcx, 3, 'higher', 5, 5)
 
-# These are scCustomize functions - decided to go Bioconductor route            
-# sum(duplicated(rownames(sce)))
-# seurat_str_join <-  Add_Mito_Ribo_Seurat(seurat_object = seurat_str_join, species = "Human", overwrite = T)
-# seurat_str_join <-  Add_Cell_Complexity_Seurat(seurat_object = seurat_str_join, species = "Human", overwrite = T)       
-# 
-# MAD_stats <- Median_Stats(seurat_object = seurat_str_join, group_by_var = "orig.ident")[1:3] %>%
-#   mutate(mad_x_3_nCount = 3 * mad(seurat_str_join$nCount_RNA))
-#   mutate()
+seurat_str <- subset_seurat_object(seurat_str, cell_outliers = sce_str$cell_outlier)
+seurat_cer <- subset_seurat_object(seurat_cer, cell_outliers = sce_cer$cell_outlier)
+seurat_fcx <- subset_seurat_object(seurat_fcx, cell_outliers = sce_fcx$cell_outlier)
 
-get_meta_col_counts(seurat_str, 'dissection')
+# Split by sample ID for downstream analyses
+get_meta_col_counts(seurat_str, 'sample_id')
+get_meta_col_counts(seurat_cer, 'sample_id')
+get_meta_col_counts(seurat_fcx, 'sample_id')
+seurat_str <- split(seurat_str, seurat_str$sample_id)
+seurat_cer <- split(seurat_cer, seurat_cer$sample_id)
+seurat_fcx <- split(seurat_fcx, seurat_cer$sample_id)
 
-### END FILTERING SECTION. ------------------------------------------------------------
-
-
-# Join and splitting object - not necessary here as objects are already split
-# seurat_str[["RNA"]] <- split(seurat_str[["RNA"]], f = seurat_str$dataset)
-# seurat_join <- JoinLayers(seurat_str[["RNA"]])
+# Create sketch object an run default Seurat processing
 seurat_sk_str <- create_sketch_object(seurat_str, 30)
-seurat_sk_glp <- create_sketch_object(seurat_glp, 30)
 seurat_sk_cer <- create_sketch_object(seurat_cer, 30)
-seurat_sk_fcx <- create_sketch_object(seurat_fcx, 30)
-
-saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
-saveRDS(object = seurat_sk_glp, file = paste0(R_dir, "seurat_sk_glp.Rds"))
-saveRDS(object = seurat_sk_cer, file = paste0(R_dir, "seurat_sk_cer.Rds"))
-saveRDS(object = seurat_sk_fcx, file = paste0(R_dir, "seurat_sk_fcx.Rds"))
+seurat_sk_fcx <- create_sketch_object(seurat_fcx, 50)
 
 # Plot QCs
 cluster_qc_plot_str <- create_cluster_qc_plot(seurat_sk_str, 30)
-cluster_qc_plot_glp <- create_cluster_qc_plot(seurat_sk_glp, 30)
 cluster_qc_plot_cer <- create_cluster_qc_plot(seurat_sk_cer, 30)
 cluster_qc_plot_fcx <- create_cluster_qc_plot(seurat_sk_fcx, 30)
 
 # Cluster counts - Need to change to full dataset first data first
 seurat_sk_fcx$seurat_clusters
 
+
 # Choose PC threshold
 pca_plot_str <- DimHeatmap(seurat_sk_str, dims = 20:30, cells = 500, balanced = TRUE)
-pca_plot_glp <- DimHeatmap(seurat_sk_glp, dims = 20:30, cells = 500, balanced = TRUE)
 pca_plot_cer <- DimHeatmap(seurat_sk_cer, dims = 20:30, cells = 500, balanced = TRUE)
-pca_plot_fcx <- DimHeatmap(seurat_sk_fcx, dims = 20:30, cells = 500, balanced = TRUE)
+pca_plot_fcx <- DimHeatmap(seurat_sk_fcx, dims = 30:50, cells = 500, balanced = TRUE)
+
+# Consider using PCA tools - but how to pull out 
+#https://github.com/kevinblighe/PCAtools/issues/36
+VarFeatNorm = seurat_sk_str@assays$sketch@layers$scale.data
+colnames(VarFeatNorm) <- colnames(seurat_sk_str)
+p = PCAtools::pca(VarFeatNorm, rank = 30, BSPARAM = IrlbaParam(), metadata = seurat_sk_str@meta.data)
+scree_plot <- PCAtools::screeplot(seurat_sk_str@reductions$pca, axisLabSize = 18, titleLabSize = 22)
+
+# Switch between dataset types
+# Analyze the full dataset (on-disk)
+# DefaultAssay(obj) <- "RNA"
+# # Analyse the sketched dataset (in-memory)
+# DefaultAssay(obj) <- "sketch"
 
 ## Integration
 seurat_sk_str <- run_integration(seurat_sk_str)
-seurat_sk_glp <- run_integration(seurat_sk_glp)
 seurat_sk_cer <- run_integration(seurat_sk_cer)
 seurat_sk_fcx <- run_integration(seurat_sk_fcx)
 
 int_plot_str <- create_integration_plot(seurat_sk_str) 
-int_plot_glp <- create_integration_plot(seurat_sk_glp) 
 int_plot_cer <- create_integration_plot(seurat_sk_cer) 
 int_plot_fcx <- create_integration_plot(seurat_sk_fcx) 
 
-# Join layers - Need to do this before stacked vln plotting
+## This needs to be run after integration --------------------------------
+## Not ran this yet - may take a while!!
+project_sketch_data(seurat_sk_str, 30) 
+project_sketch_data(seurat_sk_fcx, 30) 
+project_sketch_data(seurat_sk_str, 50) 
+
+# Join layers - Need to do this before stacked vln plotting of diff expression
 seurat_sk_str <- JoinLayers(seurat_sk_str)
-seurat_sk_glp <- JoinLayers(seurat_sk_glp)
 seurat_sk_cer <- JoinLayers(seurat_sk_cer)
 seurat_sk_fcx <- JoinLayers(seurat_sk_fcx)
 
+# Save seurat objects
+saveRDS(object = seurat_sk_str, file = paste0(R_dir, "seurat_sk_str.Rds"))
+saveRDS(object = seurat_sk_cer, file = paste0(R_dir, "seurat_sk_cer.Rds"))
+saveRDS(object = seurat_sk_fcx, file = paste0(R_dir, "seurat_sk_fcx.Rds"))
+
+
+### NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
+# 13 and 25 experesses GAD 1 and the OLIGS
+# 22 does not express GAD but exp InN transporters
+# Striatum
+seurat_sk_str$harmony_clusters_recode <- str_clusters_recode
+str_umap <- DimPlot(seurat_sk_str, reduction = 'umap.harmony', group.by = 'harmony_clusters_recode',
+                    cols = str_umap_cols_recode)
+
+str_umap | vln_plot_general_str
+
+### END NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
+
+## Plot gene expression violin plot  ------------------------------------------------------
 # Gene check
-vln_plot_general_str <- create_stacked_vln_plot(seurat_sk_str, general_genes, 'Striatum')
-vln_plot_general_glp <- create_stacked_vln_plot(seurat_sk_glp, general_genes, 'Globus Pallidus')
+vln_plot_general_str <- create_stacked_vln_plot(seurat_sk_str, 'harmony_clusters_recode',
+                                                general_genes, 'Striatum', str_vln_cols_recode)
 vln_plot_general_cer <- create_stacked_vln_plot(seurat_sk_cer, general_genes, 'Cerebellum')
 vln_plot_general_fcx <- create_stacked_vln_plot(seurat_sk_fcx, general_genes, 'Frontal Cortex')
 
@@ -183,12 +187,9 @@ vln_plot_specific_cer <- create_stacked_vln_plot(seurat_sk_cer, cer_genes, 'Cere
 vln_plot_specific_fcx <- create_stacked_vln_plot(seurat_sk_fcx, fcx_genes, 'Frontal Cortex')
 
 # Dystonia gene check
-vln_plot_dyst_str <- create_stacked_vln_plot(seurat_sk_str, dystonia_genes, 'Striatum')
-vln_plot_dyst_glp <- create_stacked_vln_plot(seurat_sk_glp, dystonia_genes, 'Globus Pallidus')
+vln_plot_dyst_str <- create_stacked_vln_plot(seurat_sk_str, dystonia_genes, 'Striatum', str_vln_cols)
 vln_plot_dyst_cer <- create_stacked_vln_plot(seurat_sk_cer, dystonia_genes, 'Cerebellum')
 vln_plot_dyst_fcx <- create_stacked_vln_plot(seurat_sk_fcx, dystonia_genes, 'Frontal Cortex')
-
-
 
 create_stacked_vln_plot(seurat_sk_cer, cer_genes, 'Cerebellum')
 
@@ -211,7 +212,6 @@ av_exp_mat_tha_ftl <- calculate_average_expression(seurat_fetal_tha, 'tha_fetal'
 av_exp_mat_gem_ftl <- calculate_average_expression(seurat_fetal_wge, 'gem_fetal', dystonia_genes)
 
 av_exp_mat_str <- calculate_average_expression(seurat_sk_str, 'str_adult', dystonia_genes)
-av_exp_mat_glp <- calculate_average_expression(seurat_sk_glp, 'glp_adult', dystonia_genes)
 av_exp_mat_cer <- calculate_average_expression(seurat_sk_cer, 'cer_adult', dystonia_genes)
 av_exp_mat_fcx <- calculate_average_expression(seurat_sk_fcx, 'fcx_adult', dystonia_genes)
 
@@ -294,12 +294,6 @@ plotloadings(pca_test,
 
 plot_grid(pca_all, pca_bio, align = 'hvlr')
 
-## ------ Still to do
-# mad_stats <- MAD_Stats(seurat_object = seurat_sk_fcx, group_by_var = "orig.ident", mad_num = 3)
-# Number of undetected genes
-detected_genes <- rowSums(counts(sce)) > 0
-table(detected_genes)
-
 
 ## Create markdown doc  ---------------------------------------------------------------
 rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
@@ -319,10 +313,6 @@ ann <- seurat_sketch@meta.data %>%
   left_join(stiletti_cluster_anns, by = join_by(cluster_id)) %>%
   pull(clusterAnn)
   
-
-          
-
-
 seurat_merged <- SCTransform(seurat_str) %>%
   RunPCA() %>%
   FindNeighbors(dims = 1:30) %>%

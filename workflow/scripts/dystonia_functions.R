@@ -142,10 +142,9 @@ get_cell_outliers <- function(
     
   sce_obj = NULL,
   mad_thresh = 3,
-  mad_range = 'both',
+  mad_range = NULL,
   mito_thresh = 5,
-  ribo_tresh = 5,
-  genesExpInCell_thresh = 3
+  ribo_thresh = 5
   
 ) {
   
@@ -155,13 +154,15 @@ get_cell_outliers <- function(
   ribo_genes <- rownames(sce_obj)[grepl("^RP[LS]", rownames(sce_obj))]
   
   # Add per cell QC
-  sce_obj <- addPerCellQC(sce_obj, subsets = list(Mito = mt_genes, Ribo = ribo_genes, HB = hb_genes))
+  sce_obj <- addPerCellQC(sce_obj, subsets = list(Mito = mt_genes, Ribo = ribo_genes))
   
   # Need log to avoid negative numbers lower threshold
-  sum_outlier <- scuttle::isOutlier(sce_obj$sum, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
-  detected_outlier <- scuttle::isOutlier(sce_obj$detected, type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  sum_outlier <- scuttle::isOutlier(sce_obj$sum,  nmads = mad_thresh, 
+                                    type = mad_range, batch = sce_obj$sample_id, log = TRUE)
+  detected_outlier <- scuttle::isOutlier(sce_obj$detected,  nmads = mad_thresh, 
+                                         type = mad_range, batch = sce_obj$sample_id, log = TRUE)
   mito_outlier <- sce_obj$subsets_Mito_percent > mito_thresh
-  ribo_outlier <- sce_obj$subsets_Ribo_percent > ribo_tresh
+  ribo_outlier <- sce_obj$subsets_Ribo_percent > ribo_thresh
 
   cell_outliers <- sum_outlier | detected_outlier | mito_outlier | ribo_outlier 
   
@@ -187,6 +188,7 @@ get_cell_outliers <- function(
 
 # Create outlier plots, run within `get_cell_outliers` function
 # Need to fix the top 50 gene plot
+# Should add choice of meta data column for x axis
 create_outlier_plots <- function(
     
   sce_obj = NULL
@@ -237,10 +239,10 @@ subset_seurat_object <- function(
   seurat_obj <- subset(x = seurat_obj, subset = cell_outlier == FALSE)
   
   # Remove MT genes and MALAT1
-  genes_rm <- c(rownames(seurat_str)[grepl("^MT-", rownames(seurat_str))], "MALAT1")
+  genes_rm <- c(rownames(seurat_obj)[grepl("^MT-", rownames(seurat_obj))], "MALAT1")
   genes_in_many_cells <- rowSums(seurat_obj[["RNA"]]$counts) > genesExpInCell_thresh
   message('Filtering MT genes and MALAT1, ', length(genes_rm), ' genes will be removed ...\n')
-  seurat_obj <- subset(seurat_obj, features = setdiff(rownames(seurat_str), genes_rm))
+  seurat_obj <- subset(seurat_obj, features = setdiff(rownames(seurat_obj), genes_rm))
   
   # Remove genes expresssed in fewer than 3 cells
   genes_in_many_cells <- rowSums(seurat_obj[["RNA"]]$counts) > genesExpInCell_thresh
@@ -350,9 +352,9 @@ create_cluster_qc_plot <- function(
   cluster_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap")
   elbow_plot <- Seurat::ElbowPlot(seurat_obj, ndims = dims)
   dataset_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'dataset') 
-  donor_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'orig.ident')
+  donor_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'sample_id')
   bar_plot_dataset <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'dataset')
-  bar_plot_donor <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'orig.ident')
+  bar_plot_donor <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'sample_id')
   
   qc_plot <- cowplot::plot_grid(cluster_plot, elbow_plot, 
                                 dataset_plot, bar_plot_dataset,
@@ -467,9 +469,9 @@ create_proportion_barplot <- function(seurat_obj = NULL,
 
 create_integration_plot <- function(
     
-  seurat_obj = seurat_sk_str, 
+  seurat_obj = NULL, 
   reductions = c('harmony'), 
-  meta_id = 'orig.ident',
+  meta_id = 'sample_id',
   dims = 30
   
 ) {
@@ -478,8 +480,8 @@ create_integration_plot <- function(
   
   for (i in 1:length(reductions)) {
     
-    cluster_plot <- scCustomize::DimPlot_scCustom(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = paste0(reductions[i], '_clusters'))
-    meta_plot <- scCustomize::DimPlot_scCustom(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = meta_id)
+    cluster_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = paste0(reductions[i], '_clusters'))
+    meta_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = meta_id)
     bar_plot <- create_proportion_barplot(seurat_obj, paste0(reductions[i], '_clusters'), meta_id)
     
     plot_list[[paste0(reductions[i], '_cluster')]]  <- cluster_plot
@@ -497,14 +499,16 @@ create_integration_plot <- function(
 create_stacked_vln_plot <- function(
     
   seurat_obj = NULL,
+  set_ident = 'seurat_clusters',
   genes = NULL,
-  plot_title = NULL
+  plot_title = NULL,
+  col_pal = NULL
   
 ) {
   
-  Idents(seurat_obj) <- seurat_obj$seurat_clusters
+  Idents(seurat_obj) <- unname(unlist((seurat_obj[[set_ident]])))
   VlnPlot(seurat_obj, genes, stack = TRUE, flip = TRUE, 
-          same.y.lims = TRUE, fill.by = 'ident') +
+          same.y.lims = TRUE, fill.by = 'ident', cols = col_pal) +
     theme(legend.position = "none",
           plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
           panel.grid.major = element_blank(), 
@@ -532,5 +536,34 @@ calculate_average_expression <- function(
   colnames(av_exp_mat) <- paste0(region, '_', seq(0, ncol(av_exp_mat) - 1, 1))
   
   return(av_exp_mat)
+  
+}
+
+# Project info generated on Seurat sketch object onto entire dataset
+project_sketch_data <- function(
+    
+  seurat_obj = NULL,
+  dimensions = 30
+  
+) {
+  
+  seurat_obj <- ProjectData(
+    object = seurat_obj,
+    assay = "RNA",
+    full.reduction = "pca.full",
+    sketched.assay = "sketch",
+    sketched.reduction = "pca",
+    umap.model = "umap",
+    dims = dimensions,
+    refdata = list(cluster_full = "seurat_clusters")
+    
+  )
+  
+  seurat_obj <- ProjectIntegration(object = seurat_obj,
+                                   sketched.assay = "sketch",
+                                   assay = "RNA",
+                                   reduction = "harmony")
+  
+  return(seurat_obj)
   
 }
