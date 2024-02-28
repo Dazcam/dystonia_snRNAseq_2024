@@ -130,10 +130,10 @@ get_meta_col_counts <- function(
 ) {
   
   seurat_obj@meta.data %>%
-    as_tibble(rownames = 'cell_id') %>%
+    tibble::as_tibble(rownames = 'cell_id') %>%
     dplyr::select(any_of(c(meta_col))) %>%
-    group_by(.data[[meta_col]]) %>%
-    count()
+    dplyr::group_by(.data[[meta_col]]) %>%
+    dplyr::count()
   
 }
 
