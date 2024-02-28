@@ -157,7 +157,7 @@ get_cell_outliers <- function(
   sce_obj <- addPerCellQC(sce_obj, subsets = list(Mito = mt_genes, Ribo = ribo_genes))
   
   # Need log to avoid negative numbers lower threshold
-  sum_outlier <- scuttle::isOutlier(sce_obj$sum,  nmads = mad_thresh, 
+  sum_outlier <- scuttle::isOutlier(sce_obj$sum, nmads = mad_thresh, 
                                     type = mad_range, batch = sce_obj$sample_id, log = TRUE)
   detected_outlier <- scuttle::isOutlier(sce_obj$detected,  nmads = mad_thresh, 
                                          type = mad_range, batch = sce_obj$sample_id, log = TRUE)
@@ -179,7 +179,8 @@ get_cell_outliers <- function(
   
   # Plot outliers
   message('Plotting ...')
-  create_outlier_plots(sce_obj)
+  create_outlier_plots(sce_obj, sum_outlier, detected_outlier, 
+                       mito_outlier, ribo_outlier)
   
   return(sce_obj)
   
@@ -189,9 +190,14 @@ get_cell_outliers <- function(
 # Create outlier plots, run within `get_cell_outliers` function
 # Need to fix the top 50 gene plot
 # Should add choice of meta data column for x axis
+# Booleans of whether cell is an outlier. T = outlier.
 create_outlier_plots <- function(
     
-  sce_obj = NULL
+  sce_obj = NULL,
+  sum_outlier = NULL,
+  detected_outlier = NULL,
+  mito_outlier = NULL,
+  ribo_outlier = NULL
   
 ) {
   

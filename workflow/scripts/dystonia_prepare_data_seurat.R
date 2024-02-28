@@ -81,12 +81,16 @@ basic_qc_plot_fcx <- create_basic_qc_plots(seurat_fcx)
 # Join layers to apply filters
 seurat_str <- JoinLayers(seurat_str)
 seurat_cer <- JoinLayers(seurat_cer)
+seurat_fcx<- JoinLayers(seurat_fcx)
 
 # Convert to single cell experiment
 sce_str <- SingleCellExperiment(list(counts = as(seurat_str[["RNA"]]$counts, "dgCMatrix")),
                                 colData = seurat_str@meta.data)
 sce_cer <- SingleCellExperiment(list(counts = as(seurat_cer[["RNA"]]$counts, "dgCMatrix")),
                                 colData = seurat_cer@meta.data)
+sce_fcx <- SingleCellExperiment(list(counts = as(seurat_fcx[["RNA"]]$counts, "dgCMatrix")),
+                                colData = seurat_cer@meta.data)
+
 
 # Identify cell outliers and apply filters
 sce_str <- get_cell_outliers(sce_str, 3, 'higher', 5, 5)
