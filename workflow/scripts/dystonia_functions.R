@@ -355,16 +355,17 @@ create_basic_qc_plots <- function(seurat_obj = NULL,
 create_cluster_qc_plot <- function(
     
   seurat_obj = NULL, 
-  dims = 30
+  dims = 30, 
+  meta_id = 'sample_id'
   
 ) {
   
   cluster_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap")
   elbow_plot <- Seurat::ElbowPlot(seurat_obj, ndims = dims)
   dataset_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'dataset') 
-  donor_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'sample_id')
+  donor_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = meta_id)
   bar_plot_dataset <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'dataset')
-  bar_plot_donor <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = 'sample_id')
+  bar_plot_donor <- create_proportion_barplot(seurat_obj, paste0('seurat_clusters'), meta_id = meta_id)
   
   qc_plot <- cowplot::plot_grid(cluster_plot, elbow_plot, 
                                 dataset_plot, bar_plot_dataset,
