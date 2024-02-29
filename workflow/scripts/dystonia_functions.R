@@ -172,6 +172,10 @@ get_cell_outliers <- function(
               sum(ribo_outlier), sum(cell_outliers))  
   ) 
   
+  sce_obj$sum_outlier <- sum_outlier
+  sce_obj$detected_outlier <- detected_outlier
+  sce_obj$mito_outlier <- mito_outlier
+  sce_obj$ribo_outlier <- ribo_outlier
   sce_obj$cell_outlier <- cell_outliers
   
   message('Cell numbers that will be excluded at specified thresholds:')
@@ -542,6 +546,23 @@ calculate_average_expression <- function(
   colnames(av_exp_mat) <- paste0(region, '_', seq(0, ncol(av_exp_mat) - 1, 1))
   
   return(av_exp_mat)
+  
+}
+
+calculate_aggregated_expression <- function(
+    
+  seurat_obj = NULL,
+  region = NULL,
+  gene_list = NULL
+  
+) {
+  
+  message('Calculating aggregated feature expression ...')
+  agg_exp_mat <- AggregateExpression(seurat_obj, features = gene_list)
+  agg_exp_mat <- av_exp_mat$RNA
+  colnames(agg_exp_mat) <- paste0(region, '_', seq(0, ncol(agg_exp_mat) - 1, 1))
+  
+  return(agg_exp_mat)
   
 }
 
