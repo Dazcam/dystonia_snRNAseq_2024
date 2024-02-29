@@ -36,11 +36,23 @@ cer_genes_cameron <- c("GAD1", "EOMES", "GLI3", "OLIG1", "MKI67",
 general_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
                    'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
                    'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
-                   'C3', 'C1QB',            # MG markers
-                   'AQP4', 'SOX9', 'GFAP',         # Astrocytes 
-                   'OLIG1', 'OLIG2', 'MBP',        # Oligodendrocytes
+                   'C3', 'C1QB',                           # MG markers
+                   'AQP4', 'SOX9', 'GFAP',        # Astrocytes 
+                   'OLIG1', 'OLIG2', 'MBP',                # Oligodendrocytes
                    'PDGRFA', 'PMP2',
                    'EOMES', 'EBF1', 'ABCB1') 
+
+fcx_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
+               'CUX3', #L2/3
+               'RORB', #L4
+               'TLE4', #L5/6
+               'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
+               'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
+               'C3', 'C1QB',            # MG markers
+               'AQP4', 'SOX9', 'GFAP',         # Astrocytes 
+               'OLIG1', 'OLIG2', 'MBP',        # Oligodendrocytes
+               'PDGRFA', 'PMP2',
+               'EOMES', 'EBF1', 'ABCB1') 
 
 # Striatum. ---------------------------------------------------------------------------
 # https://cssgradient.io/shades-of-green/
@@ -112,6 +124,73 @@ if (exists('seurat_sk_str')) {
                            "Str-adult-InN-16" = '#3CBB75FF', "Str-adult-InN-17" = '#3CBB75FF', "Str-adult-Ast-2" = '#FF5959', 
                            "Str-adult-InN-18" = '#3CBB75FF', "Str-OPC-3" = '#FDE725FF')
 }
+
+fcx_clusters_recode <- seurat_sk_fcx@meta.data %>% 
+  as_tibble() %>%
+  mutate(harmony_clusters_recode = recode(harmony_clusters, 
+                                          `0` = "FCX-adult-ExN-1", 
+                                          `1` = "FCX-adult-ExN-2",
+                                          `2` = "FCX-adult-InN-1",
+                                          `3` = "FCX-adult-ExN-3",
+                                          `4` = "FCX-adult-Olig-1",
+                                          `5` = "FCX-adult-InN-2",
+                                          `6` = "FCX-adult-InN-3",
+                                          `7` = "FCX-adult-Ast-1",
+                                          `8` = "FCX-adult-InN-4",
+                                          `9` = "FCX-adult-ExN-4",
+                                          `10` = "FCX-adult-ExN-5",
+                                          `11` = "FCX-adult-InN-5",
+                                          `12` = "FCX-adult-InN-6",
+                                          `13` = "FCX-adult-Olig-2",
+                                          `14` = "FCX-adult-ExN-6",
+                                          `15` = "FCX-adult-ExN-7",
+                                          `16` = "FCX-adult-InN-7",
+                                          `17` = "FCX-adult-ExN-8",
+                                          `18` = "FCX-adult-InN-8",
+                                          `19` = "FCX-adult-ExN-9",
+                                          `20` = "FCX-adult-ExN-10",
+                                          `21` = "FCX-adult-ExN-11",
+                                          `22` = "FCX-adult-MG-1",
+                                          `23` = "FCX-adult-ExN-12",
+                                          `24` = "FCX-adult-InN-9",
+                                          `25` = "FCX-adult-ExN-13",
+                                          `26` = "FCX-adult-InN-10",
+                                          `27` = "FCX-adult-Ast-2",
+                                          `28` = "FCX-adult-InN-11",
+                                          `29` = "FCX-adult-InN-12",
+                                          `30` = "FCX-adult-InN-13",
+                                          `31` = "FCX-adult-InN-14",
+                                          `32` = "FCX-adult-ExN-14",
+                                          `33` = "FCX-adult-Endo-??",
+                                          `34` = "FCX-adult-ExN-15",
+                                          `35` = "FCX-adult-Olig-3")) %>%
+  pull(harmony_clusters_recode)
+
+fcx_umap_cols_recode <- c("FCX-adult-ExN-1" = '#00B6EB' , "FCX-adult-ExN-2" = '#CEE5FD', "FCX-adult-InN-1" = '#3CBB75FF',
+                          "FCX-adult-ExN-3" = "#00BDD2", "FCX-adult-Olig-1" = '#FDE725FF', "FCX-adult-InN-2" = '#006400', 
+                          "FCX-adult-InN-3" = '#2FF18B', "FCX-adult-Ast-1" = '#FF5959', "FCX-adult-InN-4" = '#95D840FF', 
+                          "FCX-adult-ExN-4" = '#779CBA', "FCX-adult-ExN-5" = '#76B5C5', "FCX-adult-InN-5" = '#708238', 
+                          "FCX-adult-InN-6" = '#00BE67', "FCX-adult-Olig-2" = '#FDE725FF', "FCX-adult-ExN-6" = '#ABDBE3', 
+                          "FCX-adult-ExN-7" = '#1E81B0', "FCX-adult-InN-7" = '#31C53F', "FCX-adult-ExN-8" = '#76B5C5', 
+                          "FCX-adult-InN-8" = '#10A53DFF', "FCX-adult-ExN-9" = '#76B5C5', "FCX-adult-ExN-10" = "#00BDD2", 
+                          "FCX-adult-ExN-11" = '#CEE5FD', "FCX-adult-MG-1" = '#F58231', "FCX-adult-ExN-12" = '#00B6EB', 
+                          "FCX-adult-InN-9" = '#00FF00A5', "FCX-adult-ExN-13" = '#779CBA', "FCX-adult-InN-10" = '#B7FFB7', 
+                          "FCX-adult-Ast-2" = '#EF0029', "FCX-adult-InN-11" = '#9DC183', "FCX-adult-InN-12" = '#31C53F', 
+                          "FCX-adult-InN-13" = '#3CBB75FF', "FCX-adult-InN-14" = '#006400', "FCX-adult-ExN-14" = '#ABDBE3', 
+                          "FCX-adult-Endo" = '#6F2DA8', "FCX-adult-ExN-15" = '#00B6EB', "FCX-adult-Olig-3" = '#FDE725FF')
+
+fcx_vln_cols_recode <- c("FCX-adult-ExN-1" = '#00B6EB' , "FCX-adult-ExN-2" = '#00B6EB', "FCX-adult-InN-1" = '#3CBB75FF',
+                         "FCX-adult-ExN-3" = '#00B6EB', "FCX-adult-Olig-1" = '#FDE725FF', "FCX-adult-InN-2" = '#3CBB75FF', 
+                         "FCX-adult-InN-3" = '#3CBB75FF', "FCX-adult-Ast-1" = '#FF5959', "FCX-adult-InN-4" = '#3CBB75FF', 
+                         "FCX-adult-ExN-4" = '#00B6EB', "FCX-adult-ExN-5" = '#00B6EB', "FCX-adult-InN-5" = '#3CBB75FF', 
+                         "FCX-adult-InN-6" = '#3CBB75FF', "FCX-adult-Olig-2" = '#FDE725FF', "FCX-adult-ExN-6" = '#00B6EB', 
+                         "FCX-adult-ExN-7" = '#00B6EB', "FCX-adult-InN-7" = '#3CBB75FF', "FCX-adult-ExN-8" = '#00B6EB', 
+                         "FCX-adult-InN-8" = '#3CBB75FF', "FCX-adult-ExN-9" = '#00B6EB', "FCX-adult-ExN-10" = '#00B6EB', 
+                         "FCX-adult-ExN-11" = '#00B6EB', "FCX-adult-MG-1" = '#F58231', "FCX-adult-ExN-12" = '#00B6EB', 
+                         "FCX-adult-InN-9" = '#3CBB75FF', "FCX-adult-ExN-13" = '#00B6EB', "FCX-adult-InN-10" = '#3CBB75FF', 
+                         "FCX-adult-Ast-2" = '#FF5959', "FCX-adult-InN-11" = '#3CBB75FF', "FCX-adult-InN-12" = '#3CBB75FF', 
+                         "FCX-adult-InN-13" = '#3CBB75FF', "FCX-adult-InN-14" = '#3CBB75FF', "FCX-adult-ExN-14" = '#00B6EB', 
+                         "FCX-adult-Endo" = '#6F2DA8', "FCX-adult-ExN-15" = '#00B6EB', "FCX-adult-Olig-3" = '#FDE725FF')
 
 # Old colours
 
