@@ -560,7 +560,7 @@ calculate_aggregated_expression <- function(
   
   message('Calculating aggregated feature expression ...')
   agg_exp_mat <- AggregateExpression(seurat_obj, features = gene_list)
-  agg_exp_mat <- av_exp_mat$RNA
+  agg_exp_mat <- agg_exp_mat$RNA
   colnames(agg_exp_mat) <- paste0(region, '_', seq(0, ncol(agg_exp_mat) - 1, 1))
   
   return(agg_exp_mat)
