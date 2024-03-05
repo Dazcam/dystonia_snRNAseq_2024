@@ -73,7 +73,7 @@ str_vln_cols <- c('0' = '#3CBB75FF','1' = '#3CBB75FF','2' = '#3CBB75FF','3' = '#
 
 # Can only be loaded when appropriate object exist
 if (exists('seurat_sk_str')) {
-  str_clusters_recode <- seurat_sk_str@meta.data %>% 
+  str_clusters_recode <- seurat_object@meta.data %>% 
     as_tibble() %>%
     mutate(harmony_clusters_recode = recode(harmony_clusters, 
                                             `0` = "Str-adult-InN-1", 
@@ -81,50 +81,51 @@ if (exists('seurat_sk_str')) {
                                             `2` = "Str-adult-InN-3",
                                             `3` = "Str-adult-InN-4",
                                             `4` = "Str-adult-InN-5",
-                                            `5` = "Str-OPC-1",
+                                            `5` = "Str-adult-Olig-1",
                                             `6` = "Str-adult-InN-6",
                                             `7` = "Str-adult-InN-7",
                                             `8` = "Str-adult-InN-8",
-                                            `9` = "Str-adult-Ast-1",
-                                            `10` = "Str-adult-InN-9",
+                                            `9` = "Str-adult-InN-9",
+                                            `10` = "Str-adult-Ast-1",
                                             `11` = "Str-adult-InN-10",
                                             `12` = "Str-adult-InN-11",
-                                            `13` = "Str-OPC-2",
+                                            `13` = "Str-adult-Olig-2",
                                             `14` = "Str-adult-InN-12",
-                                            `15` = "Str-adult-InN-13",
-                                            `16` = "Str-adult-ExN-1",
-                                            `17` = "Str-adult-MG",
-                                            `18` = "Str-adult-InN-14",
-                                            `19` = "Str-adult-InN-15",
-                                            `20` = "Str-adult-ExN-2",
+                                            `15` = "Str-adult-MG",
+                                            `16` = "Str-adult-InN-13",
+                                            `17` = "Str-adult-ExN-1",
+                                            `18` = "Str-adult-ExN-2",
+                                            `19` = "Str-adult-InN-14",
+                                            `20` = "Str-adult-InN-15",
                                             `21` = "Str-adult-InN-16",
                                             `22` = "Str-adult-InN-17",
-                                            `23` = "Str-adult-Ast-1",
-                                            `24` = "Str-adult-InN-18",
-                                            `25` = "Str-OPC-3")) %>%
+                                            `23` = "Str-adult-Ast-2",
+                                            `24` = "Str-adult-Olig-3")) %>%
     pull(harmony_clusters_recode)
   
   str_umap_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#708238', 
-                            "Str-adult-InN-4" = '#B7FFB7', "Str-adult-InN-5" = '#006400', "Str-OPC-1" = '#FDE725FF', 
+                            "Str-adult-InN-4" = '#B7FFB7', "Str-adult-InN-5" = '#006400', "Str-adult-Olig-1" = '#FDE725FF', 
                             "Str-adult-InN-6" = '#95D840FF', "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#9DC183', 
-                            "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#31C53F', 
-                            "Str-adult-InN-11" = '#708238', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#006400', 
-                            "Str-adult-InN-13" = '#95D840FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
-                            "Str-adult-InN-14" = '#2FF18B', "Str-adult-InN-15" = '#9DC183', "Str-adult-ExN-2" = '#00B6EB', 
+                            "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-10" = '#31C53F', 
+                            "Str-adult-InN-11" = '#708238', "Str-adult-Olig-2" = '#FDE725FF', "Str-adult-InN-12" = '#006400', 
+                            "Str-adult-MG" = '#F58231', "Str-adult-InN-13" = '#95D840FF', "Str-adult-ExN-1" = '#00B6EB', 
+                            "Str-adult-ExN-2" = '#00B6EB', "Str-adult-InN-14" = '#2FF18B', "Str-adult-InN-15" = '#9DC183', 
                             "Str-adult-InN-16" = '#0CB702', "Str-adult-InN-17" = '#00BE67', "Str-adult-Ast-2" = '#FF5959', 
-                            "Str-adult-InN-18" = '#7CAE00', "Str-OPC-3" = '#FDE725FF')
+                            "Str-adult-Olig-3" = '#FDE725FF')
   
   str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
-                           "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-OPC-1" = '#FDE725FF', 
+                           "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-adult-Olig-1" = '#FDE725FF', 
                            "Str-adult-InN-6" = '#3CBB75FF', "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', 
-                           "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#3CBB75FF', 
-                           "Str-adult-InN-11" = '#3CBB75FF', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#3CBB75FF', 
-                           "Str-adult-InN-13" = '#3CBB75FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
-                           "Str-adult-InN-14" = '#3CBB75FF', "Str-adult-InN-15" = '#3CBB75FF', "Str-adult-ExN-2" = '#00B6EB', 
+                           "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-10" = '#3CBB75FF', 
+                           "Str-adult-InN-11" = '#3CBB75FF', "Str-adult-Olig-2" = '#FDE725FF', "Str-adult-InN-12" = '#3CBB75FF', 
+                           "Str-adult-MG" = '#F58231', "Str-adult-InN-13" = '#3CBB75FF', "Str-adult-ExN-1" = '#00B6EB', 
+                           "Str-adult-ExN-2" = '#00B6EB', "Str-adult-InN-14" = '#3CBB75FF', "Str-adult-InN-15" = '#3CBB75FF',  
                            "Str-adult-InN-16" = '#3CBB75FF', "Str-adult-InN-17" = '#3CBB75FF', "Str-adult-Ast-2" = '#FF5959', 
-                           "Str-adult-InN-18" = '#3CBB75FF', "Str-OPC-3" = '#FDE725FF')
+                           "Str-adult-Olig-3" = '#FDE725FF')
 }
 
+if (exists('seurat_sk_str')) {
+# Frontal cortex
 fcx_clusters_recode <- seurat_sk_fcx@meta.data %>% 
   as_tibble() %>%
   mutate(harmony_clusters_recode = recode(harmony_clusters, 
@@ -192,8 +193,9 @@ fcx_vln_cols_recode <- c("FCX-adult-ExN-1" = '#00B6EB' , "FCX-adult-ExN-2" = '#0
                          "FCX-adult-InN-13" = '#3CBB75FF', "FCX-adult-InN-14" = '#3CBB75FF', "FCX-adult-ExN-14" = '#00B6EB', 
                          "FCX-adult-Endo" = '#6F2DA8', "FCX-adult-ExN-15" = '#00B6EB', "FCX-adult-Olig-3" = '#FDE725FF')
 
-# Old colours
+}
 
+# Old colours
 cer_colours <- c('#3CBB75FF', '#FAA0A0', '#EF0029', '#76B5C5', '#00FF00A5',
                  '#006400', '#B7FFB7', '#D078FF', '#CEE5FD', '#D2042D', 
                  '#00BDD2', '#00B6EB', '#DCBEFF', '#10A53DFF', '#95D840FF', 
