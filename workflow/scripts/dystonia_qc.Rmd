@@ -27,7 +27,7 @@ output: html_document
 ***
 
 ```{r plots_pre_filt, results='asis', fig.dim = c(10,10), echo=FALSE}
-#qc_plot_noFilt
+qc_plot_noFilt
 ```
 
 ***
@@ -129,7 +129,7 @@ integration_plot
 + PC threshold probs between 30 for Str and Cer, 50 for FCX
 
 ```{r pca_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-DimHeatmap(seurat_sk_fcx, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
+DimHeatmap(seurat_object, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
 ```
 
 #### Violin (General) {.tabset}
