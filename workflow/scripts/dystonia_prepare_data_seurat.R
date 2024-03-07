@@ -37,9 +37,6 @@ source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R'
 # get_dissection_data(str_anns, anns_table, R_dir, file_format = '.rds')
 # get_dissection_data(cer_anns, anns_table, R_dir, file_format = '.rds')
 
-# Get the original cluster annotations - will probs omit
-# stiletti_cluster_anns <- get_cluster_anns(stiletti_dir)
-
 # Import Seurat object as BPCells object
 seurat_object <- create_BPCell_seurat_object(get(paste0(region, '_anns')), '.rds', R_dir) 
 
