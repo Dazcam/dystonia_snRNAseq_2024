@@ -6,7 +6,7 @@
 
 ## Info  ------------------------------------------------------------------------------
 
-# Load R environment - options are local of cluster
+# Load R environment - options are local or cluster
 
 ##  Load Packages  --------------------------------------------------------------------
 library(BPCells)
@@ -21,12 +21,6 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
-
-if (locale == 'local') { root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'}
-if (locale == 'remote') { 
-  root_dir <- snakemake@params[['root_dir']]
-  region <- snakemake@params[['region']]
-}
 
 ## Set variables  ---------------------------------------------------------------------
 data_dir <- paste0(root_dir, 'resources/')
