@@ -1,0 +1,8 @@
+regions:
+- fcx
+- str
+- cer
+
+locale:
+- local
+- remote
