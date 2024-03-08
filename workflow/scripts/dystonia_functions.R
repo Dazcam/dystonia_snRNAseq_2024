@@ -595,3 +595,14 @@ project_sketch_data <- function(
   return(seurat_obj)
   
 }
+
+
+# Function to create logfiles in snakemake
+log_smk <- function() {
+  if (exists("snakemake") & length(snakemake@log) != 0) {
+    log <- file(snakemake@log, open = "wt")
+    sink(log, append = TRUE)
+    sink(log, append = TRUE, type = "message")
+  }
+}
+
