@@ -63,12 +63,12 @@ options(scipen = 999)
 if (region == 'fcx') {
   
   pc_thresh <- 50
-  sample_split <- 'orig.ident'
+  sample_split <- 'sample_id'
   
 } else if (region == 'cer') {
   
   pc_thresh <- 30
-  sample_split <- 'orig.ident'
+  sample_split <- 'sample_id'
   
 } else {
   
