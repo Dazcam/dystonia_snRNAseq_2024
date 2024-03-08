@@ -1,8 +1,9 @@
-regions:
+
+region:
 -    fcx
-#    str:
-#    cer:
+-    str
+-    cer
 
 locale:
-    local:
-#    remote:
+#    local:
+    remote:

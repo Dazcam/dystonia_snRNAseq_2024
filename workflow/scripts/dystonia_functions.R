@@ -13,7 +13,7 @@ get_dissection_data <- function(
   
   dir.create(out_dir)
   stopifnot("dissection_anns must be a vector of Stiletti brain region abbrvs" = is.vector(dissection_anns))
-  stopifnot("anns_table must be a Stiletti downloads tibble" = is_tibble(anns_table))
+  stopifnot("anns_table must be a Stiletti downloads tibble" = tibble::is_tibble(anns_table))
   
   download_ids <- anns_table %>%
     dplyr::filter(abbr %in% dissection_anns) 
@@ -84,6 +84,9 @@ create_BPCell_seurat_object <- function(
   root_directory = NULL
   
 ){
+
+
+  message('Creating BPCell object for ', region)
   
   file_set <- annotations
   data_list <- c()
@@ -600,7 +603,7 @@ project_sketch_data <- function(
 # Function to create logfiles in snakemake
 log_smk <- function() {
   if (exists("snakemake") & length(snakemake@log) != 0) {
-    log <- file(snakemake@log, open = "wt")
+    log <- file(snakemake@log[1][[1]], open = "wt")
     sink(log, append = TRUE)
     sink(log, append = TRUE, type = "message")
   }

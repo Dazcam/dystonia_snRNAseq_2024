@@ -11,13 +11,9 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 #  Some features not running locally due to limited resources: need to migrate to Hawk
 
-##  Set locale to local or remote -----------------------------------------------------
-# If local set region in 
-locale <- 'local'
-
 ##  Load Packages, functions and variables  -------------------------------------------
-source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/Renvs.R')
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
+source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/Renvs.R')
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R')
   
 ## Local Parallelisation
@@ -26,13 +22,7 @@ source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R'
 # future::plan()
 
 ## Load Data --------------------------------------------------------------------------
-# Download dissection data - run once
-# get_dissection_data(fcx_anns, anns_table, R_dir, file_format = '.rds')
-# get_dissection_data(str_anns, anns_table, R_dir, file_format = '.rds')
-# get_dissection_data(cer_anns, anns_table, R_dir, file_format = '.rds')
-
-# Import Seurat object as BPCells object
-seurat_object <- create_BPCell_seurat_object(get(paste0(region, '_anns')), '.rds', R_dir) 
+seurat_object <- readRDS(paste0(results_dir, 'seurat_', region, '.rds')
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object) 
@@ -127,9 +117,6 @@ integration_plot <- create_integration_plot(seurat_object, meta_id = sample_spli
 
 # Join layers - Need to do this before stacked vln plotting of diff expression
 seurat_object <- JoinLayers(seurat_object)
-
-# Save seurat objects
-saveRDS(object = seurat_object, file = paste0(R_dir, "seurat_", region,".Rds"))
 
 
 ### NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
@@ -239,6 +226,8 @@ test <- readRDS(paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
 ## Create markdown doc  ---------------------------------------------------------------
 rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
 
+# Save Seurat object
+saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_basic.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

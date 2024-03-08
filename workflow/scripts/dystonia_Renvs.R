@@ -9,27 +9,29 @@
 # Load R environment - options are local or cluster
 
 ##  Load Packages  --------------------------------------------------------------------
+message('Loading packages ...')
 library(BPCells)
 library(Seurat)
 library(SeuratObject)
 library(SeuratDisk)
 library(SeuratWrappers)
 library(Azimuth) 
-library(tidyverse)
+library(dplyr)
 library(scCustomize)
 library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
-if (locale == 'local') { library(yaml) }
+#if (locale == 'local') { library(yaml) }
 
 ## Set variables  ---------------------------------------------------------------------
-if (locale == 'local') { 
-  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
-  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
-  region <- yaml.load(yaml_file$regions)}
+message('Setting environment variables ...')
+#if (locale == 'local') { 
+#  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+#  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
+#  region <- yaml.load(yaml_file$regions)}
 
-if (locale == 'remote') { 
+if (exists("snakemake")) { 
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
   log_smk() 
