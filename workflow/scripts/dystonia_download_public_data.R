@@ -11,14 +11,7 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 
 ##  Set local to local or remote -----------------------------------------------------
-# 
 locale <- 'local'
-if (locale == 'local') { 
-  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
-  region <- 'str'}
-if (locale == 'remote') { 
-  root_dir <- snakemake@params[['root_dir']]
-  region <- snakemake@params[['region']]}
 
 ##  Load Packages, functions and variables  -------------------------------------------
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/Renvs.R')
@@ -28,6 +21,7 @@ source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
 # Download dissection data - run once
 get_dissection_data(get(paste0(region, '_anns')), anns_table, R_dir, file_format = '.rds')
 
+if (locale == 'remote') { file.create( snakemake@output ) }
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
 

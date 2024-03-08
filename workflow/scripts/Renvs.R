@@ -21,8 +21,20 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
+if (locale == 'local') { library(yaml) }
 
 ## Set variables  ---------------------------------------------------------------------
+if (locale == 'local') { 
+  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
+  region <- yaml.load(yaml_file$regions)}
+
+if (locale == 'remote') { 
+  root_dir <- snakemake@params[['root_dir']]
+  region <- snakemake@params[['region']]
+  log_smk() 
+}
+
 data_dir <- paste0(root_dir, 'resources/')
 script_dir <- paste0(root_dir, 'workflow/scripts/')
 results_dir <- paste0(root_dir, 'results/')
@@ -30,7 +42,6 @@ stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
 R_dir <- paste0(results_dir, '01R/')
 markdown_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
 markdown_html <- paste0('dystonia_qc_', toupper(region), '.html')
-
 regions <- c('fcx', 'str', 'cer')
 fcx_anns <- c('A13', 'A14', 'A25', 'A32', 'A44-A45', 'A46', 'FI', 'M1C')
 str_anns <- c('CaB', 'Pu')

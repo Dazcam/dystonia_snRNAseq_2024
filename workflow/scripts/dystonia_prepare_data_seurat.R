@@ -11,15 +11,9 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 #  Some features not running locally due to limited resources: need to migrate to Hawk
 
-##  Set local to local or remote -----------------------------------------------------
-# 
+##  Set locale to local or remote -----------------------------------------------------
+# If local set region in 
 locale <- 'local'
-if (locale == 'local') { 
-  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
-  region <- 'str'}
-if (locale == 'remote') { 
-  root_dir <- snakemake@params[['root_dir']]
-  region <- snakemake@params[['region']]}
 
 ##  Load Packages, functions and variables  -------------------------------------------
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/Renvs.R')
