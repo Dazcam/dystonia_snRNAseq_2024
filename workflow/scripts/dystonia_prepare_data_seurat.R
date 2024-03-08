@@ -1,6 +1,6 @@
 #--------------------------------------------------------------------------------------
 #
-#    Dystonia prepare adult brain scRNAseq data
+#    Dystonia - prepare adult brain scRNAseq data
 #
 #--------------------------------------------------------------------------------------
 
@@ -9,7 +9,6 @@
 #  Stiletti data: https://cellxgene.cziscience.com/collections/283d65eb-dd53-496d-adb7-7570c7caa443
 #  Note that the Stiletti data has counts stored in seurat_obj[["RNA"]]$data
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
-#  Some features not running locally due to limited resources: need to migrate to Hawk
 
 ##  Load Packages, functions and variables  -------------------------------------------
 source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
@@ -22,7 +21,7 @@ source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R'
 # future::plan()
 
 ## Load Data --------------------------------------------------------------------------
-seurat_object <- readRDS(paste0(results_dir, 'basic/seurat_', region, '.rds')
+seurat_object <- readRDS(paste0(results_dir, 'basic/seurat_', region, '.rds'))
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object) 
@@ -118,113 +117,113 @@ integration_plot <- create_integration_plot(seurat_object, meta_id = sample_spli
 # Join layers - Need to do this before stacked vln plotting of diff expression
 seurat_object <- JoinLayers(seurat_object)
 
-
-### NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
-if (region == 'str') {
-  
-  # Striatum
-  # 13 and 25 experesses GAD 1 and the OLIGS
-  # 22 does not express GAD but exp InN transporters
-  clusters_id_recode <- str_clusters_recode
-  vln_clr_recode <- str_vln_cols_recode
-  umap_clr_recode <- str_umap_cols_recode
-
-} else if (region == 'cer') {
-  
-  pc_thresh <- 30
-  sample_split <- 'orig.ident'
-  
-} else {
-  
-  # FCX
-  seurat_sk_fcx$harmony_clusters_recode <- fcx_clusters_recode
-  umap_recode <- DimPlot(seurat_sk_fcx, reduction = 'umap.harmony', 
-                         group.by = 'harmony_clusters_recode',
-                         cols = fcx_umap_cols_recode)
-  vln_plot_recode <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode', 
-                                             fcx_genes, toupper(region), 
-                                             fcx_vln_cols_recode)
-  
-  # Dystonia gene check
-  vln_plot_recode_dyst <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode', dystonia_genes, 
-                                                  toupper(region), fcx_vln_cols_recode)
-  
-}
-
-# Plot umap and vlns with cell types and colours specified
-# Recode cell IDs
-seurat_object$harmony_clusters_recode <- clusters_id_recode
-
-# UMAP with recode cell IDs
-umap_recode <- DimPlot(seurat_object, reduction = 'umap.harmony', 
-                       group.by = 'harmony_clusters_recode',
-                       cols = umap_clr_recode)
-
-# Region specific gene check vln plot
-vln_plot_recode <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_recode', 
-                                           general_genes, toupper(region), 
-                                           vln_clr_recode)
-# Dystonia gene check vln plot
-vln_plot_recode_dyst <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_recode', 
-                                                dystonia_genes, toupper(region), 
-                                                vln_clr_recode)
-
-
-### END NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
-
-## Plot gene expression violin plot  ------------------------------------------------------
-# Specific gene check
-vln_plot_specific <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters', 
-                                             general_genes, toupper(region), fcx_vln_cols_recode)
-
-seurat_sk_fcx$harmony_clusters_recode <- fcx_clusters_recode
-
-# Gene check
-vln_plot_recode <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode',
-                                           general_genes, toupper(region), fcx_vln_cols_recode)
-
-
-
-
-
-
-hip_colours <- c('#76B5C5', '#B200ED', '#FAA0A0', '#EF0029', '#CEE5FD',  
-                 '#95D840FF', "#00BDD2", '#00FF00A5', "#DCBEFF", '#10A53DFF', 
-                 '#6F2DA8', '#ABDBE3', '#1E81B0', '#D2042D', '#006400',   
-                 '#FDE725FF', '#779CBA', '#F58231', '#9A6324')
-
-str_umap_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#708238', 
-                          "Str-adult-InN-4" = '#B7FFB7', "Str-adult-InN-5" = '#006400', "Str-OPC-1" = '#FDE725FF', 
-                          "Str-adult-InN-6" = '#95D840FF', "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#9DC183', 
-                          "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#31C53F', 
-                          "Str-adult-InN-11" = '#708238', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#006400', 
-                          "Str-adult-InN-13" = '#95D840FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
-                          "Str-adult-InN-14" = '#2FF18B', "Str-adult-InN-15" = '#9DC183', "Str-adult-ExN-2" = '#00B6EB', 
-                          "Str-adult-InN-16" = '#0CB702', "Str-adult-InN-17" = '#00BE67', "Str-adult-Ast-2" = '#FF5959', 
-                          "Str-adult-InN-18" = '#7CAE00', "Str-OPC-3" = '#FDE725FF')
-
-str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
-                         "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-OPC-1" = '#FDE725FF', 
-                         "Str-adult-InN-6" = '#3CBB75FF', "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', 
-                         "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#3CBB75FF', 
-                         "Str-adult-InN-11" = '#3CBB75FF', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#3CBB75FF', 
-                         "Str-adult-InN-13" = '#3CBB75FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
-                         "Str-adult-InN-14" = '#3CBB75FF', "Str-adult-InN-15" = '#3CBB75FF', "Str-adult-ExN-2" = '#00B6EB', 
-                         "Str-adult-InN-16" = '#3CBB75FF', "Str-adult-InN-17" = '#3CBB75FF', "Str-adult-Ast-2" = '#FF5959', 
-                         "Str-adult-InN-18" = '#3CBB75FF', "Str-OPC-3" = '#FDE725FF')
-
-
-
-# Calculate aggr and aver expr for regional comparison of dystonia gene expression
-aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-
-saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
-saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
-
-test <- readRDS(paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
+# ### NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
+# if (region == 'str') {
+#   
+#   # Striatum
+#   # 13 and 25 experesses GAD 1 and the OLIGS
+#   # 22 does not express GAD but exp InN transporters
+#   clusters_id_recode <- str_clusters_recode
+#   vln_clr_recode <- str_vln_cols_recode
+#   umap_clr_recode <- str_umap_cols_recode
+# 
+# } else if (region == 'cer') {
+#   
+#   pc_thresh <- 30
+#   sample_split <- 'orig.ident'
+#   
+# } else {
+#   
+#   # FCX
+#   seurat_sk_fcx$harmony_clusters_recode <- fcx_clusters_recode
+#   umap_recode <- DimPlot(seurat_sk_fcx, reduction = 'umap.harmony', 
+#                          group.by = 'harmony_clusters_recode',
+#                          cols = fcx_umap_cols_recode)
+#   vln_plot_recode <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode', 
+#                                              fcx_genes, toupper(region), 
+#                                              fcx_vln_cols_recode)
+#   
+#   # Dystonia gene check
+#   vln_plot_recode_dyst <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode', dystonia_genes, 
+#                                                   toupper(region), fcx_vln_cols_recode)
+#   
+# }
+# 
+# # Plot umap and vlns with cell types and colours specified
+# # Recode cell IDs
+# seurat_object$harmony_clusters_recode <- clusters_id_recode
+# 
+# # UMAP with recode cell IDs
+# umap_recode <- DimPlot(seurat_object, reduction = 'umap.harmony', 
+#                        group.by = 'harmony_clusters_recode',
+#                        cols = umap_clr_recode)
+# 
+# # Region specific gene check vln plot
+# vln_plot_recode <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_recode', 
+#                                            general_genes, toupper(region), 
+#                                            vln_clr_recode)
+# # Dystonia gene check vln plot
+# vln_plot_recode_dyst <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_recode', 
+#                                                 dystonia_genes, toupper(region), 
+#                                                 vln_clr_recode)
+# 
+# 
+# ### END NOTES ON PRELIMINARY CLUST LABELS  ------------------------------------------------
+# 
+# ## Plot gene expression violin plot  ------------------------------------------------------
+# # Specific gene check
+# vln_plot_specific <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters', 
+#                                              general_genes, toupper(region), 
+#                                              fcx_vln_cols_recode)
+# 
+# seurat_sk_fcx$harmony_clusters_recode <- fcx_clusters_recode
+# 
+# # Gene check
+# vln_plot_recode <- create_stacked_vln_plot(seurat_sk_fcx, 'harmony_clusters_recode',
+#                                            general_genes, toupper(region), fcx_vln_cols_recode)
+# 
+# 
+# 
+# 
+# 
+# 
+# hip_colours <- c('#76B5C5', '#B200ED', '#FAA0A0', '#EF0029', '#CEE5FD',  
+#                  '#95D840FF', "#00BDD2", '#00FF00A5', "#DCBEFF", '#10A53DFF', 
+#                  '#6F2DA8', '#ABDBE3', '#1E81B0', '#D2042D', '#006400',   
+#                  '#FDE725FF', '#779CBA', '#F58231', '#9A6324')
+# 
+# str_umap_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#708238', 
+#                           "Str-adult-InN-4" = '#B7FFB7', "Str-adult-InN-5" = '#006400', "Str-OPC-1" = '#FDE725FF', 
+#                           "Str-adult-InN-6" = '#95D840FF', "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#9DC183', 
+#                           "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#31C53F', 
+#                           "Str-adult-InN-11" = '#708238', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#006400', 
+#                           "Str-adult-InN-13" = '#95D840FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
+#                           "Str-adult-InN-14" = '#2FF18B', "Str-adult-InN-15" = '#9DC183', "Str-adult-ExN-2" = '#00B6EB', 
+#                           "Str-adult-InN-16" = '#0CB702', "Str-adult-InN-17" = '#00BE67', "Str-adult-Ast-2" = '#FF5959', 
+#                           "Str-adult-InN-18" = '#7CAE00', "Str-OPC-3" = '#FDE725FF')
+# 
+# str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
+#                          "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-OPC-1" = '#FDE725FF', 
+#                          "Str-adult-InN-6" = '#3CBB75FF', "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', 
+#                          "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-InN-10" = '#3CBB75FF', 
+#                          "Str-adult-InN-11" = '#3CBB75FF', "Str-OPC-2" = '#FDE725FF', "Str-adult-InN-12" = '#3CBB75FF', 
+#                          "Str-adult-InN-13" = '#3CBB75FF', "Str-adult-ExN-1" = '#00B6EB', "Str-adult-MG" = '#F58231', 
+#                          "Str-adult-InN-14" = '#3CBB75FF', "Str-adult-InN-15" = '#3CBB75FF', "Str-adult-ExN-2" = '#00B6EB', 
+#                          "Str-adult-InN-16" = '#3CBB75FF', "Str-adult-InN-17" = '#3CBB75FF', "Str-adult-Ast-2" = '#FF5959', 
+#                          "Str-adult-InN-18" = '#3CBB75FF', "Str-OPC-3" = '#FDE725FF')
+# 
+# 
+# 
+# # Calculate aggr and aver expr for regional comparison of dystonia gene expression
+# aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+# aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+# 
+# saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
+# saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
+# 
+# test <- readRDS(paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
 ## Create markdown doc  ---------------------------------------------------------------
-rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
+# rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
 
 # Save Seurat object
 saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_basic.rds'))
@@ -232,74 +231,3 @@ saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_basic.rds'))
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
 
-
-
-
-# Join the layers
-seurat_object[["sketch"]] <- JoinLayers(seurat_object[["sketch"]])
-
-# Add cluster annotations to seurat metadata
-ann <- seurat_sketch@meta.data %>%
-  as_tibble(rownames = 'cells') %>%
-  mutate(cluster_id = as.double(cluster_id)) %>%
-  left_join(stiletti_cluster_anns, by = join_by(cluster_id)) %>%
-  pull(clusterAnn)
-  
-seurat_merged <- SCTransform(seurat_str) %>%
-  RunPCA() %>%
-  FindNeighbors(dims = 1:30) %>%
-  FindClusters() %>%
-  RunUMAP(dims = 1:30)
-
-
-
-
-
-
-
-
-
-for (i in 1:length(FILE_SET)) {
-  path <- paste0(STILETTI_DIR, FILE_SET[i])
-  data <- open_matrix_anndata_hdf5(path)
-  write_matrix_dir(
-    mat = data,
-    dir = paste0(gsub(".h5ad", "", path), "_BP"),
-    overwrite = TRUE
-    
-  )
-  # Load in BP matrices
-  mat <- open_matrix_dir(dir = paste0(gsub(".h5ad", "", path), "_BP"))
-  mat <- Azimuth:::ConvertEnsembleToSymbol(mat = mat, species = "human")
-  
-  # Get metadata
-  metadata.list[[i]] <- LoadH5ADobs(path = path)
-  data.list[[i]] <- mat
-}
-
-# Name layers
-names(data.list) <- c("neurons", "non_neurons")
-
-# Add Metadata
-for (i in 1:length(metadata.list)) {
-  metadata.list[[i]]$dataset <- names(data.list)[i]
-}
-metadata.list <- lapply(metadata.list, function(x) {
-  x <- x[, c("dataset", "ROIGroup", "ROIGroupCoarse", "ROIGroupFine", "roi", "organism_ontology_term_id", 
-             "disease_ontology_term_id", "self_reported_ethnicity_ontology_term_id", 
-             "assay_ontology_term_id", "sex_ontology_term_id", "development_stage_ontology_term_id", 
-             "donor_id", "suspension_type", "dissection", "fraction_mitochondrial", 
-             "fraction_unspliced", "cell_cycle_score", "total_genes", "total_UMIs", 
-             "sample_id", "supercluster_term", "cluster_id", "subcluster_id", 
-             "cell_type_ontology_term_id", "tissue_ontology_term_id", "is_primary_data", 
-             "cell_type", "assay", "disease", "organism", "sex", "tissue", 
-             "self_reported_ethnicity", "development_stage")]
-  return(x)
-})
-
-metadata <- Reduce(rbind, metadata.list)
-merged.object <- CreateSeuratObject(counts = data.list, meta.data = metadata)
-merged.object <- NormalizeData(merged.object, verbose = FALSE)
-merged.object <- ScaleData(merged.object)
-
-merged.object
