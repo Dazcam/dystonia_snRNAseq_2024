@@ -1,8 +1,8 @@
 configfile: '../config/config.yaml'
 
-include: 'rules/01download_public_data.smk' 
+include: 'rules/01seurat.smk' 
 
 rule all:
     input:
-        expand("../results/01R_objects/{region}.temp", region = config['region'])
+        expand("../results/01R_objects/basic/seurat_{region}.rds", region = config['region'])
 

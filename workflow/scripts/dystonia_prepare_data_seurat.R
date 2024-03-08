@@ -22,7 +22,7 @@ source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R'
 # future::plan()
 
 ## Load Data --------------------------------------------------------------------------
-seurat_object <- readRDS(paste0(results_dir, 'seurat_', region, '.rds')
+seurat_object <- readRDS(paste0(results_dir, 'basic/seurat_', region, '.rds')
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object) 
