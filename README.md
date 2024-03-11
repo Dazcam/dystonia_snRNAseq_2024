@@ -64,4 +64,76 @@ From: bioconductor/bioconductor_docker:devel
 ```
 </details>
 
+<details>
+
+<summary>Benchmarking on Slurm</summary>
+
+- Settings: `threads = 10, mem_mb = 40000`
+- Pass: Str
+- Failed (OOM): Cer, FCX
+
+```bash
+# FCX: Fail
+
+Job ID: 56154891
+Cluster: hawk
+User/Group: c.c1477909/c.c1477909
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 10
+CPU Utilized: 00:03:50
+CPU Efficiency: 9.06% of 00:42:20 core-walltime
+Job Wall-clock time: 00:04:14
+Memory Utilized: 0.00 MB (estimated maximum)
+Memory Efficiency: 0.00% of 39.06 GB (39.06 GB/node)
+
+# Str: Pass
+
+Job ID: 56154892
+Cluster: hawk
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 10
+CPU Utilized: 01:03:37
+CPU Efficiency: 9.87% of 10:44:20 core-walltime
+Job Wall-clock time: 01:04:26
+Memory Utilized: 28.52 GB
+Memory Efficiency: 73.00% of 39.06 GB
+
+# Cer: Fail
+
+Job ID: 56154893
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 10
+CPU Utilized: 01:40:45
+CPU Efficiency: 9.85% of 17:02:20 core-walltime
+Job Wall-clock time: 01:42:14
+Memory Utilized: 27.76 GB
+Memory Efficiency: 71.07% of 39.06 GB
+
+```
+
+- Settings: `threads = 20, mem_mb = 80000`
+- Pass: Cer
+- Failed (OOM):
+
+```bash
+#Cer: Pass
+ 
+Cluster: hawk
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 02:30:13
+CPU Efficiency: 5.15% of 2-00:38:40 core-walltime
+Job Wall-clock time: 02:25:56
+Memory Utilized: 34.36 GB
+Memory Efficiency: 43.98% of 78.12 GB
+```
+
+</details>
+
+
 ***
