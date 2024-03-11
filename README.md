@@ -68,9 +68,9 @@ From: bioconductor/bioconductor_docker:devel
 
 <summary>Benchmarking on Slurm</summary>
 
-Settings: `threads = 10, mem_mb = 40000`
-Pass: Str
-Failed: Cer, FCX
+- Settings: `threads = 10, mem_mb = 40000`
+- Pass: Str
+- Failed (OOM): Cer, FCX
 
 ```bash
 # FCX: Fail
@@ -115,7 +115,9 @@ Memory Efficiency: 71.07% of 39.06 GB
 
 ```
 
-Cer and FCX OOM setting `threads = 20, mem_mb = 40000`
+- Settings: `threads = 20, mem_mb = 80000`
+- Pass: Cer
+- Failed (OOM):
 
 ```bash
 #Cer: Pass
