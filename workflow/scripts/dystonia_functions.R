@@ -131,7 +131,8 @@ get_meta_col_counts <- function(
   
   
 ) {
-  
+
+  message('Creating cell counts for: ', meta_col, '...')  
   seurat_obj@meta.data %>%
     tibble::as_tibble(rownames = 'cell_id') %>%
     dplyr::select(any_of(c(meta_col))) %>%
@@ -208,6 +209,8 @@ create_outlier_plots <- function(
   
 ) {
   
+  message('Creating outlier plots', region, ' ... ')
+
   # Generate main outlier plots
   umi_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "sum",
                                   colour_by = I(sum_outlier)) + ggtitle('UMI per cell')
@@ -240,7 +243,8 @@ subset_seurat_object <- function(
   genesExpInCell_thresh = 3
   
 ) {
-  
+
+  message('Subsetting Seurat object: ', region, ' ...')
   seurat_obj$cell_outlier <- cell_outliers
   
   # Check seurat obj dimensions before filters
@@ -313,6 +317,8 @@ create_sketch_object <- function(
   
 ) {
   
+
+  message('Creating Seurat sketch object: ', region, ' ...')
   seurat_obj <- Seurat::NormalizeData(seurat_obj) %>%
     FindVariableFeatures(verbose = FALSE)
   
@@ -340,7 +346,7 @@ create_sketch_object <- function(
 create_basic_qc_plots <- function(seurat_obj = NULL,
                                   point_size = 0) {
   
-  
+  message('Creating basic qc plots: ', region, ' ...')
   seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
   seurat_obj$complexity <- log10(seurat_obj$nFeature_RNA) / log10(seurat_obj$nCount_RNA)
   vln_plot <- VlnPlot(seurat_obj, features = c("nFeature_RNA", "nCount_RNA", 
@@ -363,6 +369,7 @@ create_cluster_qc_plot <- function(
   
 ) {
   
+  message('Creating cluster qc plots: ', region, ' ...')
   cluster_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap")
   elbow_plot <- Seurat::ElbowPlot(seurat_obj, ndims = dims)
   dataset_plot <- Seurat::DimPlot(seurat_obj, reduction = "umap", group.by = 'dataset') 
@@ -464,6 +471,7 @@ create_proportion_barplot <- function(seurat_obj = NULL,
                                       cluster_id = NULL,
                                       meta_id = NULL) {
   
+  message('Creating proportion barplot: ', region, ' ...')
   # Implementing this using dplyr: 
   # prop.table(table(seurat_sk_str$seurat_clusters, seurat_sk_str$dataset), margin = 2)
   
@@ -489,6 +497,8 @@ create_integration_plot <- function(
   dims = 30
   
 ) {
+
+  message('Creating integration plot: ', region, ' ...')
   
   plot_list <- list()
   
@@ -520,6 +530,7 @@ create_stacked_vln_plot <- function(
   
 ) {
   
+  message('Creating stacked vln plot: ', region, ' ...')
   Idents(seurat_obj) <- unname(unlist((seurat_obj[[set_ident]])))
   VlnPlot(seurat_obj, genes, stack = TRUE, flip = TRUE, 
           same.y.lims = TRUE, fill.by = 'ident', cols = col_pal) +
@@ -578,6 +589,7 @@ project_sketch_data <- function(
   
 ) {
   
+  message('Projecting sketch data: ', region, ' ...')
   seurat_obj <- ProjectData(
     object = seurat_obj,
     assay = "RNA",
