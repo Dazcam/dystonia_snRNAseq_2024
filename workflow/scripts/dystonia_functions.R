@@ -310,14 +310,49 @@ get_hard_thresholds <- function(
 }
 
 
+run_seurat_process <- function( 
+    
+  seurat_obj = NULL,
+  norm_method = 'log',
+  dims = 30, 
+  resolution = c(0.3, 0.5, 0.8)
+  
+){
+  
+  if (norm_method == 'log') {
+    
+    message('\nRunning Seurat pipeline norm method: ', norm_method, '\n')
+    seurat_obj <- Seurat::FindVariableFeatures(seurat_obj, verbose = F) %>%
+      Seurat::ScaleData(verbose = F) %>%
+      Seurat::RunPCA(verbose = F) %>%
+      Seurat::FindNeighbors(dims = 1:dims) %>%
+      Seurat::FindClusters(resolution = resolution) %>%
+      Seurat::RunUMAP(dims = 1:dims)}
+  
+  if (norm_method == 'sct') {
+    
+    message('\nRunning Seurat pipeline norm method: ', norm_method, '\n')
+    Seurat::SCTransform(seurat_obj, conserve.memory = T, verbose = F) %>%
+      Seurat::RunPCA(verbose = F) %>%
+      Seurat::RunUMAP(dims = 1:dims, verbose = F) %>%
+      Seurat::FindNeighbors(dims = 1:dims, verbose = F) %>%
+      Seurat::FindClusters(resolution = resolution, verbose = F)}
+  
+  return(seurat_obj)
+  
+}
+
+
 create_sketch_object <- function(
     
   seurat_obj = NULL, 
-  dims = 30
+  norm_method = 'log',
+  dims = 30, 
+  resolution = c(0.3, 0.5, 0.8)
   
 ) {
   
-
+  
   message('Creating Seurat sketch object: ', region, ' ...')
   seurat_obj <- Seurat::NormalizeData(seurat_obj) %>%
     FindVariableFeatures(verbose = FALSE)
@@ -330,13 +365,11 @@ create_sketch_object <- function(
   # Take a small subset of data to 
   Seurat::DefaultAssay(seurat_sketch) <- "sketch"
   
-  # Basic commands
-  seurat_sketch <- Seurat::FindVariableFeatures(seurat_sketch, verbose = F) %>%
-    Seurat::ScaleData(verbose = F) %>%
-    Seurat::RunPCA(verbose = F) %>%
-    Seurat::FindNeighbors(dims = 1:dims) %>%
-    Seurat::FindClusters() %>%
-    Seurat::RunUMAP(dims = 1:dims)
+  # Run Seurat pipeline
+  seurat_sketch <- run_seurat_process(seurat_small, 
+                                      norm_method = norm_method,
+                                      dims = dims,
+                                      resolution = resolution)
   
   return(seurat_sketch)
   
