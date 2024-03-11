@@ -15,7 +15,7 @@ rule prepare_data_seurat:
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../",
             region = lambda wc: wc.get("region")
-    resources: threads = 10, mem_mb = 40000
+    resources: threads = 20, mem_mb = 80000
     log:    "../results/00LOG/02prepare_data_seurat_{region}.log"
     script:
             "../scripts/dystonia_prepare_data_seurat.R"

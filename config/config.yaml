@@ -1,7 +1,6 @@
-
 region:
 -    fcx
--    str
+#-    str
 -    cer
 
 locale:
