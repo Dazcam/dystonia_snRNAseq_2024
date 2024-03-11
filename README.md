@@ -58,8 +58,7 @@ From: bioconductor/bioconductor_docker:devel
     R --no-echo -e 'remotes::install_github("satijalab/seurat-wrappers")'
     R --no-echo -e 'remotes::install_github("satijalab/azimuth")'
     R --no-echo -e 'BiocManager::install(c("scuttle", "scater"))'
-    R --no-echo -e 'install.packages("scCustomize")'
-    R --no-echo -e 'install.packages("readxl")'
+    R --no-echo -e 'install.packages(c("scCustomize", "readxl", "harmony")'
 
     apt clean
 ```

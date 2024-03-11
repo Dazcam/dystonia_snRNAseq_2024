@@ -41,7 +41,7 @@ data_dir <- paste0(root_dir, 'resources/')
 script_dir <- paste0(root_dir, 'workflow/scripts/')
 results_dir <- paste0(root_dir, 'results/')
 stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
-R_dir <- paste0(results_dir, '01R/')
+R_dir <- paste0(results_dir, '01R_objects/')
 markdown_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
 markdown_html <- paste0('dystonia_qc_', toupper(region), '.html')
 regions <- c('fcx', 'str', 'cer')
@@ -63,12 +63,12 @@ options(scipen = 999)
 if (region == 'fcx') {
   
   pc_thresh <- 50
-  sample_split <- 'orig.ident'
+  sample_split <- 'sample_id'
   
 } else if (region == 'cer') {
   
   pc_thresh <- 30
-  sample_split <- 'orig.ident'
+  sample_split <- 'sample_id'
   
 } else {
   

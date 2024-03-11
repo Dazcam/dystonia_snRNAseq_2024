@@ -22,7 +22,7 @@ get_dissection_data(get(paste0(region, '_anns')), anns_table, R_dir, file_format
 seurat_object <- create_BPCell_seurat_object(get(paste0(region, '_anns')), '.rds', R_dir)
 
 # Save Seurat object
-saveRDS(seurat_object, paste0(R_dir, 'basic/seurat_', region, '_basic.rds'))
+saveRDS(seurat_object, paste0(R_dir, 'prelim/seurat_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

@@ -11,17 +11,18 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 
 ##  Load Packages, functions and variables  -------------------------------------------
-source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_functions.R')
-source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/Renvs.R')
-source('~/Desktop/dystonia_snRNAseq_2024/workflow/scripts/dystonia_gene_lists.R')
+source('scripts/dystonia_functions.R')
+source('scripts/dystonia_Renvs.R')
+source('scripts/dystonia_gene_lists.R')
   
 ## Local Parallelisation
-# future::plan()
-# future::plan("multiprocess", workers = 3) # depreciated
-# future::plan()
+message('Parallelisation. Core number: ', parallel::detectCores())
+future::plan()
+future::plan("multicore", workers = 20) 
+future::plan()
 
 ## Load Data --------------------------------------------------------------------------
-seurat_object <- readRDS(paste0(results_dir, 'basic/seurat_', region, '.rds'))
+seurat_object <- readRDS(paste0(R_dir, 'prelim/seurat_', region, '.rds'))
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object) 
@@ -84,6 +85,9 @@ meta_col_sample <- get_meta_col_counts(seurat_object, 'sample_id')
 seurat_object <- split(seurat_object, seurat_object@meta.data[[sample_split]])
 seurat_object <- create_sketch_object(seurat_object, pc_thresh)
 
+
+saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_sketch.rds'))
+
 # Plot QCs
 cluster_qc_plot <- create_cluster_qc_plot(seurat_object, pc_thresh, sample_split)
 
@@ -91,7 +95,7 @@ cluster_qc_plot <- create_cluster_qc_plot(seurat_object, pc_thresh, sample_split
 #seurat_sk_fcx$seurat_clusters
 
 # Choose PC threshold
-pca_plot <- DimHeatmap(seurat_sk_fcx, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
+pca_plot <- DimHeatmap(seurat_object, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
 
 # Consider using PCA tools - but how to pull out 
 #https://github.com/kevinblighe/PCAtools/issues/36
@@ -226,7 +230,7 @@ seurat_object <- JoinLayers(seurat_object)
 # rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
 
 # Save Seurat object
-saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_basic.rds'))
+saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
