@@ -160,7 +160,7 @@ Memory Utilized: 78.19 GB
 Memory Efficiency: 80.06% of 97.66 GB
 ```
 
-- Settings: `threads = 20, mem_mb = 100000`
+- Settings: `threads = 20, mem_mb = 200000`
 
 </details>
 
