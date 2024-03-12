@@ -162,6 +162,19 @@ Memory Efficiency: 80.06% of 97.66 GB
 
 - Settings: `threads = 20, mem_mb = 200000`
 
+```bash
+Job ID: 56157477
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 09:28:13
+CPU Efficiency: 4.72% of 8-08:26:20 core-walltime
+Job Wall-clock time: 10:01:19
+Memory Utilized: 159.52 GB
+Memory Efficiency: 81.68% of 195.31 GB
+```
+
 </details>
 
 
