@@ -77,7 +77,6 @@ From: bioconductor/bioconductor_docker:devel
 
 Job ID: 56154891
 Cluster: hawk
-User/Group: c.c1477909/c.c1477909
 State: OUT_OF_MEMORY (exit code 0)
 Nodes: 1
 Cores per node: 10
@@ -146,7 +145,22 @@ Memory Efficiency: 43.98% of 78.12 GB
 ```
 
 - Settings: `threads = 20, mem_mb = 100000`
+- Failed (OOM): FCX
+  
+```bash
+Job ID: 56157207
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 06:01:03
+CPU Efficiency: 4.70% of 5-08:05:40 core-walltime
+Job Wall-clock time: 06:24:17
+Memory Utilized: 78.19 GB
+Memory Efficiency: 80.06% of 97.66 GB
+```
 
+- Settings: `threads = 20, mem_mb = 100000`
 
 </details>
 
