@@ -137,7 +137,8 @@ get_meta_col_counts <- function(
     tibble::as_tibble(rownames = 'cell_id') %>%
     dplyr::select(any_of(c(meta_col))) %>%
     dplyr::group_by(.data[[meta_col]]) %>%
-    dplyr::count()
+    tally() %>%
+    mutate(freq = n / sum(n))
   
 }
 
