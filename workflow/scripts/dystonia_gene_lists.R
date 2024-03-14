@@ -54,6 +54,18 @@ fcx_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
                'PDGRFA', 'PMP2',
                'EOMES', 'EBF1', 'ABCB1') 
 
+# Colours
+greens <- c('#3CBB75FF', '#00FF00A5','#006400', '#B7FFB7', '#10A53DFF',
+            '#95D840FF', '#9DC183',  '#708238', '#55C667FF', '#73D055FF',
+            '#567D46')
+
+ExN_blues <- c('#76B5C5', '#00BDD2', '#CEE5FD', '#00B6EB', '#ABDBE3',
+               '#1E81B0', '#B8D2EB', '#779CBA')
+
+reds <- c('#FAA0A0', '#FF5959', '#F75151', '#EF0029', '#D2042D')
+
+reds <- c('#B200ED',  '#DCBEFF', '#6F2DA8')
+
 # Striatum. ---------------------------------------------------------------------------
 # https://cssgradient.io/shades-of-green/
 str_umap_cols <- c('0' = '#3CBB75FF','1' = '#31C53F','2' = '#708238', '3' = '#B7FFB7','4' = '#006400',

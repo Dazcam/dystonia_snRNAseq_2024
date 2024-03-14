@@ -8,12 +8,12 @@
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install("limma")
-install.packages("dplyr")
+#install.packages("dplyr") # Loaded with tidyverse
 install.packages("openxlsx", dependencies = TRUE) 
 install.packages("magrittr")
 install.packages("broom", dependencies = TRUE)
 install.packages("tidyverse", dependencies = TRUE)
-install.packages("ggplot")
+#install.packages("ggplot") # Loaded with tidyverse
 install.packages("ggpubr")
 install.packages("vctrs")
 
@@ -153,6 +153,46 @@ Prefrontal$Dev_stage <- factor(Prefrontal$Dev_stage,
                                                    "Early Adulthood", 
                                                    "Mid Adulthood"))
 Prefrontal$Dev_stage <- relevel(factor(Prefrontal$Dev_stage), ref ="Baseline")
+
+### -------  SUGGESTIONS TO SIMPLIFY CODE  ---------
+# 1. Create a named list to collect all the lm output in a single object
+# 2. Run all you analyses in a loop
+# 3. Output the named list to a single xlsx file, one tab per gene
+# 4. For now we'll just build a seprate loop for each region, later
+#    we can try and nest two loops to pick up all genes across all regions.
+
+# List genes of intreset taken from line 1757
+genes <- c("EIF2AK2","SLC2A1","HPCA","MECR","SPR","PRKRA","PNKD",
+           "COL6A3","ADCY5","SQSTM1","SLC6A3","SGCE","RELN","THAP1",
+           "TOR1A", "CIZ1", "KCNMA1","DNAJC12","SLC18A2","ANO3","TH",
+           "NKX2.1","GCH1","PRRT2","GNAO1","GNAL","TUBB4A","MLL4","ATP1A3",
+           "VPS16", "KCTD17","TAF1") 
+
+# Initialise list for lm output
+gene_list <- list()
+
+for (gene in c(genes)) {
+  
+
+  # Run linear model for dystonia genes
+  linear_model <- lm(gene ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
+  summary(linear_model)
+  linear_model <- broom::tidy(linear_model)
+
+  # Add gene summary (with name) to list
+  gene_list[[paste0(gene, '.PF')]] <- linear_model
+
+} 
+
+# Check list
+gene_list
+
+# Export gene list to file
+openxlsx::write.xlsx(gene_list, "~/Desktop/prefrontal.xlsx")
+
+
+##. -------------------------
+
 #Each gene in turn - completely failed to generate a loop!
 EIF2AK2.PF <- lm(EIF2AK2 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
 summary(EIF2AK2.PF)
