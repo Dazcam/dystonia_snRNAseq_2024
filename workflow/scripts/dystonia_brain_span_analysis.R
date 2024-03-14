@@ -45,6 +45,9 @@ library(rlang)
 library(RColorBrewer)
 library(agricolae)
 
+
+#### Is this code (up until line 165) pre-processing for Prefrontal.csv??  --------------
+
 #Step 1 - Initial QC and file set up
 #Manual selection of Dystonia Genes and manual set up file with expression data where RIN, Sex and Ethnicity also available
 #Resultant file = RPKM_Adjustment_2.0
@@ -161,6 +164,8 @@ Prefrontal$Dev_stage <- factor(Prefrontal$Dev_stage,
                                                    "Mid Adulthood"))
 Prefrontal$Dev_stage <- relevel(factor(Prefrontal$Dev_stage), ref ="Baseline")
 
+
+##### ----------
 
 ##  Set variables  --------------------------------------------------------------------
 root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
