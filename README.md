@@ -77,7 +77,6 @@ From: bioconductor/bioconductor_docker:devel
 
 Job ID: 56154891
 Cluster: hawk
-User/Group: c.c1477909/c.c1477909
 State: OUT_OF_MEMORY (exit code 0)
 Nodes: 1
 Cores per node: 10
@@ -117,10 +116,22 @@ Memory Efficiency: 71.07% of 39.06 GB
 
 - Settings: `threads = 20, mem_mb = 80000`
 - Pass: Cer
-- Failed (OOM):
+- Failed (OOM): FCX
 
 ```bash
-#Cer: Pass
+# FCX: Fail
+Job ID: 56155003
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 06:44:21
+CPU Efficiency: 4.46% of 6-07:05:00 core-walltime
+Job Wall-clock time: 07:33:15
+Memory Utilized: 73.40 GB
+Memory Efficiency: 93.96% of 78.12 GB
+
+# Cer: Pass
  
 Cluster: hawk
 State: COMPLETED (exit code 0)
@@ -131,6 +142,37 @@ CPU Efficiency: 5.15% of 2-00:38:40 core-walltime
 Job Wall-clock time: 02:25:56
 Memory Utilized: 34.36 GB
 Memory Efficiency: 43.98% of 78.12 GB
+```
+
+- Settings: `threads = 20, mem_mb = 100000`
+- Failed (OOM): FCX
+  
+```bash
+Job ID: 56157207
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 06:01:03
+CPU Efficiency: 4.70% of 5-08:05:40 core-walltime
+Job Wall-clock time: 06:24:17
+Memory Utilized: 78.19 GB
+Memory Efficiency: 80.06% of 97.66 GB
+```
+
+- Settings: `threads = 20, mem_mb = 200000`
+
+```bash
+Job ID: 56157477
+Cluster: hawk
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 09:28:13
+CPU Efficiency: 4.72% of 8-08:26:20 core-walltime
+Job Wall-clock time: 10:01:19
+Memory Utilized: 159.52 GB
+Memory Efficiency: 81.68% of 195.31 GB
 ```
 
 </details>
