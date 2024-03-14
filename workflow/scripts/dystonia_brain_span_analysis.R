@@ -1,10 +1,18 @@
-#BrainSpan Analysis 08_02_2023
-#Data downloaded from website
-#Calculating adjusted expression levels based on Clifton et al Translational Psychiatry 2019
-#Tables generated manually from downloaded data
-#Using limma
+#--------------------------------------------------------------------------------------
+#
+#    Dystonia - BrainSpan analyses
+#
+#--------------------------------------------------------------------------------------
 
-#Install
+## Info  ------------------------------------------------------------------------------
+
+#  BrainSpan Analysis 08_02_2023
+#  Data downloaded from website
+#  Calculating adjusted expression levels based on Clifton et al Translational Psychiatry 2019
+#  Tables generated manually from downloaded data
+#  Using limma
+
+##  Load Packages, functions and variables  -------------------------------------------
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install("limma")
@@ -16,7 +24,6 @@ install.packages("tidyverse", dependencies = TRUE)
 #install.packages("ggplot") # Loaded with tidyverse
 install.packages("ggpubr")
 install.packages("vctrs")
-
 
 library(limma)
 library(dplyr)
@@ -154,6 +161,15 @@ Prefrontal$Dev_stage <- factor(Prefrontal$Dev_stage,
                                                    "Mid Adulthood"))
 Prefrontal$Dev_stage <- relevel(factor(Prefrontal$Dev_stage), ref ="Baseline")
 
+
+##  Set variables  --------------------------------------------------------------------
+root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+results_dir <- paste0(root_dir, 'results/')
+bulk_dir <- paste0(results_dir, '02Bulk_data/')
+
+##  Load Data  ------------------------------------------------------------------------
+pfc_tbl <- readr::read_csv(paste0(bulk_dir, 'Prefrontal2024.csv')) 
+
 ### -------  SUGGESTIONS TO SIMPLIFY CODE  ---------
 # 1. Create a named list to collect all the lm output in a single object
 # 2. Run all you analyses in a loop
@@ -162,11 +178,10 @@ Prefrontal$Dev_stage <- relevel(factor(Prefrontal$Dev_stage), ref ="Baseline")
 #    we can try and nest two loops to pick up all genes across all regions.
 
 # List genes of intreset taken from line 1757
-genes <- c("EIF2AK2","SLC2A1","HPCA","MECR","SPR","PRKRA","PNKD",
-           "COL6A3","ADCY5","SQSTM1","SLC6A3","SGCE","RELN","THAP1",
-           "TOR1A", "CIZ1", "KCNMA1","DNAJC12","SLC18A2","ANO3","TH",
-           "NKX2.1","GCH1","PRRT2","GNAO1","GNAL","TUBB4A","MLL4","ATP1A3",
-           "VPS16", "KCTD17","TAF1") 
+genes <- c("EIF2AK2", "GNAO1", "KCTD17", "TUBB4A", "ATP1A3", "KMT2B", 
+           "DNAJC12", "KCNA1", "SPR", "SLC2A1", "HPCA", "PNKD", "SGCE", 
+           "THAP1", "GCH1", "ANO3", "TOR1A", "GNAL", "KCNMA1", "PRRT2", 
+           "ADCY5", "TH", "PRKRA", "SCN8A", "VPS16")
 
 # Initialise list for lm output
 gene_list <- list()
@@ -174,8 +189,10 @@ gene_list <- list()
 for (gene in c(genes)) {
   
 
+  message('Running linear model for: ', gene)
+  
   # Run linear model for dystonia genes
-  linear_model <- lm(gene ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
+  linear_model <- lm(paste0(gene, '~', 'RIN + Ethnicity + Sex + Dev_stage'), data = pfc_tbl)
   summary(linear_model)
   linear_model <- broom::tidy(linear_model)
 
@@ -188,171 +205,11 @@ for (gene in c(genes)) {
 gene_list
 
 # Export gene list to file
-openxlsx::write.xlsx(gene_list, "~/Desktop/prefrontal.xlsx")
+openxlsx::write.xlsx(gene_list, paste0(bulk_dir, "prefrontal.xlsx"))
 
 
 ##. -------------------------
 
-#Each gene in turn - completely failed to generate a loop!
-EIF2AK2.PF <- lm(EIF2AK2 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(EIF2AK2.PF)
-EIF2AK2.PF <- tidy(EIF2AK2.PF)
-write.xlsx(EIF2AK2.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/EIF2AK2.PF.xlsx')
-
-SLC2A1.PF <- lm(SLC2A1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SLC2A1.PF)
-SLC2A1.PF <- tidy(SLC2A1.PF)
-write.xlsx(SLC2A1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SLC2A1.PF.xlsx')
-
-HPCA.PF <- lm(HPCA ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(HPCA.PF)
-HPCA.PF <- tidy(HPCA.PF)
-write.xlsx(HPCA.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/HPCA.PF.xlsx')
-
-MECR.PF <- lm(MECR ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(MECR.PF)
-MECR.PF <- tidy(MECR.PF)
-write.xlsx(MECR.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/MECR.PF.xlsx')
-
-SPR.PF <- lm(SPR ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SPR.PF)
-SPR.PF <- tidy(SPR.PF)
-write.xlsx(SPR.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SPR.PF.xlsx')
-
-PRKRA.PF <- lm(PRKRA ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(PRKRA.PF)
-PRKRA.PF <- tidy(PRKRA.PF)
-write.xlsx(PRKRA.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/PRKRA.PF.xlsx')
-
-PNKD.PF <- lm(PNKD ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(PNKD.PF)
-PNKD.PF <- tidy(PNKD.PF)
-write.xlsx(PNKD.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/PNKD.PF.xlsx')
-
-COL6A3.PF <- lm(COL6A3 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(COL6A3.PF)
-COL6A3.PF <- tidy(COL6A3.PF)
-write.xlsx(COL6A3.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/COL6A3.PF.xlsx')
-
-ADCY5.PF <- lm(ADCY5 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(ADCY5.PF)
-ADCY5.PF <- tidy(ADCY5.PF)
-write.xlsx(ADCY5.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/ADCY5.PF.xlsx')
-
-SQSTM1.PF <- lm(SQSTM1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SQSTM1.PF)
-SQSTM1.PF <- tidy(SQSTM1.PF)
-write.xlsx(SQSTM1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SQSTM1.PF.xlsx')
-
-SLC6A3.PF <- lm(SLC6A3 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SLC6A3.PF)
-SLC6A3.PF <- tidy(SLC6A3.PF)
-write.xlsx(SLC6A3.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SLC6A3.PF.xlsx')
-
-SGCE.PF <- lm(SGCE ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SGCE.PF)
-SGCE.PF <- tidy(SGCE.PF)
-write.xlsx(SGCE.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SGCE.PF.xlsx')
-
-RELN.PF <- lm(RELN ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(RELN.PF)
-RELN.PF <- tidy(RELN.PF)
-write.xlsx(RELN.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/RELN.PF.xlsx')
-
-THAP1.PF <- lm(THAP1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(THAP1.PF)
-THAP1.PF <- tidy(THAP1.PF)
-write.xlsx(THAP1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/THAP1.PF.xlsx')
-
-TOR1A.PF <- lm(TOR1A ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(TOR1A.PF)
-TOR1A.PF <- tidy(TOR1A.PF)
-write.xlsx(TOR1A.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/TOR1A.PF.xlsx')
-
-CIZ1.PF <- lm(CIZ1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(CIZ1.PF)
-CIZ1.PF <- tidy(CIZ1.PF)
-write.xlsx(CIZ1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/CIZ1.PF.xlsx')
-
-KCNMA1.PF <- lm(KCNMA1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(KCNMA1.PF)
-KCNMA1.PF <- tidy(KCNMA1.PF)
-write.xlsx(KCNMA1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/KCNMA1.PF.xlsx')
-
-DNAJC12.PF <- lm(DNAJC12 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(DNAJC12.PF)
-DNAJC12.PF <- tidy(DNAJC12.PF)
-write.xlsx(DNAJC12.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/DNAJC12.PF.xlsx')
-
-SLC18A2.PF <- lm(SLC18A2 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(SLC18A2.PF)
-SLC18A2.PF <- tidy(SLC18A2.PF)
-write.xlsx(SLC18A2.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/SLC18A2.PF.xlsx')
-
-ANO3.PF <- lm(ANO3 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(ANO3.PF)
-ANO3.PF <- tidy(ANO3.PF)
-write.xlsx(ANO3.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/ANO3.PF.xlsx')
-
-TH.PF <- lm(TH ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(TH.PF)
-TH.PF <- tidy(TH.PF)
-write.xlsx(TH.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/TH.PF.xlsx')
-
-NKX2.1.PF <- lm(NKX2.1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(NKX2.1.PF)
-NKX2.1.PF <- tidy(NKX2.1.PF)
-write.xlsx(NKX2.1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/NKX2.1.PF.xlsx')
-
-GCH1.PF <- lm(GCH1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(GCH1.PF)
-GCH1.PF <- tidy(GCH1.PF)
-write.xlsx(GCH1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/GCH1.PF.xlsx')
-
-PRRT2.PF <- lm(PRRT2 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(PRRT2.PF)
-PRRT2.PF <- tidy(PRRT2.PF)
-write.xlsx(PRRT2.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/PRRT2.PF.xlsx')
-
-GNAO1.PF <- lm(GNAO1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(GNAO1.PF)
-GNAO1.PF <- tidy(GNAO1.PF)
-write.xlsx(GNAO1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/GNAO1.PF.xlsx')
-
-GNAL.PF <- lm(GNAL ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(GNAL.PF)
-GNAL.PF <- tidy(GNAL.PF)
-write.xlsx(GNAL.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/GNAL.PF.xlsx')
-
-TUBB4A.PF <- lm(TUBB4A ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(TUBB4A.PF)
-TUBB4A.PF <- tidy(TUBB4A.PF)
-write.xlsx(TUBB4A.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/TUBB4A.PF.xlsx')
-
-MLL4.PF <- lm(MLL4 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(MLL4.PF)
-MLL4.PF <- tidy(MLL4.PF)
-write.xlsx(MLL4.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/MLL4.PF.xlsx')
-
-ATP1A3.PF <- lm(ATP1A3 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(ATP1A3.PF)
-ATP1A3.PF <- tidy(ATP1A3.PF)
-write.xlsx(ATP1A3.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/ATP1A3.PF.xlsx')
-
-VPS16.PF <- lm(VPS16 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(VPS16.PF)
-VPS16.PF <- tidy(VPS16.PF)
-write.xlsx(VPS16.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/VPS16.PF.xlsx')
-
-KCTD17.PF <- lm(KCTD17 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(KCTD17.PF)
-KCTD17.PF <- tidy(KCTD17.PF)
-write.xlsx(KCTD17.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/KCTD17.PF.xlsx')
-
-TAF1.PF <- lm(TAF1 ~ RIN + Ethnicity + Sex + Dev_stage, data = Prefrontal)
-summary(TAF1.PF)
-TAF1.PF <- tidy(TAF1.PF)
-write.xlsx(TAF1.PF,'~/Desktop/Embryonic.Expression.Work/Brain_Span/Prefrontal/TAF1.PF.xlsx')
 
 
 #################################
