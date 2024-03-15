@@ -81,7 +81,7 @@ create_BPCell_seurat_object <- function(
     
   annotations = NULL,
   file_type = '.rds',
-  root_directory = NULL
+  file_dir = NULL
   
 ){
 
@@ -93,7 +93,7 @@ create_BPCell_seurat_object <- function(
   metadata_list <- c()
   
   for (i in 1:length(file_set)) {
-    path <- paste0(root_directory, file_set[i], file_type)
+    path <- paste0(file_dir, file_set[i], file_type)
     seurat_obj <- readRDS(path)
     write_matrix_dir(
       mat = seurat_obj[["RNA"]]$data, # Note Stiletti has raw counts in data layer
@@ -310,7 +310,23 @@ get_hard_thresholds <- function(
                         mito_cutoffs = exclusion_vec[1], pt.size = 0.1)
 }
 
-
+#' Run the basic Seurat process
+#' 
+#' Run the basic Seurat pipeline using either log or SCT normalisation.
+#' 
+#' Note: The option 'log_sketch' runs the log normalisation Seurat pipeline 
+#' on a sketch object, but omits the normalisation step, as log normalisation 
+#' is run on the raw object just prior to the creation of the skecth object.
+#' See create_sketch_object() and https://satijalab.org/seurat/articles/seurat5_sketch_analysis
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param norm_method A method for mornalisation either 'log', 'log_sketch', or sct.
+#' @param dims Number of principal components (input for run_seurat_process())
+#' @param resolution A set of resolution params for clustering (input for run_seurat_process())
+#' 
+#' @examples
+#' run_seurat_process(seurat_small, 'log', 30, c(0.3, 0.5))
+#' 
 run_seurat_process <- function( 
     
   seurat_obj = NULL,
@@ -320,7 +336,21 @@ run_seurat_process <- function(
   
 ){
   
+  
   if (norm_method == 'log') {
+    
+    message('\nRunning Seurat pipeline norm method: ', norm_method, '\n')
+    seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", 
+                                scale.factor = 10000) %>%
+      Seurat::FindVariableFeatures(seurat_obj, verbose = F) %>%
+      Seurat::ScaleData(verbose = F) %>%
+      Seurat::RunPCA(verbose = F) %>%
+      Seurat::FindNeighbors(dims = 1:dims) %>%
+      Seurat::FindClusters(resolution = resolution) %>%
+      Seurat::RunUMAP(dims = 1:dims)}
+  
+  
+  if (norm_method == 'log_sketch') {
     
     message('\nRunning Seurat pipeline norm method: ', norm_method, '\n')
     seurat_obj <- Seurat::FindVariableFeatures(seurat_obj, verbose = F) %>%
@@ -343,11 +373,27 @@ run_seurat_process <- function(
   
 }
 
+#' Create a Seurat sketch object
+#' 
+#' Use this function on an uncorrected Seurat object. Note that log normalisation 
+#' is carried out on the full object first, and then run_seurat_process() is run,
+#' though normalisation is only run once (hence setting norm_method = 'log_sketch')
+#' 
+#' Note: that it is currently not recommended to Seurat::SketchData with SCT 
+#' normalisation. See [issue 7336](https://github.com/satijalab/seurat/issues/7336).
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param norm_method Set to log_sketch (input for run_seurat_process())
+#' @param dims Number of principal components (input for run_seurat_process())
+#' @param resolution A set of resolution params for clustering (input for run_seurat_process())
+#' 
+#' @examples
+#' create_sketch_object(seurat_small, 'log_sketch', 30, c(0.3, 0.5))
 
 create_sketch_object <- function(
     
   seurat_obj = NULL, 
-  norm_method = 'log',
+  norm_method = 'log_sketch',
   dims = 30, 
   resolution = c(0.3, 0.5, 0.8)
   
@@ -367,7 +413,7 @@ create_sketch_object <- function(
   Seurat::DefaultAssay(seurat_sketch) <- "sketch"
   
   # Run Seurat pipeline
-  seurat_sketch <- run_seurat_process(seurat_small, 
+  seurat_sketch <- run_seurat_process(seurat_sketch, 
                                       norm_method = norm_method,
                                       dims = dims,
                                       resolution = resolution)
