@@ -35,6 +35,9 @@ if (exists("snakemake")) {
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
   log_smk() 
+  # Also try this: plan("multicore")
+  future::plan("cluster", workers = 19)
+  future::plan()
 }
 
 data_dir <- paste0(root_dir, 'resources/')
