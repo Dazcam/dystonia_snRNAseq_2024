@@ -161,6 +161,7 @@ Memory Efficiency: 80.06% of 97.66 GB
 ```
 
 - Settings: `threads = 20, mem_mb = 200000`
+- Failed (OOM): FCX
 
 ```bash
 Job ID: 56157477
@@ -173,6 +174,24 @@ CPU Efficiency: 4.72% of 8-08:26:20 core-walltime
 Job Wall-clock time: 10:01:19
 Memory Utilized: 159.52 GB
 Memory Efficiency: 81.68% of 195.31 GB
+```
+
+- Settings: `threads = 20, mem_mb = 200000`
+- Pass: FCX
+- using `future('multicore', workers = snakemake@threads)` within R
+
+```bash
+
+Job ID: 56159050
+Cluster: hawk
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 10:04:51
+CPU Efficiency: 4.94% of 8-11:59:00 core-walltime
+Job Wall-clock time: 10:11:57
+Memory Utilized: 182.53 GB
+Memory Efficiency: 93.46% of 195.31 GB
 ```
 
 </details>
