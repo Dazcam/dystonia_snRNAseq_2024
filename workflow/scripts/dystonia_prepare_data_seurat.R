@@ -11,15 +11,25 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 
 ##  Load Packages, functions and variables  -------------------------------------------
-source('scripts/dystonia_functions.R')
-source('scripts/dystonia_Renvs.R')
-source('scripts/dystonia_gene_lists.R')
+message('Setting environment variables ...')
+if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   
-## Local Parallelisation
-message('Parallelisation. Core number: ', parallel::detectCores())
-future::plan()
-future::plan("multicore", workers = 20) 
-future::plan()
+  library(yaml)
+  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
+  region <- yaml.load(yaml_file$region)
+
+  source(paste0(root_dir, 'workflow/scripts/dystonia_functions.R'))
+  source(paste0(root_dir, 'workflow/scripts/dystonia_Renvs.R'))
+  source(paste0(root_dir, 'workflow/scripts/dystonia_gene_lists.R'))
+
+} else {
+
+  source('scripts/dystonia_functions.R')
+  source('scripts/dystonia_Renvs.R')
+  source('scripts/dystonia_gene_lists.R')
+  
+}
 
 ## Load Data --------------------------------------------------------------------------
 seurat_object <- readRDS(paste0(R_dir, 'prelim/seurat_', region, '.rds'))
@@ -83,13 +93,15 @@ meta_col_orig <- get_meta_col_counts(seurat_object, 'orig.ident')
 meta_col_sample <- get_meta_col_counts(seurat_object, 'sample_id')
 
 seurat_object <- split(seurat_object, seurat_object@meta.data[[sample_split]])
-seurat_object <- create_sketch_object(seurat_object, pc_thresh)
 
+# 
+seurat_sk_log <- create_sketch_object(seurat_object, dims = pc_thresh, resolution = 'log')
+seurat_sk_sct <- run_seurat_process(seurat_object, dims = pc_thresh, resolution = 'sct')
 
 saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_sketch.rds'))
 
 # Plot QCs
-cluster_qc_plot <- create_cluster_qc_plot(seurat_object, pc_thresh, sample_split)
+cluster_qc_plot <- create_cluster_qc_plot(seurat_str, pc_thresh, sample_split)
 
 # Cluster counts - Need to change to full dataset first data first
 #seurat_sk_fcx$seurat_clusters

@@ -22,18 +22,13 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
-#if (locale == 'local') { library(yaml) }
 
 ## Set variables  ---------------------------------------------------------------------
-message('Setting environment variables ...')
-#if (locale == 'local') { 
-#  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
-#  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
-#  region <- yaml.load(yaml_file$regions)}
-
 if (exists("snakemake")) { 
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
+  future::plan("multicore", workers = snakemake@threads) 
+  plan()
   log_smk() 
   # Also try this: plan("multicore")
   future::plan("cluster", workers = 19)
