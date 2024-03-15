@@ -422,6 +422,48 @@ create_sketch_object <- function(
   
 }
 
+#' Create a plot list for a set of resolution params
+#' 
+#' Creates 3 plots for each resolution param. A cluster plot with default cluster IDs.
+#' A stacked violin plot and a cluster plot with the braod stiletti annotations. 
+#' Only has functionality for sketch object atm. 
+#' 
+#' Note: that it is currently not recommended to Seurat::SketchData with SCT 
+#' normalisation. See [issue 7336](https://github.com/satijalab/seurat/issues/7336).
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param resolution A set of resolution params from a sketch object to plot
+#' 
+#' @returns A list of plots 
+#' 
+#' @examples
+#' create_resolution_plotlist(seurat_small, c(0.3, 0.5))
+create_resolution_plotlist <- function(
+    
+  seurat_obj = NULL,
+  resolution = c(0.3, 0.5, 0.8)
+  
+) {
+  
+  plot_list <- list()
+  
+  for (res_level in c(0.3, 0.5, 0.8)) {
+    
+    res_plot <- DimPlot(resolution, group.by = paste0('sketch_snn_res.', res_level), 
+                        label = T) + NoLegend() 
+    stiletti_plot <- DimPlot(seurat_object, group.by = 'cell_type') 
+    plot_list[[paste0('res_', res_level)]]  <- res_plot
+    plot_list[[paste0('stiletti_', res_level)]] <- stiletti_plot
+    plot_list[[paste0('vln_', res_level)]] <- create_stacked_vln_plot(seurat_object, 
+                                                                      paste0('sketch_snn_res.', res_level), 
+                                                                      general_genes, 
+                                                                      paste0(region, ' res. ', res_level))
+  }
+  
+  return(plot_list)
+  
+}
+
 # Basic QC plot
 create_basic_qc_plots <- function(seurat_obj = NULL,
                                   point_size = 0) {
