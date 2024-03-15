@@ -11,8 +11,25 @@
 #  Using Seurat 5 primarily, but also bioconductor packages for QC 
 
 ##  Load Packages, functions and variables  -------------------------------------------
-source('scripts/dystonia_functions.R')
-source('scripts/dystonia_Renvs.R')
+message('Setting environment variables ...')
+if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
+  
+  library(yaml)
+  root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+  yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
+  region <- yaml.load(yaml_file$region)
+  
+  source(paste0(root_dir, 'workflow/scripts/dystonia_functions.R'))
+  source(paste0(root_dir, 'workflow/scripts/dystonia_Renvs.R'))
+  source(paste0(root_dir, 'workflow/scripts/dystonia_gene_lists.R'))
+  
+} else {
+  
+  source('scripts/dystonia_functions.R')
+  source('scripts/dystonia_Renvs.R')
+  source('scripts/dystonia_gene_lists.R')
+  
+}
 
 ## Load Data --------------------------------------------------------------------------
 # Download dissection data - run once - requires internet access
