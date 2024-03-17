@@ -324,6 +324,8 @@ get_hard_thresholds <- function(
 #' @param dims Number of principal components (input for run_seurat_process())
 #' @param resolution A set of resolution params for clustering (input for run_seurat_process())
 #' 
+#' @returns A Seurat object
+#' 
 #' @examples
 #' run_seurat_process(seurat_small, 'log', 30, c(0.3, 0.5))
 #' 
@@ -389,7 +391,6 @@ run_seurat_process <- function(
 #' 
 #' @examples
 #' create_sketch_object(seurat_small, 'log_sketch', 30, c(0.3, 0.5))
-
 create_sketch_object <- function(
     
   seurat_obj = NULL, 
@@ -428,11 +429,9 @@ create_sketch_object <- function(
 #' A stacked violin plot and a cluster plot with the braod stiletti annotations. 
 #' Only has functionality for sketch object atm. 
 #' 
-#' Note: that it is currently not recommended to Seurat::SketchData with SCT 
-#' normalisation. See [issue 7336](https://github.com/satijalab/seurat/issues/7336).
-#' 
 #' @param seurat_obj An uncorrected Seurat object.
 #' @param resolution A set of resolution params from a sketch object to plot
+#' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' 
 #' @returns A list of plots 
 #' 
@@ -441,23 +440,31 @@ create_sketch_object <- function(
 create_resolution_plotlist <- function(
     
   seurat_obj = NULL,
-  resolution = c(0.3, 0.5, 0.8)
+  resolution = c(0.3, 0.5, 0.8),
+  meta_id = NULL
   
 ) {
   
   plot_list <- list()
   
-  for (res_level in c(0.3, 0.5, 0.8)) {
+  for (res_level in resolution) {
     
-    res_plot <- DimPlot(resolution, group.by = paste0('sketch_snn_res.', res_level), 
+    message('Creating plots for res level:', res_level ,'...')
+    res_plot <- DimPlot(seurat_obj, group.by = paste0('sketch_snn_res.', res_level), 
                         label = T) + NoLegend() 
     stiletti_plot <- DimPlot(seurat_object, group.by = 'cell_type') 
+    meta_plot <- DimPlot(seurat_obj, group.by = meta_id,
+                         label = T, repel = T) +  Seurat::NoLegend()
     plot_list[[paste0('res_', res_level)]]  <- res_plot
-    plot_list[[paste0('stiletti_', res_level)]] <- stiletti_plot
     plot_list[[paste0('vln_', res_level)]] <- create_stacked_vln_plot(seurat_object, 
                                                                       paste0('sketch_snn_res.', res_level), 
                                                                       general_genes, 
                                                                       paste0(region, ' res. ', res_level))
+    plot_list[[paste0('stiletti_', res_level)]] <- scCustomize::DimPlot_scCustom(seurat_object, group.by = 'cell_type',
+                                                                                 label = T, repel = T) + 
+      Seurat::NoLegend()
+    plot_list[[paste0('meta_id_', res_level)]]  <- meta_plot
+    
   }
   
   return(plot_list)
@@ -466,9 +473,11 @@ create_resolution_plotlist <- function(
 
 # Basic QC plot
 create_basic_qc_plots <- function(seurat_obj = NULL,
-                                  point_size = 0) {
+                                  point_size = 0,
+                                  meta_id = NULL) {
   
   message('Creating basic qc plots: ', region, ' ...')
+  Idents(object = seurat_obj) <- meta_id
   seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "^MT-")
   seurat_obj$complexity <- log10(seurat_obj$nFeature_RNA) / log10(seurat_obj$nCount_RNA)
   vln_plot <- VlnPlot(seurat_obj, features = c("nFeature_RNA", "nCount_RNA", 
@@ -505,11 +514,31 @@ create_cluster_qc_plot <- function(
   
 }
 
+#' Run integration analysis on a Seurat object
+#' 
+#' This has functionality to run one or more batch correction algorithims. 
+#' Note that CCA takes a very long time to run compared to the others. 
+#' Atm there is only functionality for a single resolution param as it's 
+#' not possible to set the resolution and cluster.name params in 
+#' Seurat::FindClusters.
+#' 
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param reductions An vector of integration method to run eith 'harmony', 'cca', 'rpca', 'fastmnn'.
+#' @param dimensions Number of principal components.
+#' @param resolution A single resolution param to send to findClusters().
+#' 
+#' @returns A Seurat object.
+#' 
+#' @examples
+#' run_integration(seurat_small, 'harmony', 30, 0.1)
+#' 
 run_integration <- function(
     
   seurat_obj = NULL,
   reductions = 'harmony',
-  dimensions = 30
+  dimensions = 30, 
+  resolution = 0.8
   
   ) {
   
@@ -526,10 +555,13 @@ run_integration <- function(
   
   message('Finding Harmony clusters and generating UMAP ...')
   seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "harmony") %>%
-    FindClusters(cluster.name = "harmony_clusters") %>%
     RunUMAP(reduction = "harmony", dims = 1:dimensions, reduction.name = "umap.harmony")
   
-  }
+  for (res_level in resolution) {
+    message('Finding harmony clusters for res level: ', res_level, '...')
+    seurat_obj <- FindClusters(seurat_obj, 
+                               cluster.name = paste0("harmony_clusters_", res_level), 
+                               resolution = res_level)}}
   
   if ('cca' %in% reductions) { 
   message('Running CCA integration ...')
@@ -544,7 +576,7 @@ run_integration <- function(
   
   message('Finding CCA clusters and generating UMAP ...')
   seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "cca") %>%
-    FindClusters(cluster.name = "cca_clusters") %>%
+    FindClusters(cluster.name = "cca_clusters", resolution = resolution) %>%
     RunUMAP(reduction = "cca", dims = 1:dimensions, reduction.name = "umap.cca")
   
   }
@@ -562,7 +594,7 @@ run_integration <- function(
   
   message('Finding RPCA clusters and generating UMAP ...')
   seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "rpca") %>%
-    FindClusters(cluster.name = "rpca_clusters") %>%
+    FindClusters(cluster.name = "rpca_clusters", resolution = resolution) %>%
     RunUMAP(reduction = "rpca", dims = 1:dimensions, reduction.name = "umap.rpca")
   
   }
@@ -580,7 +612,7 @@ run_integration <- function(
   
   message('Finding FastMNN clusters and generating UMAP ...')
   seurat_obj <- FindNeighbors(seurat_obj, dims = 1:dimensions, reduction = "fastmnn") %>%
-    FindClusters(cluster.name = "fastmnn_clusters") %>%
+    FindClusters(cluster.name = "fastmnn_clusters", resolution = resolution) %>%
     RunUMAP(reduction = "fastmnn", dims = 1:dimensions, reduction.name = "umap.fastmnn")
   
   }
@@ -588,6 +620,72 @@ run_integration <- function(
   return(seurat_obj)
   
 }
+
+#' Plot clusters after batch correction integration
+#' 
+#' This plots 4 plots, 
+#' 
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param reductions An vector of integration method to run eith 'harmony', 'cca', 'rpca', 'fastmnn'.
+#' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
+#' @param dimensions Number of principal components.
+#' @param resolution A single resolution param to send to findClusters().
+#' 
+#' @returns A ggplot plot list.
+#' 
+#' @examples
+#' create_integration_plot(seurat_small, 'harmony', 'sample_id')
+#' 
+create_integration_plotlist <- function(
+    
+  seurat_obj = NULL, 
+  algorithm = c('harmony'), 
+  meta_id = 'sample_id',
+  dims = 30,
+  reduction = c(0.3, 0.5, 0.8)
+  
+) {
+
+  message('Creating integration plot: ', region, ' ...')
+  
+  plot_list <- list()
+  
+  for (i in 1:length(algorithm)) {
+    
+    for (j in 1:length(reduction)) {
+      
+      message('Creating plots for res level:', j ,'...')
+    
+    cluster_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", algorithm[i]), 
+                            group.by = paste0(algorithm[i], '_clusters_', reduction[j]))
+    vln_plot <- create_stacked_vln_plot(seurat_object, 
+                                        paste0(algorithm[i], '_clusters_', reduction[j]), 
+                                        general_genes, 
+                                        paste0(region, ' ', algorithm[i], ' clusters ', reduction[j]))
+    meta_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", algorithm[i]), group.by = meta_id, 
+                         label = T, repel = T) +
+      NoLegend()
+    #bar_plot <- create_proportion_barplot(seurat_obj, paste0(algorithm[i], '_clusters_', reduction[j]), meta_id)
+    stiletti_plot <- scCustomize::DimPlot_scCustom(seurat_object, 
+                                                   reduction = paste0("umap.", algorithm[i]), 
+                                                   group.by = 'cell_type', label = T, repel = T) +
+      NoLegend()
+    
+    plot_list[[paste0(algorithm[i], '_cluster_', reduction[j])]]  <- cluster_plot
+    plot_list[[paste0(algorithm[i], '_vln_', reduction[j])]]  <- vln_plot
+    #plot_list[[paste0(algorithm[i], '_bar_', reduction[j])]]  <- bar_plot
+    plot_list[[paste0(algorithm[i], '_stiletti_', reduction[j])]]  <- stiletti_plot
+    plot_list[[paste0(algorithm[i], '_meta_', reduction[j])]]  <- meta_plot
+    
+    }
+    
+  } 
+  
+  return(plot_list)
+  
+}
+
 
 create_proportion_barplot <- function(seurat_obj = NULL, 
                                       cluster_id = NULL,
@@ -608,37 +706,6 @@ create_proportion_barplot <- function(seurat_obj = NULL,
     theme_minimal()
   
   return(bar_plot)
-  
-}
-
-create_integration_plot <- function(
-    
-  seurat_obj = NULL, 
-  reductions = c('harmony'), 
-  meta_id = 'sample_id',
-  dims = 30
-  
-) {
-
-  message('Creating integration plot: ', region, ' ...')
-  
-  plot_list <- list()
-  
-  for (i in 1:length(reductions)) {
-    
-    cluster_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = paste0(reductions[i], '_clusters'))
-    meta_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", reductions[i]), group.by = meta_id)
-    bar_plot <- create_proportion_barplot(seurat_obj, paste0(reductions[i], '_clusters'), meta_id)
-    
-    plot_list[[paste0(reductions[i], '_cluster')]]  <- cluster_plot
-    plot_list[[paste0(reductions[i], '_meta')]]  <- meta_plot
-    plot_list[[paste0(reductions[i], '_bar')]]  <- bar_plot
-    
-  } 
-  
-  group_plot <- plot_grid(plotlist = plot_list, ncol = 2)
-  
-  return(group_plot)
   
 }
 
@@ -704,10 +771,25 @@ calculate_aggregated_expression <- function(
 }
 
 # Project info generated on Seurat sketch object onto entire dataset
+
+#' Project Seurat sketch object data onto entire Seurat object 
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param dimensions Number of principal components.
+#' @param umap_model The umap model in the sketch object to use for the projection
+#' @param cluster_model The cluster model in the sketch object to use for the projection
+#' 
+#' @returns A Seurat object.
+#' 
+#' @examples
+#' project_sketch_data(seurat_small, 30, 'harmony_clusters_0.3', 'umap.harmony')
+#' 
 project_sketch_data <- function(
     
   seurat_obj = NULL,
-  dimensions = 30
+  dimensions = 30,
+  umap_model = NULL,
+  cluster_model = NULL
   
 ) {
   
@@ -718,16 +800,18 @@ project_sketch_data <- function(
     full.reduction = "pca.full",
     sketched.assay = "sketch",
     sketched.reduction = "pca",
-    umap.model = "umap",
+    umap.model = umap.model,
     dims = dimensions,
-    refdata = list(cluster_full = "seurat_clusters")
+    refdata = list(cluster_full = cluster_model)
     
   )
   
-  seurat_obj <- ProjectIntegration(object = seurat_obj,
-                                   sketched.assay = "sketch",
-                                   assay = "RNA",
-                                   reduction = "harmony")
+  # Is this needed??
+  # message('Projecting Integration data: ', region, ' ...')
+  # seurat_obj <- ProjectIntegration(object = seurat_obj,
+  #                                  sketched.assay = "sketch",
+  #                                  assay = "RNA",
+  #                                  reduction = "harmony")
   
   return(seurat_obj)
   
