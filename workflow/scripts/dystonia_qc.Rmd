@@ -1,5 +1,5 @@
 ---
-title: "Dystonia study - Stiletti data analysis - 2nd Pass - `r toupper(region)`"
+title: "Dystonia study - Stiletti data analysis - 3rd Pass - `r toupper(region)`"
 author: "Darren Cameron"
 date: "`r Sys.Date()`"
 output: html_document
@@ -26,7 +26,7 @@ output: html_document
 
 ***
 
-```{r plots_pre_filt, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r plots_pre_filt, results='asis', fig.dim = c(20,20), echo=FALSE}
 qc_plot_noFilt
 ```
 
@@ -46,7 +46,7 @@ knitr::kable(dist_counts_noFilt, caption = paste0("UMI and gene count distributi
 
 ##### Outliers
 
-```{r outlier_plot, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r outlier_plot, results='asis', fig.dim = c(20,20), echo=FALSE}
 cell_outlier_plot
 ```
 
@@ -62,7 +62,7 @@ knitr::kable(cell_outlier_cnts_tbl, caption = paste0("Cell outlier counts: ", to
 
 ***
 
-```{r plots_post_filt, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r plots_post_filt, results='asis', fig.dim = c(20,20), echo=FALSE}
 qc_plot_post_Filt
 ```
 
@@ -80,23 +80,6 @@ knitr::kable(dist_counts_post_Filt, caption = paste0("UMI and gene count distrib
 
 ***
 
-##### Samples
-
-+ We should be running this on individual samples by lane
-+ However, due to the number of samples when running it by lane I hit the limit of my resources locally so only only str run by lane so far
-
-***
-
-```{r, meta_col_orig, sample_id, echo=FALSE}
-knitr::kable(meta_col_orig, caption = paste0("Samples by 10X run: ", toupper(region)))
-```
-
-***
-
-```{r, meta_col_sample, sample_id, echo=FALSE}
-knitr::kable(meta_col_sample, caption = paste0("Samples by 10X lane: ", toupper(region)))
-```
-
 #### Cluster QC Plots {.tabset}
 
 + Note that NAs are generated as we're using a Sketch object here (i.e. only 5K cells)
@@ -111,48 +94,39 @@ cluster_qc_plot
 
 ***
 
+#### Resolution {.tabset}
+
++ Checking res params for range from 0.1 - 0.8 (latter is the Seurat default)
+
+***
+
+```{r resolution, fig.dim = c(20, 20), echo = FALSE, results="asis"}
+for(i in resolution_set) {
+  cat("  \n##### **", i , "**\n", sep = "")
+  plot_subset <- res_plotlist[grep(i, names(res_plotlist), ignore.case = TRUE)]
+  plot(cowplot::plot_grid(plotlist = plot_subset, ncol = 2))
+  cat("  \n")
+}
+```
+
+***
+
 #### Integration Plots {.tabset}
 
-+ Integration should be done on sample ID rather than orig.ident
-+ Atm can only run cer and fcx on orig.ident
++ Integration done on sample ID, i.e. lane 
++ Running on resolution 0.1 - the lowest setting
 
 ***
 
-```{r Integration plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-integration_plot
-```
-
-***
-
-#### PCA {.tabset}
-
-+ PC threshold probs between 30 for Str and Cer, 50 for FCX
-
-```{r pca_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-DimHeatmap(seurat_object, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
-```
-
-#### Violin (General) {.tabset}
-
-+ Too many cell types?
-
-```{r vln_general_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-vln_plot_recode
+```{r Integration plots, fig.dim = c(20, 20), echo = FALSE, results="asis"}
+for(i in resolution_set) {
+  cat("  \n##### **", i , "**\n", sep = "")
+  plot_subset <- integration_plotlist[grep(i, names(integration_plotlist), ignore.case = TRUE)]
+  plot(cowplot::plot_grid(plotlist = plot_subset, ncol = 2))
+  cat("  \n")
+}
 ```
 
 ***
 
-#### Violin (dystonia genes) {.tabset}
-
-+ Broad expression of dystonia genes, difficult to pull out patterns in this format
-
-```{r vln_dyst_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-vln_plot_recode_dyst
-```
-
-#### Cluster umap
-
-```{r cluster_umap, results='asis', fig.dim = c(10,10), echo=FALSE}
-umap_recode
-```
 
