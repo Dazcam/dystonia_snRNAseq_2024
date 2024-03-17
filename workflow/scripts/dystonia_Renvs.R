@@ -31,8 +31,8 @@ if (exists("snakemake")) {
   plan()
   log_smk() 
   # Also try this: plan("multicore")
-  future::plan("cluster", workers = 19)
-  future::plan()
+  #future::plan("cluster", workers = 19)
+  #future::plan()
 }
 
 data_dir <- paste0(root_dir, 'resources/')
@@ -46,13 +46,14 @@ regions <- c('fcx', 'str', 'cer')
 fcx_anns <- c('A13', 'A14', 'A25', 'A32', 'A44-A45', 'A46', 'FI', 'M1C')
 str_anns <- c('CaB', 'Pu')
 cer_anns <- c('CBL', 'CBV', 'CbDN')
-#glp_anns <- c('GPi', 'GPe')
 all_anns <- c(fcx_anns, str_anns, cer_anns)
 anns_table <- read_excel(paste0(data_dir, 'sheets/Stiletti_downloads_table.xlsx'))
 dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), range = 'D1:D26') %>%
   pull(GeneName) 
+sample_split <- 'sample_id' # Meta_id col to split seurat object by for qc
+resolution_set <- seq(0.1, 0.8, 0.1) # Set of res params to test
 
-options(future.globals.maxSize = 3e+09) # set this option when analyzing large datasets
+options(future.globals.maxSize = 3e+09, future.seed = T) # set this option when analyzing large datasets
 options(digits = 1) # Set default decimal points
 options(scipen = 999)
 
