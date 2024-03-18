@@ -194,6 +194,23 @@ Memory Utilized: 182.53 GB
 Memory Efficiency: 93.46% of 195.31 GB
 ```
 
+- 2nd run on same same settings as above:
+- This can take > 24hrs in queue for resources
+- Seems to be a big discrepancy in the memory
+  utilised: between 108 and 182 Gs.
+
+```bash
+Job ID: 56163010
+Cluster: hawk
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 11:07:56
+CPU Efficiency: 4.81% of 9-15:15:40 core-walltime
+Job Wall-clock time: 11:33:47
+Memory Utilized: 108.15 GB
+Memory Efficiency: 55.37% of 195.31 GB
+```
 </details>
 
 
