@@ -30,7 +30,7 @@ if (exists("snakemake")) {
   future::plan("multicore", workers = snakemake@threads) 
   plan()
   log_smk() 
-  # Also try this: plan("multicore")
+  # Also try this: plan("cluster")
   #future::plan("cluster", workers = 19)
   #future::plan()
 }
@@ -52,29 +52,15 @@ dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.
   pull(GeneName) 
 sample_split <- 'sample_id' # Meta_id col to split seurat object by for qc
 resolution_set <- seq(0.1, 0.8, 0.1) # Set of res params to test
+pc_thresh <- ifelse(region == 'fcx', 50, 30) # Set PC thresh
 
 options(future.globals.maxSize = 3e+09, future.seed = T) # set this option when analyzing large datasets
 options(digits = 1) # Set default decimal points
 options(scipen = 999)
+options(ggrepel.max.overlaps = Inf) # For DimPlots
 
-# Set region specific variables
-# Remove orig.ident after running this remotely
-if (region == 'fcx') {
-  
-  pc_thresh <- 50
-  sample_split <- 'sample_id'
-  
-} else if (region == 'cer') {
-  
-  pc_thresh <- 30
-  sample_split <- 'sample_id'
-  
-} else {
-  
-  pc_thresh <- 30
-  sample_split <- 'sample_id'
-  
-}
+
+
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

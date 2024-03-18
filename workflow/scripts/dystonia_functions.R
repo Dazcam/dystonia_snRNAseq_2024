@@ -210,7 +210,7 @@ create_outlier_plots <- function(
   
 ) {
   
-  message('Creating outlier plots', region, ' ... ')
+  message('Creating outlier plots ', region, ' ... ')
 
   # Generate main outlier plots
   umi_plot <- scater::plotColData(sce_obj, x = "sample_id", y = "sum",
@@ -245,7 +245,7 @@ subset_seurat_object <- function(
   
 ) {
 
-  message('Subsetting Seurat object: ', region, ' ...')
+  message('Subsetting Seurat object: ', region, ' ...\n')
   seurat_obj$cell_outlier <- cell_outliers
   
   # Check seurat obj dimensions before filters
@@ -452,16 +452,18 @@ create_resolution_plotlist <- function(
     message('Creating plots for res level:', res_level ,'...')
     res_plot <- DimPlot(seurat_obj, group.by = paste0('sketch_snn_res.', res_level), 
                         label = T) + NoLegend() 
-    stiletti_plot <- DimPlot(seurat_object, group.by = 'cell_type') 
+    stiletti_plot <- DimPlot(seurat_obj, group.by = 'cell_type', pt.size = 1, raster = F) 
     meta_plot <- DimPlot(seurat_obj, group.by = meta_id,
-                         label = T, repel = T) +  Seurat::NoLegend()
+                         label = T, repel = T, pt.size = 1, raster = F) +  
+      Seurat::NoLegend()
     plot_list[[paste0('res_', res_level)]]  <- res_plot
-    plot_list[[paste0('vln_', res_level)]] <- create_stacked_vln_plot(seurat_object, 
+    plot_list[[paste0('vln_', res_level)]] <- create_stacked_vln_plot(seurat_obj, 
                                                                       paste0('sketch_snn_res.', res_level), 
                                                                       general_genes, 
                                                                       paste0(region, ' res. ', res_level))
-    plot_list[[paste0('stiletti_', res_level)]] <- scCustomize::DimPlot_scCustom(seurat_object, group.by = 'cell_type',
-                                                                                 label = T, repel = T) + 
+    plot_list[[paste0('stiletti_', res_level)]] <- scCustomize::DimPlot_scCustom(seurat_obj, group.by = 'cell_type',
+                                                                                 label = T, repel = T,
+                                                                                 pt.size = 1, raster = F) + 
       Seurat::NoLegend()
     plot_list[[paste0('meta_id_', res_level)]]  <- meta_plot
     
@@ -625,7 +627,6 @@ run_integration <- function(
 #' 
 #' This plots 4 plots, 
 #' 
-#' 
 #' @param seurat_obj An uncorrected Seurat object.
 #' @param reductions An vector of integration method to run eith 'harmony', 'cca', 'rpca', 'fastmnn'.
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
@@ -664,12 +665,13 @@ create_integration_plotlist <- function(
                                         general_genes, 
                                         paste0(region, ' ', algorithm[i], ' clusters ', reduction[j]))
     meta_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", algorithm[i]), group.by = meta_id, 
-                         label = T, repel = T) +
+                         label = T, repel = T, pt.size = 1, raster = FALSE) +
       NoLegend()
     #bar_plot <- create_proportion_barplot(seurat_obj, paste0(algorithm[i], '_clusters_', reduction[j]), meta_id)
     stiletti_plot <- scCustomize::DimPlot_scCustom(seurat_object, 
                                                    reduction = paste0("umap.", algorithm[i]), 
-                                                   group.by = 'cell_type', label = T, repel = T) +
+                                                   group.by = 'cell_type', label = T, repel = T,
+                                                   pt.size = 1, raster = FALSE) +
       NoLegend()
     
     plot_list[[paste0(algorithm[i], '_cluster_', reduction[j])]]  <- cluster_plot
