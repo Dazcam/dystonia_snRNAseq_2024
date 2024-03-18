@@ -95,7 +95,7 @@ seurat_object <- create_sketch_object(seurat_object, dims = pc_thresh, norm_meth
 # Check PCs
 pca_plot <- DimHeatmap(seurat_object, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
 
-# Creat resolution plots for comparison
+# Create resolution plots for comparison
 res_plotlist <- create_resolution_plotlist(seurat_object, resolution = resolution_set,
                                            meta_id = sample_split)
 
@@ -106,15 +106,17 @@ meta_col_cluster_cnts <- get_meta_col_counts(seurat_object, 'seurat_clusters')
 ## Integration - using Harmony
 seurat_object <- run_integration(seurat_object, 'harmony', pc_thresh, resolution_set)
 integration_plotlist <- create_integration_plotlist(seurat_object, 
-                                                meta_id = sample_split, 
-                                                dims = pc_thresh,
-                                                reduction = resolution_set) 
+                                                    meta_id = sample_split, 
+                                                    dims = pc_thresh,
+                                                    reduction = resolution_set) 
 
 ## Project sketch data to entire object - still having issues with this:
-# seurat_object <- project_sketch_data(seurat_object, 
-#                                      pc_thresh, 
-#                                      'harmony_clusters_0.3', 
-#                                      'umap.harmony') 
+seurat_object <- project_sketch_data(seurat_object,
+                                     pc_thresh,
+                                     'harmony',
+                                     'umap.harmony',
+                                     'harmony_clusters_0.1')
+
 DefaultAssay(seurat_object) <- "sketch"
 
 ## Create markdown doc  ---------------------------------------------------------------
