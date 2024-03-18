@@ -659,7 +659,9 @@ create_integration_plotlist <- function(
       message('Creating plots for res level:', j ,'...')
     
     cluster_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", algorithm[i]), 
-                            group.by = paste0(algorithm[i], '_clusters_', reduction[j]))
+                            group.by = paste0(algorithm[i], '_clusters_', reduction[j]),
+                            label = T, repel = T, pt.size = 1, raster = FALSE) +
+      NoLegend()
     vln_plot <- create_stacked_vln_plot(seurat_object, 
                                         paste0(algorithm[i], '_clusters_', reduction[j]), 
                                         general_genes, 
@@ -772,48 +774,46 @@ calculate_aggregated_expression <- function(
   
 }
 
-# Project info generated on Seurat sketch object onto entire dataset
-
 #' Project Seurat sketch object data onto entire Seurat object 
 #' 
 #' @param seurat_obj An uncorrected Seurat object.
 #' @param dimensions Number of principal components.
-#' @param umap_model The umap model in the sketch object to use for the projection
-#' @param cluster_model The cluster model in the sketch object to use for the projection
+#' @param reduction A reduction object in the sketch object to use for projection.
+#' @param umap_model The umap model in the sketch object to use for the projection.
+#' @param cluster_model The cluster model in the sketch object to use for the projection.
 #' 
 #' @returns A Seurat object.
 #' 
 #' @examples
-#' project_sketch_data(seurat_small, 30, 'harmony_clusters_0.3', 'umap.harmony')
+#' project_sketch_data(seurat_small, 30, 'harmony', 'umap.harmony', harmony_clusters_0.1')
 #' 
 project_sketch_data <- function(
     
   seurat_obj = NULL,
   dimensions = 30,
+  reduction = NULL,
   umap_model = NULL,
   cluster_model = NULL
   
 ) {
   
-  message('Projecting sketch data: ', region, ' ...')
+  message('Projecting integration data from sketch to all cells: ', region, ' ...')
+  seurat_obj <- ProjectIntegration(object =  seurat_obj, 
+                                   sketched.assay = "sketch", 
+                                   assay = "RNA", 
+                                   reduction = reduction)
+  
+  message('Projecting cell labels from sketch to all cells: ', region, ' ...')
   seurat_obj <- ProjectData(
     object = seurat_obj,
-    assay = "RNA",
-    full.reduction = "pca.full",
     sketched.assay = "sketch",
-    sketched.reduction = "pca",
-    umap.model = umap.model,
-    dims = dimensions,
+    assay = "RNA",
+    sketched.reduction = reduction,
+    full.reduction = paste0(reduction, '_full'),
+    dims = 1:dimensions,
+    umap.model = umap_model,
     refdata = list(cluster_full = cluster_model)
-    
   )
-  
-  # Is this needed??
-  # message('Projecting Integration data: ', region, ' ...')
-  # seurat_obj <- ProjectIntegration(object = seurat_obj,
-  #                                  sketched.assay = "sketch",
-  #                                  assay = "RNA",
-  #                                  reduction = "harmony")
   
   return(seurat_obj)
   
