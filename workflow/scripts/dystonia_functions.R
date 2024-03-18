@@ -669,7 +669,7 @@ create_integration_plotlist <- function(
     meta_plot <- DimPlot(seurat_obj, reduction = paste0("umap.", algorithm[i]), group.by = meta_id, 
                          label = T, repel = T, pt.size = 1, raster = FALSE) +
       NoLegend()
-    #bar_plot <- create_proportion_barplot(seurat_obj, paste0(algorithm[i], '_clusters_', reduction[j]), meta_id)
+    bar_plot <- create_proportion_barplot(seurat_obj, paste0(algorithm[i], '_clusters_', reduction[j]), meta_id)
     stiletti_plot <- scCustomize::DimPlot_scCustom(seurat_object, 
                                                    reduction = paste0("umap.", algorithm[i]), 
                                                    group.by = 'cell_type', label = T, repel = T,
@@ -678,9 +678,9 @@ create_integration_plotlist <- function(
     
     plot_list[[paste0(algorithm[i], '_cluster_', reduction[j])]]  <- cluster_plot
     plot_list[[paste0(algorithm[i], '_vln_', reduction[j])]]  <- vln_plot
-    #plot_list[[paste0(algorithm[i], '_bar_', reduction[j])]]  <- bar_plot
     plot_list[[paste0(algorithm[i], '_stiletti_', reduction[j])]]  <- stiletti_plot
     plot_list[[paste0(algorithm[i], '_meta_', reduction[j])]]  <- meta_plot
+    plot_list[[paste0(algorithm[i], '_bar_', reduction[j])]]  <- bar_plot
     
     }
     
