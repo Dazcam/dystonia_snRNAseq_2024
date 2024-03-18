@@ -803,13 +803,16 @@ project_sketch_data <- function(
                                    assay = "RNA", 
                                    reduction = reduction)
   
+  message('Seurat object after project integration:')
+  message(paste0(capture.output(seurat_obj), collapse = "\n"), '\n')
+  
   message('Projecting cell labels from sketch to all cells: ', region, ' ...')
   seurat_obj <- ProjectData(
     object = seurat_obj,
     sketched.assay = "sketch",
     assay = "RNA",
-    sketched.reduction = reduction,
-    full.reduction = paste0(reduction, '_full'),
+    sketched.reduction = paste0(reduction, '.full'),
+    full.reduction = paste0(reduction, '.full'),
     dims = 1:dimensions,
     umap.model = umap_model,
     refdata = list(cluster_full = cluster_model)
