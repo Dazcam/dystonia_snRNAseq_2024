@@ -456,6 +456,7 @@ create_resolution_plotlist <- function(
     meta_plot <- DimPlot(seurat_obj, group.by = meta_id,
                          label = T, repel = T, pt.size = 1, raster = F) +  
       Seurat::NoLegend()
+    bar_plot <- create_proportion_barplot(seurat_obj, paste0('sketch_snn_res.', res_level), meta_id)
     plot_list[[paste0('res_', res_level)]]  <- res_plot
     plot_list[[paste0('vln_', res_level)]] <- create_stacked_vln_plot(seurat_obj, 
                                                                       paste0('sketch_snn_res.', res_level), 
@@ -466,6 +467,7 @@ create_resolution_plotlist <- function(
                                                                                  pt.size = 1, raster = F) + 
       Seurat::NoLegend()
     plot_list[[paste0('meta_id_', res_level)]]  <- meta_plot
+    plot_list[[paste0('bar_', res_level)]]  <- bar_plot
     
   }
   
