@@ -748,6 +748,45 @@ create_stacked_vln_plot <- function(
   
 }
 
+#' Plot 2 staked violin plotsto compare genes expressed
+#' 
+#' @param seurat_obj An uncorrected Seurat object.
+#' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
+#' @param genes_a A vector, or factor, of genes to plot in plot a.
+#' @param genes_a A vector, or factor, of genes to plot in plot b.
+#' @param col_pal A palette of colours for violin plot
+#' 
+#' @returns A patchwork object of 2 violin plots
+#' 
+#' @examples
+#' plot_marker_compare_vlns(seurat_small, 'harmony_clusters', c('GAD1', 'GAD2'), c('DRD1', 'DRD2'))
+#' 
+plot_marker_compare_vlns <- function(
+    
+  seurat_obj = NULL,
+  meta_id = NULL,
+  genes_a = NULL,
+  genes_b =NULL,
+  col_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
+              "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
+              "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
+              "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
+              "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
+              "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
+              "#00446B", "#803800", "#8D3666", "#3D3D3D")
+  
+) {
+  
+  message('Creating Vlns to compare markers:\n')
+  vln_a <- create_stacked_vln_plot(seurat_obj, meta_id, genes_a,
+                                   toupper(region), col_pal)
+  vln_b <- create_stacked_vln_plot(seurat_obj, meta_id, genes_b,
+                                   toupper(region), col_pal)
+  
+  vln_a | vln_b
+  
+} 
+
 calculate_average_expression <- function(
     
   seurat_obj = NULL,
