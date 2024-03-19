@@ -748,20 +748,131 @@ create_stacked_vln_plot <- function(
   
 }
 
-#' Plot 2 staked violin plotsto compare genes expressed
+
+#' Recode cluster ids in a Seurat Object
 #' 
-#' @param seurat_obj An uncorrected Seurat object.
+#' @param seurat_obj An Seurat object.
+#' @param region The string inidcating a brain region of interest. Currently 'str', 'cer', or 'fcx'.
+#' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
+#' 
+#' @returns A factor of cell IDs to attach to bind to Seurat metadata
+#' 
+#' @examples
+#' recode_cluster_ids (seurat_small, 'str', 'harmony_clusters_0.1')
+#' 
+recode_cluster_ids <- function(
+    
+  seurat_obj = NULL,
+  region = NULL,
+  meta_id = NULL
+  
+) {
+  
+  message('\nRecoding Cluster IDs for, ', region, ' ...\n')
+  
+  if (region == 'str') {
+    
+    str_levels <- c("Str-adult-InN-1", "Str-adult-InN-2", "Str-adult-InN-3", 
+                    "Str-adult-InN-4", "Str-adult-InN-5", "Str-adult-InN-6", 
+                    "Str-adult-InN-7", "Str-adult-InN-8", "Str-adult-InN-9", 
+                    "Str-adult-ExN", "Str-adult-Ast-1", "Str-adult-Ast-2", 
+                    "Str-adult-Olig-1", "Str-adult-OPC", "Str-adult-MG", 
+                    "Str-adult-Misc-1")
+    
+    clusters_recode <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
+                                          `0` = "Str-adult-InN-1", 
+                                          `1` = "Str-adult-InN-2",
+                                          `2` = "Str-adult-Olig-1",
+                                          `3` = "Str-adult-InN-5",
+                                          `4` = "Str-adult-InN-6",
+                                          `5` = "Str-adult-InN-7",
+                                          `6` = "Str-adult-Ast-2",
+                                          `7` = "Str-adult-OPC",
+                                          `8` = "Str-adult-ExN",
+                                          `9` = "Str-adult-InN-8",
+                                          `10` = "Str-adult-InN-3",
+                                          `11` = "Str-adult-InN-4",
+                                          `12` = "Str-adult-MG",
+                                          `13` = "Str-adult-Misc-1",
+                                          `14` = "Str-adult-Ast-1",
+                                          `15` = "Str-adult-InN-9")) %>%
+      pull(clust_recode)
+    
+    
+  }
+  
+  clusters_recode <- factor(get(paste0(region, '_clusters_recode')), 
+                            get(paste0(region, '_levels')))
+  
+  return(clusters_recode)
+  
+}
+
+
+#' Plot a paired plot, a umap and a violin plot
+#' 
+#' @param seurat_obj A Seurat object.
+#' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
+#' @param genes A vector, or factor, of genes to plot in violin plot.
+#' @param col_pal_umap A palette of colours for umap plot.
+#' @param col_pal_vln A palette of colours for violin plot.
+#' 
+#' @returns A patchwork object of a umap and violin plot.
+#' 
+#' @examples
+#' plot_paired_umap_vln(seurat_small, 'harmony_clusters_0.1', c('GAD1', 'GAD2'))
+#' 
+plot_paired_umap_vln <- function(
+    
+  seurat_obj = NULL,
+  meta_id = NULL,
+  genes = NULL,
+  col_pal_umap = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
+                   "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
+                   "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
+                   "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
+                   "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
+                   "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
+                   "#00446B", "#803800", "#8D3666", "#3D3D3D"),
+  col_pal_vln = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
+                  "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
+                  "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
+                  "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
+                  "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
+                  "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
+                  "#00446B", "#803800", "#8D3666", "#3D3D3D")
+  
+) {
+  
+  message('Creating UMAP and Vln Paired plot:\n')
+  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, 
+                          cols = col_pal_umap, pt.size = 0.1,
+                          label = T, label.size = 3, label.box = T, repel = T, alpha = 0.5) + 
+    NoLegend()
+  vln <- create_stacked_vln_plot(seurat_obj, meta_id, genes,
+                                 toupper(region), col_pal_vln)
+  
+  
+  umap | vln
+  
+} 
+
+#' Plot 2 stacked violin plots to compare genes expressed
+#' 
+#' @param seurat_obj An Seurat object.
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' @param genes_a A vector, or factor, of genes to plot in plot a.
 #' @param genes_a A vector, or factor, of genes to plot in plot b.
-#' @param col_pal A palette of colours for violin plot
+#' @param col_pal A palette of colours for violin plot.
 #' 
-#' @returns A patchwork object of 2 violin plots
+#' @returns A patchwork object of 2 violin plots.
 #' 
 #' @examples
-#' plot_marker_compare_vlns(seurat_small, 'harmony_clusters', c('GAD1', 'GAD2'), c('DRD1', 'DRD2'))
+#' plot_paired_vlns(seurat_small, 'harmony_clusters', c('GAD1', 'GAD2'), c('DRD1', 'DRD2'))
 #' 
-plot_marker_compare_vlns <- function(
+plot_paired_vlns <- function(
     
   seurat_obj = NULL,
   meta_id = NULL,
