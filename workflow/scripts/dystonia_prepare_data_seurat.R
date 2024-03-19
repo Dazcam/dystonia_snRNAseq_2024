@@ -120,7 +120,7 @@ seurat_object <- project_sketch_data(seurat_object,
 DefaultAssay(seurat_object) <- "sketch"
 
 ## Create markdown doc  ---------------------------------------------------------------
-rmarkdown::render(markdown_doc, output_file = markdown_html, output_dir = R_dir)
+rmarkdown::render(markdown_prep_doc, output_file = markdown_prep_html, output_dir = R_dir)
 
 # Save Seurat object
 message('\nWriting final Seurat object ...\n')
