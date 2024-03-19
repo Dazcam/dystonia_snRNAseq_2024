@@ -721,7 +721,13 @@ create_stacked_vln_plot <- function(
   set_ident = 'seurat_clusters',
   genes = NULL,
   plot_title = NULL,
-  col_pal = NULL
+  col_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
+              "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
+              "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
+              "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
+              "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
+              "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
+              "#00446B", "#803800", "#8D3666", "#3D3D3D")
   
 ) {
   
@@ -805,9 +811,6 @@ project_sketch_data <- function(
                                    assay = "RNA", 
                                    reduction = reduction)
   
-  message('Seurat object after project integration:')
-  message(paste0(capture.output(seurat_obj), collapse = "\n"), '\n')
-  
   message('Projecting cell labels from sketch to all cells: ', region, ' ...')
   seurat_obj <- ProjectData(
     object = seurat_obj,
@@ -819,6 +822,14 @@ project_sketch_data <- function(
     umap.model = umap_model,
     refdata = list(cluster_full = cluster_model)
   )
+  
+  message('Running UMAP for full object:')
+  seurat_obj <- RunUMAP(seurat_obj, reduction = paste0(reduction, '.full'), 
+                        dims = 1:dimensions, reduction.name = "umap.full",
+                        reduction.key = "UMAPfull_")
+  
+  message('Seurat object after project integration:')
+  message(paste0(capture.output(seurat_obj), collapse = "\n"), '\n')
   
   return(seurat_obj)
   
