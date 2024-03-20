@@ -4,5 +4,5 @@ include: 'rules/01seurat.smk'
 
 rule all:
     input:
-        expand("../results/01R_objects/seurat_{region}.rds", region = config['region'])
+        expand("../results/01R_objects/ann_seurat_{region}.rds", region = config['region'])
 
