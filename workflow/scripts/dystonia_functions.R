@@ -721,13 +721,15 @@ create_stacked_vln_plot <- function(
   set_ident = 'seurat_clusters',
   genes = NULL,
   plot_title = NULL,
-  col_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
-              "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
-              "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
-              "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
-              "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
-              "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
-              "#00446B", "#803800", "#8D3666", "#3D3D3D")
+  col_pal = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
+              "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
+              "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
+              "#26FF49", "#00CC39", "#459967", "#4DFFA9", "#1FCC8E", "#009974", 
+              "#73FFEE", "#3DCCCC", "#178999", "#00C2FF", "#5CA4CC", "#2E6699", 
+              "#267DFF", "#0039CC", "#455299", "#4D54FF", "#2C1FCC", "#1F0099", 
+              "#A073FF", "#7C3DCC", "#601799", "#AD00FF", "#B65CCC", "#902E99", 
+              "#FF26F6", "#CC00AB", "#994581", "#FF4DB8", "#CC1F72", "#990037", 
+              "#FF7394", "#CC3D4E")
   
 ) {
   
@@ -798,13 +800,37 @@ recode_cluster_ids <- function(
                                           `13` = "Str-adult-Misc-1",
                                           `14` = "Str-adult-Ast-1",
                                           `15` = "Str-adult-InN-9")) %>%
-      pull(clust_recode)
-    
-    
-  }
+      pull(clust_recode)}
   
-  clusters_recode <- factor(get(paste0(region, '_clusters_recode')), 
-                            get(paste0(region, '_levels')))
+  if (region == 'cer') {
+    
+    cer_levels <- c("Cer-adult-InN-1", "Cer-adult-InN-2", "Cer-adult-InN-3", 
+                    "Cer-adult-InN-4", "Cer-adult-InN-5", "Cer-adult-ExN",
+                    "Cer-adult-UBC", "Cer-adult-BGli", "Cer-adult-Olig",
+                    "Cer-adult-OPC-1", "Cer-adult-OPC-2?", "Cer-adult-Ast", 
+                    "Cer-adult-MG", "Cer-adult-Endo", "Cer-adult-Misc")
+    
+    clusters_recode <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
+                                          `0` = "Cer-adult-ExN", 
+                                          `1` = "Cer-adult-Olig",
+                                          `2` = "Cer-adult-BGli",
+                                          `3` = "Cer-adult-OPC-1",
+                                          `4` = "Cer-adult-MG",
+                                          `5` = "Cer-adult-InN-1",
+                                          `6` = "Cer-adult-InN-2",
+                                          `7` = "Cer-adult-InN-3",
+                                          `8` = "Cer-adult-InN-4",
+                                          `9` = "Cer-adult-Misc",
+                                          `10` = "Cer-adult-Endo",
+                                          `11` = "Cer-adult-UBC",
+                                          `12` = "Cer-adult-Ast",
+                                          `13` = "Cer-adult-InN-5",
+                                          `14` = "Cer-adult-OPC-2?")) %>%
+      pull(clust_recode)}
+  
+  clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
   
   return(clusters_recode)
   
@@ -829,27 +855,32 @@ plot_paired_umap_vln <- function(
   seurat_obj = NULL,
   meta_id = NULL,
   genes = NULL,
-  col_pal_umap = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
-                   "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
-                   "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
-                   "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
-                   "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
-                   "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
-                   "#00446B", "#803800", "#8D3666", "#3D3D3D"),
-  col_pal_vln = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
-                  "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
-                  "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
-                  "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
-                  "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
-                  "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
-                  "#00446B", "#803800", "#8D3666", "#3D3D3D")
+  col_pal_umap = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
+                   "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
+                   "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
+                   "#26FF49", "#00CC39", "#459967", "#4DFFA9", "#1FCC8E", "#009974", 
+                   "#73FFEE", "#3DCCCC", "#178999", "#00C2FF", "#5CA4CC", "#2E6699", 
+                   "#267DFF", "#0039CC", "#455299", "#4D54FF", "#2C1FCC", "#1F0099", 
+                   "#A073FF", "#7C3DCC", "#601799", "#AD00FF", "#B65CCC", "#902E99", 
+                   "#FF26F6", "#CC00AB", "#994581", "#FF4DB8", "#CC1F72", "#990037", 
+                   "#FF7394", "#CC3D4E")
+  col_pal_vln = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
+                  "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
+                  "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
+                  "#26FF49", "#00CC39", "#459967", "#4DFFA9", "#1FCC8E", "#009974", 
+                  "#73FFEE", "#3DCCCC", "#178999", "#00C2FF", "#5CA4CC", "#2E6699", 
+                  "#267DFF", "#0039CC", "#455299", "#4D54FF", "#2C1FCC", "#1F0099", 
+                  "#A073FF", "#7C3DCC", "#601799", "#AD00FF", "#B65CCC", "#902E99", 
+                  "#FF26F6", "#CC00AB", "#994581", "#FF4DB8", "#CC1F72", "#990037", 
+                  "#FF7394", "#CC3D4E")
   
 ) {
   
   message('Creating UMAP and Vln Paired plot:\n')
   umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, 
                           cols = col_pal_umap, pt.size = 0.1,
-                          label = T, label.size = 3, label.box = T, repel = T, alpha = 0.5) + 
+                          label = T, label.size = 3, label.box = T, repel = T,
+                          raster = F) + 
     NoLegend()
   vln <- create_stacked_vln_plot(seurat_obj, meta_id, genes,
                                  toupper(region), col_pal_vln)
@@ -878,13 +909,15 @@ plot_paired_vlns <- function(
   meta_id = NULL,
   genes_a = NULL,
   genes_b =NULL,
-  col_pal = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", 
-              "#CC79A7", "#666666", "#AD7700", "#1C91D4", "#007756", "#D5C711", 
-              "#005685", "#A04700", "#B14380", "#4D4D4D", "#FFBE2D", "#80C7EF", 
-              "#00F6B3", "#F4EB71", "#06A5FF", "#FF8320", "#D99BBD", "#8C8C8C", 
-              "#FFCB57", "#9AD2F2", "#2CFFC6", "#F6EF8E", "#38B7FF", "#FF9B4D", 
-              "#E0AFCA", "#A3A3A3", "#8A5F00", "#1674A9", "#005F45", "#AA9F0D", 
-              "#00446B", "#803800", "#8D3666", "#3D3D3D")
+  col_pal = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
+              "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
+              "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
+              "#26FF49", "#00CC39", "#459967", "#4DFFA9", "#1FCC8E", "#009974", 
+              "#73FFEE", "#3DCCCC", "#178999", "#00C2FF", "#5CA4CC", "#2E6699", 
+              "#267DFF", "#0039CC", "#455299", "#4D54FF", "#2C1FCC", "#1F0099", 
+              "#A073FF", "#7C3DCC", "#601799", "#AD00FF", "#B65CCC", "#902E99", 
+              "#FF26F6", "#CC00AB", "#994581", "#FF4DB8", "#CC1F72", "#990037", 
+              "#FF7394", "#CC3D4E")
   
 ) {
   
