@@ -36,10 +36,9 @@ seurat_object <- readRDS(paste0(R_dir, 'seurat_', region, '.rds'))
 # Join layers - Need to do this before stacked vln plotting of diff expression
 seurat_object <- JoinLayers(seurat_object)
 
-
-seurat_object <- RunUMAP(seurat_object, reduction = "harmony.full", 
-                         dims = 1:pc_thresh, reduction.name = "umap.full",
-                         reduction.key = "UMAPfull_")
+# seurat_object <- RunUMAP(seurat_object, reduction = "harmony.full", 
+#                          dims = 1:pc_thresh, reduction.name = "umap.full",
+#                          reduction.key = "UMAPfull_")
 
 if (region %in% c('str', 'cer')) {
 
@@ -60,7 +59,7 @@ if (region %in% c('str', 'cer')) {
   # Find differential expressed marker genes in clusters
   Idents(seurat_object) <- paste0(region, '_clusters')
   marker_genes <- FindAllMarkers(seurat_object)
-  readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv '))
+  readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
   
   # Project data to whole object - # Crashes locally with Cer and FCX
   seurat_object <- project_sketch_data(seurat_object,
@@ -79,6 +78,12 @@ saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_ann.rds'))
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
 
+# Calculate aggr and aver expr for regional comparison of dystonia gene expression
+# aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+# aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+# 
+# saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
+# saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
 
 # # Code for working out cell types genes / cols
 # vln_gen <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_0.3', general_genes,
