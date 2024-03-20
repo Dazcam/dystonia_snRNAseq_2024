@@ -57,11 +57,13 @@ if (region %in% c('str', 'cer')) {
                                            toupper(region), get(paste0(region, '_vln_cols_recode')))
   
   # Find differential expressed marker genes in clusters
+  message('\nCalculating diff exp markers ...')
   Idents(seurat_object) <- paste0(region, '_clusters')
   marker_genes <- FindAllMarkers(seurat_object)
   readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
   
   # Project data to whole object - # Crashes locally with Cer and FCX
+  seurat_object[["sketch"]] <- split(seurat_object[["sketch"]], f = seurat_object[[sample_split]])
   seurat_object <- project_sketch_data(seurat_object,
                                        pc_thresh,
                                        'harmony',
