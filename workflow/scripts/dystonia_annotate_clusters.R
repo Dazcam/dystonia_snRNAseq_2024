@@ -68,22 +68,37 @@ if (region %in% c('str', 'cer')) {
                                        'umap.harmony',
                                        paste0(region, '_clusters'))
   
+  # Calculate aggr and aver expr for regional comparison of dystonia gene expression
+  message('Set Idents to:', paste0(region, '_clusters'), ' ...\n')
+  Idents(seurat_object) <- paste0(region, '_clusters')
+  
+  message('Set default assay to RNA ...\n')
+  DefaultAssay(obj) <- "RNA"
+  
+  message('Count NAs in ', paste0(region, '_clusters'), ' in RNA assay: ', sum(is.na(seurat_object$cer_clusters)), '\n')
+  
+  # Calcuate average and aggreagte expression: relys on home dir being correct in BPCell object
+  aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+  aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+  
+  # Save objects
+  saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
+  saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
+  
   ## Create markdown doc  ---------------------------------------------------------------
   rmarkdown::render(markdown_ann_doc, output_file = markdown_ann_html, output_dir = R_dir)
   
 }
 
-saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '_ann.rds'))
+message('Set default assat to RNA ...\n')
+DefaultAssay(obj) <- "sketch"
+
+saveRDS(seurat_object, paste0(R_dir, 'ann_seurat_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
 
-# Calculate aggr and aver expr for regional comparison of dystonia gene expression
-# aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-# aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-# 
-# saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
-# saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
+
 
 # # Code for working out cell types genes / cols
 # vln_gen <- create_stacked_vln_plot(seurat_object, 'harmony_clusters_0.3', general_genes,
