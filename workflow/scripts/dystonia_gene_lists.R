@@ -56,6 +56,26 @@ cer_genes <- c('MFAP4', 'MGP', 'RBFOX3', 'RELN',         # Granule cells
                'AIF1', 'C1QB',                           # Microglia 
                'EOMES')                                  # Unipolar brush cell (UBC)
 
+cer_final_genes <- factor(c('GAD1', 'GAD2', 'PVALB', 'SLC17A7',
+                            'RBFOX3', 'RELN', 'EOMES', 'PAX3', 'GFAP',
+                            'SOX9', 'AQP4', 'OLIG1', 'OLIG2', 'MBP',
+                            'C3', 'C1QB', 'EBF1', 'ABCB1', 'APOD'))
+
+
+cer_umap_cols_recode <- c("Cer-adult-InN-1" = '#95D840FF', "Cer-adult-InN-2" = '#31C53F', "Cer-adult-InN-3" = '#3CBB75FF', 
+                          "Cer-adult-InN-4" = '#9DC183', "Cer-adult-InN-5" = '#2FF18B', "Cer-adult-ExN" = '#00B6EB', 
+                          "Cer-adult-UBC" = '#CEE5FD', "Cer-adult-BGli" = '#6F2DA8', "Cer-adult-Olig" = '#FDE725FF',
+                          "Cer-adult-OPC-1" = '#FFBF00', "Cer-adult-OPC-2?" = '#DFFF00', "Cer-adult-Ast" = '#FF5959', 
+                          "Cer-adult-MG" = '#F58231', "Cer-adult-Endo" = '#9A6324', "Cer-adult-Misc" = '#CCCCCC')
+
+cer_vln_cols_recode <- c("Cer-adult-InN-1" = '#3CBB75FF', "Cer-adult-InN-2" = '#3CBB75FF', "Cer-adult-InN-3" = '#3CBB75FF', 
+                         "Cer-adult-InN-4" = '#3CBB75FF', "Cer-adult-InN-5" = '#3CBB75FF', "Cer-adult-ExN" = '#00B6EB', 
+                         "Cer-adult-UBC" = '#00B6EB', "Cer-adult-BGli" = '#6F2DA8', "Cer-adult-Olig" = '#FDE725FF',
+                         "Cer-adult-OPC-1" = '#FDE725FF', "Cer-adult-OPC-2?" = '#FDE725FF', "Cer-adult-Ast" = '#FF5959', 
+                         "Cer-adult-MG" = '#F58231', "Cer-adult-Endo" = '#9A6324', "Cer-adult-Misc" = '#CCCCCC')
+
+
+## FCX  ----
 fcx_genes <- c('CUX3', #L2/3
                'RORB', #L4
                'TLE4', #L5/6
