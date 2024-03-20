@@ -63,7 +63,7 @@ if (region %in% c('str', 'cer')) {
   readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
   
   # Project data to whole object - # Crashes locally with Cer and FCX
-  seurat_object[["sketch"]] <- split(seurat_object[["sketch"]], f = seurat_object[[sample_split]])
+  seurat_object[["sketch"]] <- split(seurat_object[["sketch"]], f = seurat_object$sample_id)
   seurat_object <- project_sketch_data(seurat_object,
                                        pc_thresh,
                                        'harmony',
@@ -87,6 +87,9 @@ if (region %in% c('str', 'cer')) {
   saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
   saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
   
+  # Join layers - Need to do this before saving the object
+  seurat_object <- JoinLayers(seurat_object)
+  
   ## Create markdown doc  ---------------------------------------------------------------
   rmarkdown::render(markdown_ann_doc, output_file = markdown_ann_html, output_dir = R_dir)
   
@@ -94,9 +97,6 @@ if (region %in% c('str', 'cer')) {
 
 message('Set default assat to RNA ...\n')
 DefaultAssay(seurat_object) <- "sketch"
-
-# Join layers - Need to do this before stacked vln plotting of diff expression
-seurat_object <- JoinLayers(seurat_object)
 
 saveRDS(seurat_object, paste0(R_dir, 'ann_seurat_', region, '.rds'))
 
