@@ -1,10 +1,58 @@
+#--------------------------------------------------------------------------------------
+#
+#    Dystonia - gene lists and colur schemes
+#
+#--------------------------------------------------------------------------------------
+
+## Info  ------------------------------------------------------------------------------
+# Striatal scRNAseq (mouse). Anderson et al (2023). PMID: 37270616
+
+## General gene list  -----------------------------------------------------------------
+general_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
+                   'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
+                   'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
+                   'C3', 'C1QB',                           # MG markers
+                   'AQP4', 'SOX9', 'GFAP',        # Astrocytes 
+                   'OLIG1', 'OLIG2', 'MBP',                # Oligodendrocytes
+                   'PDGRFA', 'PMP2',
+                   'EOMES', 'EBF1', 'ABCB1') 
+
+## Str  -------------------------------------------------------------------------------
+str_genes <- c('DRD1', 'DRD2', 'TAC1', 'PENK',
+               'FOXP1', 'MYT1L', 'MEIS2', 'CSDE1',
+               'SOX11', 'BCL11B', 'YBX1', 'EBF1',
+               'RARB', 'NR1D1', 'TEF', 'NOS1',
+               'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP',
+               'CCK', 'TH', 'CHAT', 'CALB1', 'SOX4', 'DLX2',
+               'LHX6', 'LHX8', 'NKX2.1', 'NR2F2')
+
+str_final_genes <- factor(c('GAD1', 'GAD2', 'SLC6A1', 'DRD1', 'DRD2', 
+                            'SST', 'NPY', 'CALB2', 'VIP', 'NPY', 'CHAT', 
+                            'SLC17A7','GFAP', 'AQP4', 'SOX9', 'OLIG1', 
+                            'OLIG2', 'MBP', 'OLIG1', 'OLIG2', 'C3', 'C1QB'))
+
+str_umap_cols_recode <- c("Str-adult-InN-1" = '#708238', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#3CBB75FF', 
+                          "Str-adult-InN-4" = '#9DC183', "Str-adult-InN-5" = '#006400', "Str-adult-InN-6" = '#95D840FF', 
+                          "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#B7FFB7', "Str-adult-InN-9" = '#3CBB75FF',
+                          "Str-adult-Ast-1" = '#FF5959', "Str-adult-Ast-2" = '#FF5959', "Str-adult-Olig-1" = '#FDE725FF', 
+                          "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231', "Str-adult-ExN" = '#00B6EB', 
+                          "Str-adult-Misc-1" = '#CCCCCC')
+
+str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
+                         "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-adult-InN-6" = '#3CBB75FF', 
+                         "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', "Str-adult-InN-9" = '#3CBB75FF',
+                         "Str-adult-Ast-1" = '#FF5959', "Str-adult-Ast-2" = '#FF5959', "Str-adult-Olig-1" = '#FDE725FF', 
+                         "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231', "Str-adult-ExN" = '#00B6EB', 
+                         "Str-adult-Misc-1" = '#CCCCCC')
+
+## Cer -----
 cer_genes <- c('MFAP4', 'MGP', 'RBFOX3', 'RELN',         # Granule cells
                'NEFM', 'NEUROD1',                        # Ex cer nuclei cell (eCN)
                'PCP4', 'RORA', 'CA8', 'ITPR1',           # Purkinje cells  
                'GAD1', 'GAD2', 'PAX2',                   # GABA Ns
                'MBP', 'APOD', 'OLIG1', 'OLIG2',          # Oligodendrocytes
                'GDF10', 'PAX3',                          # Bergmann cells
-               'AQP4', 'SOX9', 'GFAP',                    # Astrocytes 
+               'AQP4', 'SOX9', 'GFAP',                   # Astrocytes 
                'AIF1', 'C1QB',                           # Microglia 
                'EOMES')                                  # Unipolar brush cell (UBC)
 
@@ -15,32 +63,7 @@ fcx_genes <- c('CUX3', #L2/3
                'MBP', #Oligs
                "GLI3", "OLIG1",
                "MKI67", "C3", "ITM2A", "SST", "CALB2", 
-               "SCGN", "TLE3", "FEZF2", "CRYM", "LHX2"
-               )
-
-fcx_genes_cameron <- c("GAD1", "SLC17A7", "EOMES", "GLI3", "OLIG1",
-                       "MKI67", "C3", "ITM2A", "SST", "CALB2", 
-                       "SCGN", "TLE3", "FEZF2", "CRYM", "LHX2")
-ge_genes_cameron <- c("GAD1", "SLC17A7", "EOMES", "GLI3", "OLIG1", 
-                      "MKI67", "C3", "ITM2A", "LHX6", "SIX3", 
-                      "PROX1", "TSHZ1", "DLX1", "SCGN")
-hip_genes_cameron <- c("NEUROD1", "GRIK4", "EOMES", "GLI3", "OLIG1", 
-                       "MKI67", "C3", "ITM2A", "SLC17A6", "ADARB2",
-                       "GAD2", "TNC", "PROX1", "RELN", "LHX6")
-tha_genes_cameron <- c("EOMES", "GLI3", "OLIG1", "MKI67", "C3", 
-                       "ITM2A", "SLC1A6", "LHX9", "TNC", "GAD2", 
-                       "PAX6", "SLC17A6")
-cer_genes_cameron <- c("GAD1", "EOMES", "GLI3", "OLIG1", "MKI67", 
-                       "C3", "ITM2A", "CA8", "ITPR1", "RBFOX3", "RELN")
-
-general_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
-                   'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
-                   'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
-                   'C3', 'C1QB',                           # MG markers
-                   'AQP4', 'SOX9', 'GFAP',        # Astrocytes 
-                   'OLIG1', 'OLIG2', 'MBP',                # Oligodendrocytes
-                   'PDGRFA', 'PMP2',
-                   'EOMES', 'EBF1', 'ABCB1') 
+               "SCGN", "TLE3", "FEZF2", "CRYM", "LHX2")
 
 fcx_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
                'CUX3', #L2/3
@@ -82,61 +105,7 @@ str_vln_cols <- c('0' = '#3CBB75FF','1' = '#3CBB75FF','2' = '#3CBB75FF','3' = '#
                   '20'='#CEE5FD', '21'='#3CBB75FF', '22'='#3CBB75FF', '23'='#FF5959', '24'='#3CBB75FF', 
                   '25' = '#FDE725FF')
 
-
-# Can only be loaded when appropriate object exist
-if (exists('seurat_sk_str')) {
-  str_clusters_recode <- seurat_object@meta.data %>% 
-    as_tibble() %>%
-    mutate(harmony_clusters_recode = recode(harmony_clusters, 
-                                            `0` = "Str-adult-InN-1", 
-                                            `1` = "Str-adult-InN-2",
-                                            `2` = "Str-adult-InN-3",
-                                            `3` = "Str-adult-InN-4",
-                                            `4` = "Str-adult-InN-5",
-                                            `5` = "Str-adult-Olig-1",
-                                            `6` = "Str-adult-InN-6",
-                                            `7` = "Str-adult-InN-7",
-                                            `8` = "Str-adult-InN-8",
-                                            `9` = "Str-adult-InN-9",
-                                            `10` = "Str-adult-Ast-1",
-                                            `11` = "Str-adult-InN-10",
-                                            `12` = "Str-adult-InN-11",
-                                            `13` = "Str-adult-Olig-2",
-                                            `14` = "Str-adult-InN-12",
-                                            `15` = "Str-adult-MG",
-                                            `16` = "Str-adult-InN-13",
-                                            `17` = "Str-adult-ExN-1",
-                                            `18` = "Str-adult-ExN-2",
-                                            `19` = "Str-adult-InN-14",
-                                            `20` = "Str-adult-InN-15",
-                                            `21` = "Str-adult-InN-16",
-                                            `22` = "Str-adult-InN-17",
-                                            `23` = "Str-adult-Ast-2",
-                                            `24` = "Str-adult-Olig-3")) %>%
-    pull(harmony_clusters_recode)
-  
-  str_umap_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#708238', 
-                            "Str-adult-InN-4" = '#B7FFB7', "Str-adult-InN-5" = '#006400', "Str-adult-Olig-1" = '#FDE725FF', 
-                            "Str-adult-InN-6" = '#95D840FF', "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#9DC183', 
-                            "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-10" = '#31C53F', 
-                            "Str-adult-InN-11" = '#708238', "Str-adult-Olig-2" = '#FDE725FF', "Str-adult-InN-12" = '#006400', 
-                            "Str-adult-MG" = '#F58231', "Str-adult-InN-13" = '#95D840FF', "Str-adult-ExN-1" = '#00B6EB', 
-                            "Str-adult-ExN-2" = '#00B6EB', "Str-adult-InN-14" = '#2FF18B', "Str-adult-InN-15" = '#9DC183', 
-                            "Str-adult-InN-16" = '#0CB702', "Str-adult-InN-17" = '#00BE67', "Str-adult-Ast-2" = '#FF5959', 
-                            "Str-adult-Olig-3" = '#FDE725FF')
-  
-  str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
-                           "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-adult-Olig-1" = '#FDE725FF', 
-                           "Str-adult-InN-6" = '#3CBB75FF', "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', 
-                           "Str-adult-InN-9" = '#3CBB75FF', "Str-adult-Ast-1" = '#FF5959', "Str-adult-InN-10" = '#3CBB75FF', 
-                           "Str-adult-InN-11" = '#3CBB75FF', "Str-adult-Olig-2" = '#FDE725FF', "Str-adult-InN-12" = '#3CBB75FF', 
-                           "Str-adult-MG" = '#F58231', "Str-adult-InN-13" = '#3CBB75FF', "Str-adult-ExN-1" = '#00B6EB', 
-                           "Str-adult-ExN-2" = '#00B6EB', "Str-adult-InN-14" = '#3CBB75FF', "Str-adult-InN-15" = '#3CBB75FF',  
-                           "Str-adult-InN-16" = '#3CBB75FF', "Str-adult-InN-17" = '#3CBB75FF', "Str-adult-Ast-2" = '#FF5959', 
-                           "Str-adult-Olig-3" = '#FDE725FF')
-}
-
-if (exists('seurat_sk_str')) {
+if (exists('seurat_fcx')) {
 # Frontal cortex
 fcx_clusters_recode <- seurat_sk_fcx@meta.data %>% 
   as_tibble() %>%

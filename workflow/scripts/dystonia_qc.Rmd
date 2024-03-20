@@ -97,6 +97,7 @@ cluster_qc_plot
 #### Resolution {.tabset}
 
 + Checking res params for range from 0.1 - 0.8 (latter is the Seurat default)
++ I'm leaning towards setting this to 0.1 as these map quite well to the original Stiletti annotations
 
 ***
 

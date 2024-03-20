@@ -1,5 +1,10 @@
 region:
+<<<<<<< HEAD
 -    fcx
 -    str
+=======
+#-    fcx
+#-    str
+>>>>>>> c8d8a20c1ce919ec02460affd81e819cb09a87fe
 -    cer
 

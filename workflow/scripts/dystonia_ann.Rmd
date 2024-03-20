@@ -1,0 +1,53 @@
+---
+title: "Dystonia study - Annotation - `r toupper(region)`"
+author: "Darren Cameron"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+### Annotations {.tabset}
+
+***
+
+#### Paired vln (General) {.tabset}
+
+***
+
++ Left: General brain gene set
++ Right: More region specific gene set
+
+```{r paired_vln, results='asis', fig.dim = c(10,10), echo=FALSE}
+vln_plots
+```
+
+***
+
+#### UMAP and vln (dystonia genes) 
+
+***
+
++ Broad agreement between Stiletti annotations (see qc html) and ours 
+
+```{r umap_vln_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
+umap_vln_plots
+```
+
+***
+
+#### Dystonia genes
+
+***
+
+```{r cluster_umap, results='asis', fig.dim = c(10,10), echo=FALSE}
+dystonia_plot 
+```
+
+***
+
+#### Refs
+
+***
+
++ Striatal genes: [Anderson et al (2023)](10.1038/s41598-023-36255-5)
+
+***
