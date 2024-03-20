@@ -122,6 +122,9 @@ DefaultAssay(seurat_object) <- "sketch"
 ## Create markdown doc  ---------------------------------------------------------------
 rmarkdown::render(markdown_prep_doc, output_file = markdown_prep_html, output_dir = R_dir)
 
+# Join layers - Required for vln plotting or diff expression - FCX crashes locally
+seurat_object <- JoinLayers(seurat_object)
+
 # Save Seurat object
 message('\nWriting final Seurat object ...\n')
 saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '.rds'))
