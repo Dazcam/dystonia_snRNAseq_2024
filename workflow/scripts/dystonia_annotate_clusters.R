@@ -75,7 +75,7 @@ if (region %in% c('str', 'cer')) {
   Idents(seurat_object) <- paste0(region, '_clusters')
   
   message('Set default assay to RNA ...\n')
-  DefaultAssay(obj) <- "RNA"
+  DefaultAssay(seurat_object) <- "RNA"
   
   message('Count NAs in ', paste0(region, '_clusters'), ' in RNA assay: ', sum(is.na(seurat_object$cer_clusters)), '\n')
   
@@ -93,7 +93,10 @@ if (region %in% c('str', 'cer')) {
 }
 
 message('Set default assat to RNA ...\n')
-DefaultAssay(obj) <- "sketch"
+DefaultAssay(seurat_object) <- "sketch"
+
+# Join layers - Need to do this before stacked vln plotting of diff expression
+seurat_object <- JoinLayers(seurat_object)
 
 saveRDS(seurat_object, paste0(R_dir, 'ann_seurat_', region, '.rds'))
 
