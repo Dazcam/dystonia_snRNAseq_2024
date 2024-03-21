@@ -55,8 +55,8 @@ seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object
 message('Setting Idents ...')
 Idents(seurat_object) <- paste0(region, '_clusters')
 seurat_object
-aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+aver_exp_mat <- calculate_average_expression(seurat_object, dystonia_genes)
+aggr_exp_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
 message('Saving ...')
 saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".rds"))
 saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".rds"))

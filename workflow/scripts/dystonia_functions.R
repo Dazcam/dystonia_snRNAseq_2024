@@ -932,10 +932,11 @@ plot_paired_vlns <- function(
   
 } 
 
+# Add functionality to add a prefix to colnames
+# Add functionality to extract normalised values
 calculate_average_expression <- function(
     
   seurat_obj = NULL,
-  prefix = NULL,
   gene_list = NULL
   
 ) {
@@ -943,16 +944,17 @@ calculate_average_expression <- function(
   message('Calculating average expression ...')
   av_exp_mat <- AverageExpression(seurat_obj, layer = 'counts', features = gene_list)
   av_exp_mat <- av_exp_mat$RNA
-  colnames(av_exp_mat) <- paste0(prefix, '_', colnames(av_exp_mat))
+  #colnames(av_exp_mat) <- paste0(prefix, '_', colnames(av_exp_mat))
   
   return(av_exp_mat)
   
 }
 
+# Add functionality to add a prefix to colnames
+# Add functionality to extract normalised values
 calculate_aggregated_expression <- function(
     
   seurat_obj = NULL,
-  prefix = NULL,
   gene_list = NULL
   
 ) {
@@ -960,7 +962,7 @@ calculate_aggregated_expression <- function(
   message('Calculating aggregated feature expression ...')
   agg_exp_mat <- AggregateExpression(seurat_obj, features = gene_list)
   agg_exp_mat <- agg_exp_mat$RNA
-  colnames(agg_exp_mat) <- paste0(prefix, '_', colnames(agg_exp_mat))
+  #colnames(agg_exp_mat) <- paste0(prefix, '_', colnames(agg_exp_mat))
   
   return(agg_exp_mat)
   
