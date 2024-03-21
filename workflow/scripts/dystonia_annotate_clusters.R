@@ -40,63 +40,63 @@ seurat_object <- JoinLayers(seurat_object)
 #                          dims = 1:pc_thresh, reduction.name = "umap.full",
 #                          reduction.key = "UMAPfull_")
 
-if (region %in% c('str', 'cer')) {
+#if (region %in% c('str', 'cer')) {
 
-  # Recode cluster IDs - sketch object only for now
-  seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, region, 'harmony_clusters_0.1')
+#  # Recode cluster IDs - sketch object only for now
+#  seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, region, 'harmony_clusters_0.1')
+#  
+#  # Plot paired vln
+#  vln_plots <- plot_paired_vlns(seurat_object, paste0(region, '_clusters'), general_genes,
+#                                get(paste0(region, '_genes')), get(paste0(region, '_vln_cols_recode')))
+#  
+#  # Plot paired umap and vln
+#  umap_vln_plots <- plot_paired_umap_vln(seurat_object, paste0(region, '_clusters'), get(paste0(region, '_final_genes')), 
+#                                         get(paste0(region, '_umap_cols_recode')), get(paste0(region, '_vln_cols_recode')))
+#  
+#  dystonia_plot <- create_stacked_vln_plot(seurat_object, paste0(region, '_clusters'), dystonia_genes,
+#                                           toupper(region), get(paste0(region, '_vln_cols_recode')))
+#  
+#  # Find differential expressed marker genes in clusters
+#  message('\nCalculating diff exp markers ...')
+#  Idents(seurat_object) <- paste0(region, '_clusters')
+#  marker_genes <- FindAllMarkers(seurat_object)
+#  readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
   
-  # Plot paired vln
-  vln_plots <- plot_paired_vlns(seurat_object, paste0(region, '_clusters'), general_genes,
-                                get(paste0(region, '_genes')), get(paste0(region, '_vln_cols_recode')))
+#  # Project data to whole object - # Crashes locally with Cer and FCX
+#  seurat_object[["sketch"]] <- split(seurat_object[["sketch"]], f = seurat_object$sample_id)
+#  seurat_object <- project_sketch_data(seurat_object,
+#                                       pc_thresh,
+#                                       'harmony',
+#                                       'umap.harmony',
+#                                       paste0(region, '_clusters'))
   
-  # Plot paired umap and vln
-  umap_vln_plots <- plot_paired_umap_vln(seurat_object, paste0(region, '_clusters'), get(paste0(region, '_final_genes')), 
-                                         get(paste0(region, '_umap_cols_recode')), get(paste0(region, '_vln_cols_recode')))
+#  # Calculate aggr and aver expr for regional comparison of dystonia gene expression
+#  message('Set Idents to:', paste0(region, '_clusters'), ' ...\n')
+#  Idents(seurat_object) <- paste0(region, '_clusters')
   
-  dystonia_plot <- create_stacked_vln_plot(seurat_object, paste0(region, '_clusters'), dystonia_genes,
-                                           toupper(region), get(paste0(region, '_vln_cols_recode')))
+#  message('Set default assay to RNA ...\n')
+#  DefaultAssay(seurat_object) <- "RNA"
   
-  # Find differential expressed marker genes in clusters
-  message('\nCalculating diff exp markers ...')
-  Idents(seurat_object) <- paste0(region, '_clusters')
-  marker_genes <- FindAllMarkers(seurat_object)
-  readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
+#  message('Count NAs in ', paste0(region, '_clusters'), ' in RNA assay: ', sum(is.na(seurat_object$cer_clusters)), '\n')
   
-  # Project data to whole object - # Crashes locally with Cer and FCX
-  seurat_object[["sketch"]] <- split(seurat_object[["sketch"]], f = seurat_object$sample_id)
-  seurat_object <- project_sketch_data(seurat_object,
-                                       pc_thresh,
-                                       'harmony',
-                                       'umap.harmony',
-                                       paste0(region, '_clusters'))
+#  # Calcuate average and aggreagte expression: relys on home dir being correct in BPCell object
+#  aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
+#  aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
   
-  # Calculate aggr and aver expr for regional comparison of dystonia gene expression
-  message('Set Idents to:', paste0(region, '_clusters'), ' ...\n')
-  Idents(seurat_object) <- paste0(region, '_clusters')
+#  # Save objects
+#  saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
+#  saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
   
-  message('Set default assay to RNA ...\n')
-  DefaultAssay(seurat_object) <- "RNA"
+#  # Join layers - Need to do this before saving the object
+#  seurat_object <- JoinLayers(seurat_object)
   
-  message('Count NAs in ', paste0(region, '_clusters'), ' in RNA assay: ', sum(is.na(seurat_object$cer_clusters)), '\n')
+#  ## Create markdown doc  ---------------------------------------------------------------
+#  rmarkdown::render(markdown_ann_doc, output_file = markdown_ann_html, output_dir = R_dir)
   
-  # Calcuate average and aggreagte expression: relys on home dir being correct in BPCell object
-  aver_exp_mat <- calculate_average_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-  aggr_exp_mat <- calculate_aggregated_expression(seurat_object, paste0(region, '_adult'), dystonia_genes)
-  
-  # Save objects
-  saveRDS(object = aver_exp_mat, file = paste0(R_dir, "seurat_aver_exp_", region, ".Rds"))
-  saveRDS(object = aggr_exp_mat, file = paste0(R_dir, "seurat_aggr_exp_", region, ".Rds"))
-  
-  # Join layers - Need to do this before saving the object
-  seurat_object <- JoinLayers(seurat_object)
-  
-  ## Create markdown doc  ---------------------------------------------------------------
-  rmarkdown::render(markdown_ann_doc, output_file = markdown_ann_html, output_dir = R_dir)
-  
-}
+#}
 
-message('Set default assat to RNA ...\n')
-DefaultAssay(seurat_object) <- "sketch"
+#message('Set default assat to RNA ...\n')
+#DefaultAssay(seurat_object) <- "sketch"
 
 saveRDS(seurat_object, paste0(R_dir, 'ann_seurat_', region, '.rds'))
 
