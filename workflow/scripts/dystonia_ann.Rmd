@@ -49,5 +49,6 @@ dystonia_plot
 ***
 
 + Striatal genes: [Anderson et al (2023)](10.1038/s41598-023-36255-5)
++ Cer genes: [Zhong et al (2023)](https://doi.org/10.1038/s41467-023-43568-6)
 
 ***
