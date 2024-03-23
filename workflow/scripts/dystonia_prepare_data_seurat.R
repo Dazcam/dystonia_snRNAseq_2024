@@ -32,7 +32,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 ## Load Data --------------------------------------------------------------------------
-seurat_object <- readRDS(paste0(R_dir, 'prelim/seurat_', region, '.rds'))
+seurat_object <- readRDS(paste0(R_dir, '01seurat_', region, '.rds'))
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object, meta_id = sample_split) 
@@ -90,7 +90,7 @@ meta_col_orig_cnts <- get_meta_col_counts(seurat_object, 'orig.ident')
 meta_col_sample_cnts <- get_meta_col_counts(seurat_object, 'sample_id')
 seurat_object <- split(seurat_object, seurat_object@meta.data[[sample_split]]) # Split first by lane
 seurat_object <- create_sketch_object(seurat_object, dims = pc_thresh, norm_method = 'log_sketch',
-                                      resolution = resolution_set)
+                                      resolution = resolution_set, cell_num = sketch_num)
 
 # Check PCs
 pca_plot <- DimHeatmap(seurat_object, dims = 30:pc_thresh, cells = 500, balanced = TRUE)
@@ -126,8 +126,8 @@ rmarkdown::render(markdown_prep_doc, output_file = markdown_prep_html, output_di
 seurat_object <- JoinLayers(seurat_object)
 
 # Save Seurat object
-message('\nWriting final Seurat object ...\n')
-saveRDS(seurat_object, paste0(R_dir, 'seurat_', region, '.rds'))
+message('\nWriting Seurat object ...\n')
+saveRDS(seurat_object, paste0(R_dir, '02seurat_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
