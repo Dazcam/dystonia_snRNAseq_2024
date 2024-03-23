@@ -110,6 +110,10 @@ integration_plotlist <- create_integration_plotlist(seurat_object,
                                                     dims = pc_thresh,
                                                     reduction = resolution_set) 
 
+# Plot paired vln
+vln_plots <- plot_paired_vlns(seurat_object, 'harmony_clusters_0.1', general_genes,
+                              get(paste0(region, '_genes')))
+
 ## Project sketch data to entire object - still having issues with this:
 seurat_object <- project_sketch_data(seurat_object,
                                      pc_thresh,

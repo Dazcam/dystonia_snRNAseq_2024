@@ -130,4 +130,16 @@ for(i in resolution_set) {
 
 ***
 
+#### Paired vln (General) 
 
+***
+
++ harmony_clusters_0.1
++ Left: General brain gene set
++ Right: More region specific gene set
+
+```{r paired_vln, results='asis', fig.dim = c(10,10), echo=FALSE}
+vln_plots
+```
+
+***
