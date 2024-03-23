@@ -1,6 +1,6 @@
 rule download_public_data:
     input:  "../resources/sheets/Stiletti_downloads_table.xlsx"
-    output: "../results/01R_objects/prelim/seurat_{region}.rds" 
+    output: "../results/01R_objects/01seurat_{region}.rds" 
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../", 
             region = lambda wc: wc.get("region")
@@ -10,19 +10,19 @@ rule download_public_data:
             "../scripts/dystonia_download_public_data.R"
 
 rule prepare_data_seurat:
-    input:  "../results/01R_objects/prelim/seurat_{region}.rds"
-    output: "../results/01R_objects/seurat_{region}.rds"
+    input:  "../results/01R_objects/01seurat_{region}.rds"
+    output: "../results/01R_objects/02seurat_{region}.rds"
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../",
             region = lambda wc: wc.get("region")
-    resources: threads = 19, mem_mb = 140000, time="0-12:00:00"
+    resources: threads = 20, mem_mb = 100000, time="0-12:00:00"
     log:    "../results/00LOG/02prepare_data_seurat_{region}.log"
     script:
             "../scripts/dystonia_prepare_data_seurat.R"
 
 rule annotate_clusters:
-    input: "../results/01R_objects/seurat_{region}.rds"
-    output: "../results/01R_objects/ann_seurat_{region}.rds"
+    input: "../results/01R_objects/02seurat_{region}.rds"
+    output: "../results/01R_objects/03seurat_{region}.rds"
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../",
             region = lambda wc: wc.get("region")
@@ -32,7 +32,7 @@ rule annotate_clusters:
             "../scripts/dystonia_annotate_clusters.R"
 
 rule pseudobulk:
-    input: "../results/01R_objects/ann_seurat_{region}.rds"
+    input: "../results/01R_objects/03seurat_{region}.rds"
     output: "../results/01R_objects/aggr_exp_{region}.rds"
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../",
