@@ -31,8 +31,8 @@ if (exists("snakemake")) {
   plan()
   log_smk() 
   # Also try this: plan("cluster")
-  #future::plan("cluster", workers = 19)
-  #future::plan()
+  # future::plan("cluster", workers = 19)
+  # future::plan()
 }
 
 data_dir <- paste0(root_dir, 'resources/')
@@ -50,7 +50,8 @@ str_anns <- c('CaB', 'Pu')
 cer_anns <- c('CBL', 'CBV', 'CbDN')
 all_anns <- c(fcx_anns, str_anns, cer_anns)
 anns_table <- read_excel(paste0(data_dir, 'sheets/Stiletti_downloads_table.xlsx'))
-dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), range = 'D1:D26') %>%
+dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), 
+                             range = 'D1:D26') %>%
   arrange(GeneName) %>%
   pull(GeneName)
 sample_split <- 'sample_id' # Meta_id col to split seurat object by for qc
@@ -59,11 +60,14 @@ pc_thresh <- ifelse(region == 'fcx', 50, 30) # Set PC thresh
 
 options(future.globals.maxSize = 3e+09, future.seed = T) # set this option when analyzing large datasets
 options(digits = 1) # Set default decimal points
-options(scipen = 999)
+options(scipen = 999) # Prevents wonky scintific notation
 options(ggrepel.max.overlaps = Inf) # For DimPlots
 
-
-
+# Set num of cells per sample to create sketch object of ~50K
+sketch_num <- dplyr::case_when(
+  region == "fcx" ~ 865,
+  region == "str" ~ 4170,
+  region == "cer" ~ 1800)
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
