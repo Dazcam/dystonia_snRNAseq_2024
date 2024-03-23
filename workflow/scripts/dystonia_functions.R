@@ -388,6 +388,7 @@ run_seurat_process <- function(
 #' @param norm_method Set to log_sketch (input for run_seurat_process())
 #' @param dims Number of principal components (input for run_seurat_process())
 #' @param resolution A set of resolution params for clustering (input for run_seurat_process())
+#' @param cell_num A positive integer indicating the no. of cells per sample to extract for sketch obj.
 #' 
 #' @examples
 #' create_sketch_object(seurat_small, 'log_sketch', 30, c(0.3, 0.5))
@@ -396,7 +397,8 @@ create_sketch_object <- function(
   seurat_obj = NULL, 
   norm_method = 'log_sketch',
   dims = 30, 
-  resolution = c(0.3, 0.5, 0.8)
+  resolution = c(0.3, 0.5, 0.8),
+  cell_num = 5000
   
 ) {
   
@@ -406,7 +408,7 @@ create_sketch_object <- function(
     FindVariableFeatures(verbose = FALSE)
   
   seurat_sketch <- Seurat::SketchData(object = seurat_obj, 
-                                      ncells = 5000, 
+                                      ncells = cell_num, 
                                       method = "LeverageScore", 
                                       sketched.assay = "sketch")
   
