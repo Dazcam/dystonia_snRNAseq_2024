@@ -33,13 +33,13 @@ qc_plot_noFilt
 ***
 
 ```{r counts_pre_filt, results='asis', echo=FALSE}
-knitr::kable(counts, caption = paste0("Counts: ", toupper(region)))
+knitr::kable(counts_preFilt_tbl, caption = paste0("Counts: ", toupper(region)))
 ```
 
 ***
 
 ```{r umi_dist_pre_filt, results='asis', echo=FALSE}
-knitr::kable(dist_counts_noFilt, caption = paste0("UMI and gene count distribution summary: ", toupper(region)))
+knitr::kable(dist_counts_preFilt_tbl, caption = paste0("UMI and gene count distribution summary: ", toupper(region)))
 ```
 
 ***
@@ -69,13 +69,13 @@ qc_plot_post_Filt
 ***
 
 ```{r counts_post_filt, results='asis', echo=FALSE}
-knitr::kable(counts_post_Filt, caption = paste0("Counts: ", toupper(region)))
+knitr::kable(counts_postFilt_tbl, caption = paste0("Counts: ", toupper(region)))
 ```
 
 ***
 
 ```{r umi_dist_post_filt, results='asis', echo=FALSE}
-knitr::kable(dist_counts_post_Filt, caption = paste0("UMI and gene count distribution summary: ", toupper(region)))
+knitr::kable(dist_counts_postFilt_tbl, caption = paste0("UMI and gene count distribution summary: ", toupper(region)))
 ```
 
 ***

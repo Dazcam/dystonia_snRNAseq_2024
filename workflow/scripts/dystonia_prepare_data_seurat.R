@@ -36,14 +36,14 @@ seurat_object <- readRDS(paste0(R_dir, '01seurat_', region, '.rds'))
 
 # Initial counts and qc plots  --------------------------------------------------------
 qc_plot_noFilt <- create_basic_qc_plots(seurat_object, meta_id = sample_split) 
-counts <- tibble('Cells' = c(ncol(seurat_object)),
-                 'Genes' = c(nrow(seurat_object)))
-dist_counts_noFilt <- rbind(summary(seurat_object$nCount_RNA),
-                  summary(seurat_object$nFeature_RNA)) %>%
+counts_preFilt_tbl <- tibble('Cells' = c(ncol(seurat_object)),
+                     'Genes' = c(nrow(seurat_object)))
+dist_counts_preFilt_tbl <- rbind(summary(seurat_object$nCount_RNA),
+                            summary(seurat_object$nFeature_RNA)) %>%
   t() %>%
-  as_tibble(rownames = 'measure') %>%
-  dplyr::rename(cells = V1,
-                genes = V2)
+  as_tibble(rownames = 'measure', .name_repair = "unique") %>%
+  dplyr::rename(cells = ...1,
+                genes = ...2)
 
 ### Filtering  -----------------------------------------------------------
 # Join layers to apply filters
@@ -66,19 +66,14 @@ cell_outlier_cnts_tbl <- tibble(
 
 # Post filter counts and QCs
 qc_plot_post_Filt <- create_basic_qc_plots(seurat_object, meta_id = sample_split) 
-counts_post_Filt <- rbind(counts,
-                         tibble('Cells' = c(ncol(seurat_object)),
-                          'Genes' = c(nrow(seurat_object)))) %>%
-  mutate(Measure = c('Before', 'After')) %>%
-  relocate(Measure)
-dist_counts_post_Filt <- rbind(summary(seurat_object$nCount_RNA),
-                            summary(seurat_object$nFeature_RNA)) %>%
+counts_postFilt_tbl <- tibble('Cells' = c(ncol(seurat_object)),
+                     'Genes' = c(nrow(seurat_object)))
+dist_counts_postFilt_tbl <- rbind(summary(seurat_object$nCount_RNA),
+                                  summary(seurat_object$nFeature_RNA)) %>%
   t() %>%
-  as_tibble(rownames = 'measure') %>%
-  dplyr::rename(cells = V1,
-                genes = V2) %>%
-  inner_join(dist_counts_noFilt, by = 'measure', suffix = c('_before', '_after')) %>%
-  relocate(measure, cells_before, cells_after, genes_before, genes_after)
+  as_tibble(rownames = 'measure', .name_repair = "unique") %>%
+  dplyr::rename(cells = ...1,
+                genes = ...2)
 
 # Remove sce object to save space 
 rm(sce_obj)
