@@ -63,11 +63,12 @@ options(digits = 1) # Set default decimal points
 options(scipen = 999) # Prevents wonky scintific notation
 options(ggrepel.max.overlaps = Inf) # For DimPlots
 
-# Set num of cells per sample to create sketch object of ~50K
+# Set num of cells per sample to create sketch object of ~60K
+# Note FCX sample 10X418_6 only has 366 cells
 sketch_num <- dplyr::case_when(
-  region == "fcx" ~ 865,
-  region == "str" ~ 4170,
-  region == "cer" ~ 1800)
+  region == "fcx" ~ 1100, # 56 samples (56 * 1100 = 61600 cells)
+  region == "str" ~ 5000, # 12 samples (12 * 5000 = 60000 cells)
+  region == "cer" ~ 2150) # 28 samples (28 * 1800 = 60200 cells)
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
