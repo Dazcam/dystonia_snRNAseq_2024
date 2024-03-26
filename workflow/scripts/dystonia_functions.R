@@ -1,4 +1,18 @@
 # Load data from Stiletti data repository
+#' 
+#' Downloads Stiletti data for the region of interest, by dissection, as specified
+#' in the anns_table. Note there is currently functionality for only 4 brain regions.
+#' 
+#' @param dissection_anns A vector of unique regional dissection annotation abbrieviations to download.
+#' @param anns_table An excel sheet containing the regional dissection for download.
+#' @param out_dir A string specifying the output directory for the downloaded data.
+#' @param data_link A string specifying the url where the data are located.
+#' @param file_format A string indicating the file format of the data being downloaded `.rds` or `.h5ad`
+#' 
+#' @examples
+#' get_dissection_data(c('CaB', 'Pu'), Stiletti_downloads_table.xlsx, 'results/',
+#'                     'https://datasets.cellxgene.cziscience.com/', .rds)
+#'                     
 get_dissection_data <- function(
     
   dissection_anns = NULL, 
@@ -192,7 +206,6 @@ get_cell_outliers <- function(
                        mito_outlier, ribo_outlier)
   
   return(sce_obj)
-  
   
 }
 
@@ -807,29 +820,63 @@ recode_cluster_ids <- function(
   if (region == 'cer') {
     
     cer_levels <- c("Cer-adult-InN-1", "Cer-adult-InN-2", "Cer-adult-InN-3", 
-                    "Cer-adult-InN-4", "Cer-adult-InN-5", "Cer-adult-ExN",
-                    "Cer-adult-UBC", "Cer-adult-BGli", "Cer-adult-Olig",
-                    "Cer-adult-OPC-1", "Cer-adult-OPC-2?", "Cer-adult-Ast", 
-                    "Cer-adult-MG", "Cer-adult-Endo", "Cer-adult-Misc")
+                    "Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-BGli?", 
+                    "Cer-adult-Olig", "Cer-adult-OPC", "Cer-adult-Ast", 
+                    "Cer-adult-MG", "Cer-adult-Endo?", "Cer-adult-Pericyte?",
+                    "Cer-adult-Leuko?")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>%
       dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
                                           `0` = "Cer-adult-ExN", 
                                           `1` = "Cer-adult-Olig",
-                                          `2` = "Cer-adult-BGli",
-                                          `3` = "Cer-adult-OPC-1",
-                                          `4` = "Cer-adult-MG",
-                                          `5` = "Cer-adult-InN-1",
-                                          `6` = "Cer-adult-InN-2",
-                                          `7` = "Cer-adult-InN-3",
-                                          `8` = "Cer-adult-InN-4",
-                                          `9` = "Cer-adult-Misc",
-                                          `10` = "Cer-adult-Endo",
-                                          `11` = "Cer-adult-UBC",
-                                          `12` = "Cer-adult-Ast",
-                                          `13` = "Cer-adult-InN-5",
-                                          `14` = "Cer-adult-OPC-2?")) %>%
+                                          `2` = "Cer-adult-BGli?",
+                                          `3` = "Cer-adult-OPC",
+                                          `4` = "Cer-adult-InN-1",
+                                          `5` = "Cer-adult-MG",
+                                          `6` = "Cer-adult-Ast",
+                                          `7` = "Cer-adult-Endo?",
+                                          `8` = "Cer-adult-UBC",
+                                          `9` = "Cer-adult-Pericyte?",
+                                          `10` = "Cer-adult-InN-2",
+                                          `11` = "Cer-adult-Leuko?",
+                                          `12` = "Cer-adult-InN-3")) %>%
+      pull(clust_recode)}
+  
+  if (region == 'fcx') {
+    
+    fcx_levels <- c("Ctx-adult-ExN-1", "Ctx-adult-ExN-2", "Ctx-adult-ExN-3", 
+                    "Ctx-adult-ExN-4", "Ctx-adult-ExN-5", "Ctx-adult-ExN-6", 
+                    "Ctx-adult-ExN-7", "Ctx-adult-ExN-8", "Ctx-adult-InN-1", 
+                    "Ctx-adult-InN-2", "Ctx-adult-InN-3", "Ctx-adult-InN-4", 
+                    "Ctx-adult-InN-5", "Ctx-adult-InN-6", "Ctx-adult-InN-7", 
+                    "Ctx-adult-InN-8", "Ctx-adult-Olig", "Ctx-adult-OPC", 
+                    "Ctx-adult-Ast", "Ctx-adult-MG", "Ctx-adult-Undef")
+    
+    clusters_recode <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>% 
+      dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
+                                          `0` = "Ctx-adult-ExN-1", 
+                                          `1` = "Ctx-adult-InN-1",
+                                          `2` = "Ctx-adult-InN-2",
+                                          `3` = "Ctx-adult-InN-3",
+                                          `4` = "Ctx-adult-ExN-2",
+                                          `5` = "Ctx-adult-ExN-3",
+                                          `6` = "Ctx-adult-ExN-4",
+                                          `7` = "Ctx-adult-InN-4",
+                                          `8` = "Ctx-adult-ExN-5",
+                                          `9` = "Ctx-adult-Ast",
+                                          `10` = "Ctx-adult-Olig",
+                                          `11` = "Ctx-adult-ExN-6",
+                                          `12` = "Ctx-adult-InN-5",
+                                          `13` = "Ctx-adult-ExN-7",
+                                          `14` = "Ctx-adult-InN-6",
+                                          `15` = "Ctx-adult-OPC",
+                                          `16` = "Ctx-adult-InN-7",
+                                          `17` = "Ctx-adult-ExN-8",
+                                          `18` = "Ctx-adult-MG",
+                                          `19` = "Ctx-adult-InN-8",
+                                          `20` = "Ctx-adult-Undef")) %>%
       pull(clust_recode)}
   
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))

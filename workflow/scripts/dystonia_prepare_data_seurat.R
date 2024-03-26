@@ -56,7 +56,7 @@ sce_obj <- SingleCellExperiment(list(counts = as(seurat_object[["RNA"]]$counts, 
 # Identify cell outliers and apply filters to sce object
 sce_obj <- get_cell_outliers(sce_obj, 3, 'higher', 5, 5)
 cell_outlier_plot <- create_outlier_plots(sce_obj, sce_obj$sum_outlier, sce_obj$detected_outlier, 
-                                    sce_obj$mito_outlier, sce_obj$ribo_outlier)
+                                          sce_obj$mito_outlier, sce_obj$ribo_outlier)
 seurat_object <- subset_seurat_object(seurat_object, cell_outliers = sce_obj$cell_outlier)
 cell_outlier_cnts_tbl <- tibble(
   measure = c('umi', 'genes', 'mito', 'ribo', 'total'), 

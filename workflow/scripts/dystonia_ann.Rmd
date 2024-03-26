@@ -9,37 +9,77 @@ output: html_document
 
 ***
 
-#### Paired vln (General) {.tabset}
+#### Sketch {.tabset}
+
+##### Paired vln (General) {.tabset}
 
 ***
 
 + Left: General brain gene set
 + Right: More region specific gene set
 
-```{r paired_vln, results='asis', fig.dim = c(10,10), echo=FALSE}
-vln_plots
+```{r paired_vln_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+vln_plots_sketch
 ```
 
 ***
 
-#### UMAP and vln (dystonia genes) 
+##### UMAP and vln (dystonia genes) 
 
 ***
 
 + Broad agreement between Stiletti annotations (see qc html) and ours 
 
-```{r umap_vln_plots, results='asis', fig.dim = c(10,10), echo=FALSE}
-umap_vln_plots
+```{r umap_vln_plots_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+umap_vln_plots_sketch
 ```
 
 ***
 
-#### Dystonia genes
+##### Dystonia genes
 
 ***
 
-```{r cluster_umap, results='asis', fig.dim = c(10,10), echo=FALSE}
-dystonia_plot 
+```{r cluster_umap_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+dystonia_plot_sketch
+```
+
+***
+
+
+#### RNA {.tabset}
+
+##### Paired vln (General) {.tabset}
+
+***
+
++ Left: General brain gene set
++ Right: More region specific gene set
+
+```{r paired_vln_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+vln_plots_rna
+```
+
+***
+
+##### UMAP and vln (dystonia genes) 
+
+***
+
++ Broad agreement between Stiletti annotations (see qc html) and ours 
+
+```{r umap_vln_plots_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+umap_vln_plots_rna
+```
+
+***
+
+##### Dystonia genes
+
+***
+
+```{r cluster_umap_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+dystonia_plot_rna
 ```
 
 ***
