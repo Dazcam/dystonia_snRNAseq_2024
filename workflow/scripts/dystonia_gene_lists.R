@@ -104,8 +104,8 @@ fcx_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
                'PDGRFA', 'PMP2',
                'EOMES', 'EBF1', 'ABCB1') 
 
-fcx_final_genes <- factor(c('GAD1', 'GAD2', 'PVALB', 'SST', 'CALB2',
-                           'VIP', 'SLC17A7', 'RORB', 'TLE4', 'OLIG1', 
+fcx_final_genes <- factor(c('SLC17A7', 'RORB', 'TLE4', 'GAD1', 'GAD2', 
+                            'PVALB', 'SST', 'CALB2','VIP',  'OLIG1', 
                            'OLIG2', 'MBP', 'GFAP', 'SOX9', 'AQP4', 
                             'C3', 'C1QB', 'EBF1', 'ABCB1', 'APOD'))
 
