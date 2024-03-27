@@ -62,8 +62,9 @@ dystonia_plot_sketch <- create_stacked_vln_plot(seurat_object,
 
 ##  Plots for sketch object  ----------
 # Switch to whole dataset
-message('\nChanging to RNA object ...')
+message('\nChanging to RNA object ...\n')
 DefaultAssay(seurat_object) <- 'RNA'
+seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independently
 
 # Recode cluster IDs - sketch object 
 seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
@@ -93,13 +94,13 @@ dystonia_plot_rna <- create_stacked_vln_plot(seurat_object,
 
 
 ## Find differential expressed marker genes in clusters  ------------------------------
-message('\nCalculating diff exp markers ...')
+message('\nCalculating diff exp markers ...\n')
 Idents(seurat_object) <- paste0(region, '_clusters')
 marker_genes <- FindAllMarkers(seurat_object)
 readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
 
 ## Back to sketch
-message('\nChanging to sketch object ...')
+message('\nChanging to sketch object ...\n')
 DefaultAssay(seurat_object) <- "sketch"
 
 ## Create markdown doc  ---------------------------------------------------------------
