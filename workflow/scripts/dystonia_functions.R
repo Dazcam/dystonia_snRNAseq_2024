@@ -889,6 +889,7 @@ recode_cluster_ids <- function(
 #' Plot a paired plot, a umap and a violin plot
 #' 
 #' @param seurat_obj A Seurat object.
+#' @param umap_reduct A string stating the umap reduction you would like to plot.
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' @param genes A vector, or factor, of genes to plot in violin plot.
 #' @param col_pal_umap A palette of colours for umap plot.
@@ -927,7 +928,7 @@ plot_paired_umap_vln <- function(
 ) {
   
   message('Creating UMAP and Vln Paired plot:\n')
-  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, 
+  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, reduction = 
                           cols = col_pal_umap, pt.size = 0.1,
                           label = T, label.size = 3, label.box = T, repel = T,
                           raster = F) + 
