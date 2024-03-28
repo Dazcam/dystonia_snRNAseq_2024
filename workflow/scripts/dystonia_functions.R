@@ -898,11 +898,12 @@ recode_cluster_ids <- function(
 #' @returns A patchwork object of a umap and violin plot.
 #' 
 #' @examples
-#' plot_paired_umap_vln(seurat_small, 'harmony_clusters_0.1', c('GAD1', 'GAD2'))
+#' plot_paired_umap_vln(seurat_small, 'harmony', harmony_clusters_0.1', c('GAD1', 'GAD2'))
 #' 
 plot_paired_umap_vln <- function(
     
   seurat_obj = NULL,
+  umap_reduct = NULL,
   meta_id = NULL,
   genes = NULL,
   col_pal_umap = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
@@ -928,7 +929,7 @@ plot_paired_umap_vln <- function(
 ) {
   
   message('Creating UMAP and Vln Paired plot:\n')
-  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, reduction = 
+  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, reduction = umap_reduct,
                           cols = col_pal_umap, pt.size = 0.1,
                           label = T, label.size = 3, label.box = T, repel = T,
                           raster = F) + 
