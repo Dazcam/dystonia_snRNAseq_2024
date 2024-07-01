@@ -329,7 +329,7 @@ get_hard_thresholds <- function(
 #' 
 #' Note: The option 'log_sketch' runs the log normalisation Seurat pipeline 
 #' on a sketch object, but omits the normalisation step, as log normalisation 
-#' is run on the raw object just prior to the creation of the skecth object.
+#' is run on the raw object just prior to the creation of the sketch object.
 #' See create_sketch_object() and https://satijalab.org/seurat/articles/seurat5_sketch_analysis
 #' 
 #' @param seurat_obj An uncorrected Seurat object.
@@ -761,7 +761,8 @@ create_stacked_vln_plot <- function(
           axis.text.x  = element_text(colour = "#000000", size = 16),
           axis.text.y  = element_text(colour = "#000000", size = 16)) +
     xlab('Cell type') +
-    ggtitle(plot_title)
+    ggtitle(plot_title) +
+    facet_grid(feature ~ ., drop = F)
   
 }
 
@@ -819,8 +820,8 @@ recode_cluster_ids <- function(
   
   if (region == 'cer') {
     
-    cer_levels <- c("Cer-adult-InN-1", "Cer-adult-InN-2", "Cer-adult-InN-3", 
-                    "Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-BGli?", 
+    cer_levels <- c("Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-InN-1", 
+                    "Cer-adult-InN-2", "Cer-adult-InN-3", "Cer-adult-BGli?", 
                     "Cer-adult-Olig", "Cer-adult-OPC", "Cer-adult-Ast", 
                     "Cer-adult-MG", "Cer-adult-Endo?", "Cer-adult-Pericyte?",
                     "Cer-adult-Leuko?")
@@ -845,38 +846,38 @@ recode_cluster_ids <- function(
   
   if (region == 'fcx') {
     
-    fcx_levels <- c("Ctx-adult-ExN-1", "Ctx-adult-ExN-2", "Ctx-adult-ExN-3", 
-                    "Ctx-adult-ExN-4", "Ctx-adult-ExN-5", "Ctx-adult-ExN-6", 
-                    "Ctx-adult-ExN-7", "Ctx-adult-ExN-8", "Ctx-adult-InN-1", 
-                    "Ctx-adult-InN-2", "Ctx-adult-InN-3", "Ctx-adult-InN-4", 
-                    "Ctx-adult-InN-5", "Ctx-adult-InN-6", "Ctx-adult-InN-7", 
-                    "Ctx-adult-InN-8", "Ctx-adult-Olig", "Ctx-adult-OPC", 
-                    "Ctx-adult-Ast", "Ctx-adult-MG", "Ctx-adult-Undef")
+    fcx_levels <- c("FC-adult-ExN-1", "FC-adult-ExN-2", "FC-adult-ExN-3", 
+                    "FC-adult-ExN-4", "FC-adult-ExN-5", "FC-adult-ExN-6", 
+                    "FC-adult-ExN-7", "FC-adult-ExN-8", "FC-adult-InN-1", 
+                    "FC-adult-InN-2", "FC-adult-InN-3", "FC-adult-InN-4", 
+                    "FC-adult-InN-5", "FC-adult-InN-6", "FC-adult-InN-7", 
+                    "FC-adult-InN-8", "FC-adult-Olig", "FC-adult-OPC", 
+                    "FC-adult-Ast", "FC-adult-MG", "FC-adult-Undef")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>% 
       dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
-                                          `0` = "Ctx-adult-ExN-1", 
-                                          `1` = "Ctx-adult-InN-1",
-                                          `2` = "Ctx-adult-InN-2",
-                                          `3` = "Ctx-adult-InN-3",
-                                          `4` = "Ctx-adult-ExN-2",
-                                          `5` = "Ctx-adult-ExN-3",
-                                          `6` = "Ctx-adult-ExN-4",
-                                          `7` = "Ctx-adult-InN-4",
-                                          `8` = "Ctx-adult-ExN-5",
-                                          `9` = "Ctx-adult-Ast",
-                                          `10` = "Ctx-adult-Olig",
-                                          `11` = "Ctx-adult-ExN-6",
-                                          `12` = "Ctx-adult-InN-5",
-                                          `13` = "Ctx-adult-ExN-7",
-                                          `14` = "Ctx-adult-InN-6",
-                                          `15` = "Ctx-adult-OPC",
-                                          `16` = "Ctx-adult-InN-7",
-                                          `17` = "Ctx-adult-ExN-8",
-                                          `18` = "Ctx-adult-MG",
-                                          `19` = "Ctx-adult-InN-8",
-                                          `20` = "Ctx-adult-Undef")) %>%
+                                          `0` = "FC-adult-ExN-1", 
+                                          `1` = "FC-adult-InN-1",
+                                          `2` = "FC-adult-InN-2",
+                                          `3` = "FC-adult-InN-3",
+                                          `4` = "FC-adult-ExN-2",
+                                          `5` = "FC-adult-ExN-3",
+                                          `6` = "FC-adult-ExN-4",
+                                          `7` = "FC-adult-InN-4",
+                                          `8` = "FC-adult-ExN-5",
+                                          `9` = "FC-adult-Ast",
+                                          `10` = "FC-adult-Olig",
+                                          `11` = "FC-adult-ExN-6",
+                                          `12` = "FC-adult-InN-5",
+                                          `13` = "FC-adult-ExN-7",
+                                          `14` = "FC-adult-InN-6",
+                                          `15` = "FC-adult-OPC",
+                                          `16` = "FC-adult-InN-7",
+                                          `17` = "FC-adult-ExN-8",
+                                          `18` = "FC-adult-MG",
+                                          `19` = "FC-adult-InN-8",
+                                          `20` = "FC-adult-Undef")) %>%
       pull(clust_recode)}
   
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
