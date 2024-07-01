@@ -22,6 +22,7 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
+library(egg)
 
 ## Set variables  ---------------------------------------------------------------------
 if (exists("snakemake")) { 
@@ -39,6 +40,7 @@ data_dir <- paste0(root_dir, 'resources/')
 script_dir <- paste0(root_dir, 'workflow/scripts/')
 results_dir <- paste0(root_dir, 'results/')
 stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
+fetal_dir <- paste0(data_dir, 'public_data/cameron_2023/')
 R_dir <- paste0(results_dir, '01R_objects/')
 markdown_prep_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
 markdown_prep_html <- paste0('dystonia_qc_', toupper(region), '.html')
@@ -60,7 +62,7 @@ pc_thresh <- ifelse(region == 'fcx', 50, 30) # Set PC thresh
 
 options(future.globals.maxSize = 3e+09, future.seed = T) # set this option when analyzing large datasets
 options(digits = 1) # Set default decimal points
-options(scipen = 999) # Prevents wonky scintific notation
+options(scipen = 999) # Prevents wonky scientific notation
 options(ggrepel.max.overlaps = Inf) # For DimPlots
 
 # Set num of cells per sample to create sketch object of ~60K
@@ -69,6 +71,18 @@ sketch_num <- dplyr::case_when(
   region == "fcx" ~ 1100, # 56 samples (56 * 1100 = 61600 cells)
   region == "str" ~ 5000, # 12 samples (12 * 5000 = 60000 cells)
   region == "cer" ~ 2150) # 28 samples (28 * 1800 = 60200 cells)
+
+# Set fetal region based on adult region
+fetal_region <- dplyr::case_when(
+  region == "fcx" ~ "pfc", 
+  region == "str" ~ "wge", 
+  region == "cer" ~ "cer")
+
+# Region recode for cell IDs in seurat objects
+region_recode <- dplyr::case_when(
+  region == "fcx" ~ "FC", 
+  region == "str" ~ "GE", 
+  region == "cer" ~ "Cer")
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
