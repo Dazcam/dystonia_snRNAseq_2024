@@ -42,10 +42,13 @@ results_dir <- paste0(root_dir, 'results/')
 stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
 fetal_dir <- paste0(data_dir, 'public_data/cameron_2023/')
 R_dir <- paste0(results_dir, '01R_objects/')
+wgcna_dir <- paste0(results_dir, '03wgcna/')
 markdown_prep_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
 markdown_prep_html <- paste0('dystonia_qc_', toupper(region), '.html')
 markdown_ann_doc <- paste0(script_dir, 'dystonia_ann.Rmd')
 markdown_ann_html <- paste0('dystonia_ann_', toupper(region), '.html')
+markdown_wgcna_doc <- paste0(script_dir, 'dystonia_wgcna.Rmd')
+markdown_wgcna_html <- paste0('dystonia_wgcna_', toupper(region), '.html')
 regions <- c('fcx', 'str', 'cer')
 fcx_anns <- c('A13', 'A14', 'A25', 'A32', 'A44-A45', 'A46', 'FI', 'M1C')
 str_anns <- c('CaB', 'Pu')
@@ -71,6 +74,9 @@ sketch_num <- dplyr::case_when(
   region == "fcx" ~ 1100, # 56 samples (56 * 1100 = 61600 cells)
   region == "str" ~ 5000, # 12 samples (12 * 5000 = 60000 cells)
   region == "cer" ~ 2150) # 28 samples (28 * 1800 = 60200 cells)
+
+
+### For final violin plots
 
 # Set fetal region based on adult region
 fetal_region <- dplyr::case_when(
