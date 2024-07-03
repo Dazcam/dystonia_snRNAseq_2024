@@ -72,7 +72,7 @@ if (stringr::str_detect(region, 'fetal'))
 if (stringr::str_detect(region, 'adult'))
   seurat_obj <- readRDS(paste0(R_dir, 'seurat.', region, '.rds'))
   
-# Set up object for WGCNA
+# Set up object for WGCNA to get metacells
 gene_select <- 'fraction'
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
 
@@ -87,11 +87,21 @@ meta_cell_types <- colnames(meta_obj) %>%
   distinct() %>%
   pull()
 
-# Normalize metacell expression matrix:
-seurat_obj <- NormalizeMetacells(seurat_obj)
+run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
 
-# Run WGCNA
+### ------ Testing -------
+
+# Run again to set up metacell type specific objects in seurat_obj@misc
+seurat_obj <- create_wgcna_metacells(seurat_obj, 
+                                     gene_select, 
+                                     paste0(meta_cell_types[i], '_wgcna'),
+                                     paste0(region, '_wgcna'),
+                                     meta_cell_types)
+
+# Run WGCNA - Throwing errors
 run_wgcna(seurat_obj, meta_cell_types, region, wgcna_dir)
+
+### ------
 
 # Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
 overlap_genes <- run_dyst_gene_overlap(seurat_obj, meta_cell_types, region, 
