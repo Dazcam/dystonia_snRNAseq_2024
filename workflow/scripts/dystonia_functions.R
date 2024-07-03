@@ -1088,12 +1088,11 @@ log_smk <- function() {
 # Catch cell types removed by hdWGCNA
 catch_clusters_rm_warning <- function() {
   
-  # Catch cell types that are removed due to low cell counts
   cell_split <- str_split(names(last.warning), c(', ', ': '))
   cell_split <- cell_split[[2]][2]
   cell_split <- unlist(str_split(cell_split, c(', ')))
-  
-  return(cell_split)
+    
+  return(cell_split )
   
 }
 
@@ -1139,9 +1138,10 @@ get_wgcna_cell_props <- function(
   
 }
 
-# Run WGCNA
-# Saves a seurat object to file for each cell type
-run_wgcna <- function(
+# Run WGCNA original 
+# This follows the hdWGCNA pipeline in the vinegette 
+# Saves a Seurat object to file for each cell type
+run_wgcna_orig <- function(
     
   seurat_obj = NULL,
   cell_types = NULL,
@@ -1185,7 +1185,8 @@ run_wgcna <- function(
       seurat_object,
       tom_name = cell_type, # name of the topoligical overlap matrix written to disk
       soft_power = power_val,
-      overwrite_tom = T
+      overwrite_tom = T,
+      tom_outdir = outdir
     )
     
     # Compute Eigengenes and Connectivity
@@ -1218,59 +1219,185 @@ run_wgcna <- function(
   
 }
 
+# Run WGCNA
+# This is my attempt so far to save all WGCNA data to the same 
+# Seurat object 
+run_wgcna <- function(
+    
+  seurat_obj = NULL,
+  cell_types = NULL,
+  region = NULL,
+  outdir = NULL
+  
+) {
+  
+  for (i in 1:length(cell_types)) {
+    
+    sink(paste0(outdir, region, '_', cell_types[i], '_hdWGCNA.log'))
+    message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_types[i])
+    
+    # Set up the expression matrix 1st seurat_obj the seurat_object
+    if (i == 1)
+      seurat_object <- SetDatExpr(
+        seurat_obj,
+        group_name = cell_types[i], 
+        group.by = 'cellIDs', 
+        assay = 'RNA', # using RNA assay
+        slot = 'data', # using normalized data
+        wgcna_name = paste0(cell_types[i], '_wgcna')
+      )
+    else
+      seurat_object <- SetDatExpr(
+        seurat_object,
+        group_name = cell_types[i], 
+        group.by = 'cellIDs', 
+        assay = 'RNA', # using RNA assay
+        slot = 'data', # using normalized data
+        wgcna_name = paste0(cell_types[i], '_wgcna')
+      )
+      
+    
+    # Select soft power threshold
+    seurat_object <- TestSoftPowers(
+      seurat_object,
+      networkType = 'signed', # you can also use "unsigned" or "signed hybrid"
+      wgcna_name = paste0(cell_types[i], '_wgcna'))
+    
+    power_val <- GetPowerTable(seurat_object, paste0(cell_types[i], '_wgcna')) %>%
+      select(Power, SFT.R.sq) %>%
+      filter(SFT.R.sq > 0.8) %>%
+      pull(Power) %>%
+      dplyr::first()
+    
+    message("Soft Power threshold set to: ", power_val)
+    
+    message("Construct co-expression network ...")
+    # Construct co-expression network
+    seurat_object <- ConstructNetwork(
+      seurat_object,
+      tom_name = cell_types[i], # name of the topoligical overlap matrix written to disk
+      soft_power = power_val,
+      overwrite_tom = T,
+      wgcna_name = paste0(cell_types[i], '_wgcna'),
+      tom_outdir = outdir
+    )
+    message("Compute Eigengenes ...")
+    # Compute Eigengenes and Connectivity
+    # Compute all MEs in the full single-cell dataset
+    seurat_object <- ModuleEigengenes(
+      seurat_object,
+      modules = GetModules(seurat_object, wgcna_name = paste0(cell_types[i], '_wgcna')),
+      group.by.vars = "Sample",
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    
+    message("Module Connect ...")
+    # Compute module connectivity
+    # compute eigengene-based connectivity (kME):
+    seurat_object <- ModuleConnectivity(
+      seurat_object,
+      group.by = 'cellIDs', 
+      group_name = cell_types[i],
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    the 
+    message("Rename modules ...")
+    # rename the modules
+    seurat_object <- ResetModuleNames(
+      seurat_object,
+      new_name = paste0(cell_types[i], "-M"),
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    
+  }
+  
+  message("Saving RDS file ...")
+  saveRDS(seurat_object, file = paste0(outdir, toupper(region), 
+                                       '_', cell_types[i], '_hdWGCNA.rds'))
+  rm(seurat_object)
+  sink()
+  
+}
+
 #' Set up object for hdWGCNA and construct metacells
-#' Still to add further params for testing
+#' Note this has to be run twice. Once to set up the general WGCNA metadata slot
+#' in the Seurat object. Then once the meta cells have been established, run again
+#' to add a seprate metadata slot for each meta cell. 
 #' 
 #' @param seurat_object An Seurat object.
 #' @param gene_select A string. Either 'fraction', or 'variable' specifying method
 #' by which genes are selected to create GeX networks.
-#' @param wgcna_name A string. Name for the WGCNA object stired in seurat_object@misc. 
+#' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
+#' @param metacell_location A string. Name of the WGCNA experiment to copy the metacell object from. 
+#' Set this to null when first setting up object.
+#' @param meta_cell_types A vector of the cell types that survived min_cells cull 
+#' after first running this function. Set this to null when first setting up object.
 #' 
 #' @returns A Seurat object.
 #' 
 #' @examples
-#' create_wgcna_metacells(seurat_small, 'fraction', 'wgcna)
+#' create_wgcna_metacells(seurat_small, 'fraction', 'wgcna')
+#' create_wgcna_metacells(seurat_small, 'fraction', 'wgcna')
 #' 
 create_wgcna_metacells <- function(
     
   seurat_object = NULL,
   gene_select = 'fraction',
-  wgcna_name = 'wgcna'
+  wgcna_name = 'wgcna',
+  metacell_location = NULL,
+  meta_cell_types = NULL
   
 ) {
   
-  message('Setting up Seurat object for WGCNA ...')
+
   
-  if (gene_select == 'fraction') {
+  if (is.null(metacell_location)) {
     
+    message('Setting up Seurat object for WGCNA ...')
     seurat_obj <- hdWGCNA::SetupForWGCNA(
-      seurat_object,
-      gene_select = gene_select, # genes exp in frac of cells of Seurat var genes
-      fraction = 0.05, 
-      wgcna_name = wgcna_name
+        seurat_object,
+        gene_select = gene_select, # Default fraction is 0.05
+        wgcna_name = wgcna_name,
+        metacell_location = metacell_location)
+    
+    message('Constructing metacells for WGCNA ...')
+    seurat_obj <- hdWGCNA::MetacellsByGroups(
+      seurat_obj = seurat_obj,
+      group.by = c("cellIDs", "Sample"), # specify the columns in seurat_obj@meta.data to group by
+      reduction = 'umap', # select the dimensionality reduction to perform KNN on
+      k = 25, # nearest-neighbors parameter
+      max_shared = 10, # maximum number of shared cells between two metacells
+      ident.group = 'cellIDs', # set the Idents of the metacell seurat object
     )
+    
+    # Normalize metacell expression matrix (only required on general misc object)
+    seurat_obj <- NormalizeMetacells(seurat_obj)
+  
+    return(seurat_obj)
     
   } else {
     
-    seurat_obj <- hdWGCNA::SetupForWGCNA(
-      seurat_object,
-      gene_select = gene_select, # genes exp in frac of cells of Seurat var genes
-      wgcna_name = wgcna_name
-    )
+    for (i in 1:length(meta_cell_types)) {
+      
+      if (i == 1) {
+
+        message('Setting up Seurat object for ', meta_cell_types[i], ' ...')
+        seurat_all <- hdWGCNA::SetupForWGCNA(
+          seurat_object,
+          gene_select = gene_select, # Default fraction is 0.05
+          wgcna_name = paste0(meta_cell_types[i], '_wgcna'),
+          metacell_location = metacell_location)
+      
+      } else {
+
+        message('Setting up Seurat object for ', meta_cell_types[i], ' ...')
+        seurat_all <- hdWGCNA::SetupForWGCNA(
+          seurat_all,
+          gene_select = gene_select, # Default fraction is 0.05
+          wgcna_name = paste0(meta_cell_types[i], '_wgcna'),
+          metacell_location = metacell_location) }}
     
-  }
-  
-  message('Constructing metacells for WGCNA ...')
-  seurat_obj <- hdWGCNA::MetacellsByGroups(
-    seurat_obj = seurat_obj,
-    group.by = c("cellIDs", "Sample"), # specify the columns in seurat_obj@meta.data to group by
-    reduction = 'umap', # select the dimensionality reduction to perform KNN on
-    k = 25, # nearest-neighbors parameter
-    max_shared = 10, # maximum number of shared cells between two metacells
-    ident.group = 'cellIDs', # set the Idents of the metacell seurat object
-  )
-  
-  return(seurat_obj)
+  return(seurat_all)}
   
 }
 
