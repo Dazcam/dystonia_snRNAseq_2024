@@ -26,7 +26,7 @@ rule annotate_clusters:
     singularity: "../resources/containers/seurat5b_latest.sif"
     params: root_dir = "../",
             region = lambda wc: wc.get("region")
-    resources: threads = 20, mem_mb = 200000, time="0-12:00:00"
+    resources: threads = 5, mem_mb = 30000, time="0-12:00:00"
     log:    "../results/00LOG/03annotate_clusters_{region}.log"
     script:
             "../scripts/dystonia_annotate_clusters.R"
@@ -41,3 +41,25 @@ rule pseudobulk:
     log:    "../results/00LOG/04pseudobulk_{region}.log"
     script:
             "../scripts/dystonia_pseudobulk.R"
+
+rule wgcna_fetal:
+    input: "../resources/public_data/cameron_2023/seurat_{wgcna_region}.rds"
+    output: "../results/03wgcna/dystonia_wgcna_{wgcna_region}.html"
+    singularity: "../resources/containers/seurat5c_latest.sif"
+    params: root_dir = "../",
+            region = lambda wc: wc.get("wgcna_region")
+    resources: threads = 4, mem_mb = 40000, time="0-12:00:00"
+    log:    "../results/00LOG/05wgcna_{wgcna_region}.log"
+    script:
+            "../scripts/dystonia_wgcna.R"
+
+#rule wgcna_adult:
+#    input: "../results/01R_objects/03seurat_{region}.rds"
+#    output: "../results/03wgcna/dystonia_wgcna_{wgcna_region}.html"
+#    singularity: "../resources/containers/seurat5c_latest.sif"
+#    params: root_dir = "../",
+#            region = lambda wc: wc.get("wgcna_region")
+#    resources: threads = 20, mem_mb = 40000, time="0-12:00:00"
+#    log:    "../results/00LOG/05wgcna_{wgcna_region}.log"
+#    script:
+#            "../scripts/dystonia_pseudobulk.R"

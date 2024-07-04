@@ -102,7 +102,7 @@ region_recode <- dplyr::case_when(
 ### For WGCNA
 
 gene_select <- 'fraction'
-aggregate_cells <- FALSE
+aggregate_cells <- TRUE
 aggregate_misc <- FALSE
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
