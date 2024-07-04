@@ -49,10 +49,17 @@ enableWGCNAThreads(nThreads = 4)
 if (stringr::str_detect(region, 'fetal'))
   seurat_obj <- readRDS(paste0(fetal_dir, 'seurat_', region,'.rds'))
 if (stringr::str_detect(region, 'adult'))
-  seurat_obj <- readRDS(paste0(R_dir, 'seurat.', region, '.rds'))
-  
+  seurat_obj <- readRDS(paste0(R_dir, '02seurat_', str_split(region, "_")[[1]][1], '.rds'))
+
+seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, 
+                                         'str', 
+                                         'harmony_clusters_0.1')
+
+table(seurat_obj$cellIDs)
+
+
 # Aggregate cells? Set in dystonia_Renvs.R
-if (aggregate_cells = TRUE) 
+if (aggregate_cells = FALSE) 
   seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
   
 # Set up object for WGCNA to get metacells
