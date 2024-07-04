@@ -42,7 +42,7 @@ theme_set(theme_cowplot())
 set.seed(12345)
 
 # optionally enable multithreading
-enableWGCNAThreads(nThreads = 4)
+enableWGCNAThreads(nThreads = 20)
 
 ## Load Data --------------------------------------------------------------------------
 # Seurat objects  ----
@@ -52,7 +52,7 @@ if (stringr::str_detect(region, 'adult'))
   seurat_obj <- readRDS(paste0(R_dir, 'seurat.', region, '.rds'))
   
 # Aggregate cells? Set in dystonia_Renvs.R
-if (aggregate_cells = TRUE) 
+if (aggregate_cells == TRUE) 
   seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
   
 # Set up object for WGCNA to get metacells
@@ -73,7 +73,7 @@ run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
 
 ### ------ Testing -------
 # Aggregate all cell type specific WGCNA objects in single Seurat object
-if (aggregate_misc = TRUE) {
+if (aggregate_misc == TRUE) {
   # Run again to set up metacell type specific objects in seurat_obj@misc
   seurat_obj <- create_wgcna_metacells(seurat_obj, 
                                        gene_select, 
