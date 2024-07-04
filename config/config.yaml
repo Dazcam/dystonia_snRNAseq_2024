@@ -1,5 +1,13 @@
 region:
--    fcx
--    str
--    cer
+#-    fcx
+#-    str
+#-    cer
+
+wgcna_region:
+#- fcx_adult
+#- cer_adult
+#- str_adult
+#- fcx_fetal
+#- ge_fetal
+- cer_fetal
 
