@@ -48,6 +48,7 @@ vln_plots_sketch <- plot_paired_vlns(seurat_object,
 
 # Plot paired umap and vln
 umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object, 
+                                              'umap.harmony',
                                               paste0(region, '_clusters'), 
                                               get(paste0(region, '_final_genes')),
                                               get(paste0(region, '_umap_cols_recode')), 
@@ -65,11 +66,12 @@ dystonia_plot_sketch <- create_stacked_vln_plot(seurat_object,
 message('\nChanging to RNA object ...\n')
 DefaultAssay(seurat_object) <- 'RNA'
 seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independently
+Idents(seurat_object) <- 'cluster_full'
 
 # Recode cluster IDs - sketch object 
 seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
                                                                    region, 
-                                                                   'harmony_clusters_0.1')
+                                                                   'cluster_full')
 
 # Plot paired vln
 vln_plots_rna <- plot_paired_vlns(seurat_object, 
@@ -80,6 +82,7 @@ vln_plots_rna <- plot_paired_vlns(seurat_object,
 
 # Plot paired umap and vln
 umap_vln_plots_rna <- plot_paired_umap_vln(seurat_object, 
+                                           'umap.full',
                                            paste0(region, '_clusters'), 
                                            get(paste0(region, '_final_genes')),
                                            get(paste0(region, '_umap_cols_recode')), 

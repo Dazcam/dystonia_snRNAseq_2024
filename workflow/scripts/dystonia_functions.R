@@ -329,7 +329,7 @@ get_hard_thresholds <- function(
 #' 
 #' Note: The option 'log_sketch' runs the log normalisation Seurat pipeline 
 #' on a sketch object, but omits the normalisation step, as log normalisation 
-#' is run on the raw object just prior to the creation of the skecth object.
+#' is run on the raw object just prior to the creation of the sketch object.
 #' See create_sketch_object() and https://satijalab.org/seurat/articles/seurat5_sketch_analysis
 #' 
 #' @param seurat_obj An uncorrected Seurat object.
@@ -761,7 +761,8 @@ create_stacked_vln_plot <- function(
           axis.text.x  = element_text(colour = "#000000", size = 16),
           axis.text.y  = element_text(colour = "#000000", size = 16)) +
     xlab('Cell type') +
-    ggtitle(plot_title)
+    ggtitle(plot_title) +
+    facet_grid(feature ~ ., drop = F)
   
 }
 
@@ -819,8 +820,8 @@ recode_cluster_ids <- function(
   
   if (region == 'cer') {
     
-    cer_levels <- c("Cer-adult-InN-1", "Cer-adult-InN-2", "Cer-adult-InN-3", 
-                    "Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-BGli?", 
+    cer_levels <- c("Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-InN-1", 
+                    "Cer-adult-InN-2", "Cer-adult-InN-3", "Cer-adult-BGli?", 
                     "Cer-adult-Olig", "Cer-adult-OPC", "Cer-adult-Ast", 
                     "Cer-adult-MG", "Cer-adult-Endo?", "Cer-adult-Pericyte?",
                     "Cer-adult-Leuko?")
@@ -845,38 +846,38 @@ recode_cluster_ids <- function(
   
   if (region == 'fcx') {
     
-    fcx_levels <- c("Ctx-adult-ExN-1", "Ctx-adult-ExN-2", "Ctx-adult-ExN-3", 
-                    "Ctx-adult-ExN-4", "Ctx-adult-ExN-5", "Ctx-adult-ExN-6", 
-                    "Ctx-adult-ExN-7", "Ctx-adult-ExN-8", "Ctx-adult-InN-1", 
-                    "Ctx-adult-InN-2", "Ctx-adult-InN-3", "Ctx-adult-InN-4", 
-                    "Ctx-adult-InN-5", "Ctx-adult-InN-6", "Ctx-adult-InN-7", 
-                    "Ctx-adult-InN-8", "Ctx-adult-Olig", "Ctx-adult-OPC", 
-                    "Ctx-adult-Ast", "Ctx-adult-MG", "Ctx-adult-Undef")
+    fcx_levels <- c("FC-adult-ExN-1", "FC-adult-ExN-2", "FC-adult-ExN-3", 
+                    "FC-adult-ExN-4", "FC-adult-ExN-5", "FC-adult-ExN-6", 
+                    "FC-adult-ExN-7", "FC-adult-ExN-8", "FC-adult-InN-1", 
+                    "FC-adult-InN-2", "FC-adult-InN-3", "FC-adult-InN-4", 
+                    "FC-adult-InN-5", "FC-adult-InN-6", "FC-adult-InN-7", 
+                    "FC-adult-InN-8", "FC-adult-Olig", "FC-adult-OPC", 
+                    "FC-adult-Ast", "FC-adult-MG", "FC-adult-Undef")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>% 
       dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
-                                          `0` = "Ctx-adult-ExN-1", 
-                                          `1` = "Ctx-adult-InN-1",
-                                          `2` = "Ctx-adult-InN-2",
-                                          `3` = "Ctx-adult-InN-3",
-                                          `4` = "Ctx-adult-ExN-2",
-                                          `5` = "Ctx-adult-ExN-3",
-                                          `6` = "Ctx-adult-ExN-4",
-                                          `7` = "Ctx-adult-InN-4",
-                                          `8` = "Ctx-adult-ExN-5",
-                                          `9` = "Ctx-adult-Ast",
-                                          `10` = "Ctx-adult-Olig",
-                                          `11` = "Ctx-adult-ExN-6",
-                                          `12` = "Ctx-adult-InN-5",
-                                          `13` = "Ctx-adult-ExN-7",
-                                          `14` = "Ctx-adult-InN-6",
-                                          `15` = "Ctx-adult-OPC",
-                                          `16` = "Ctx-adult-InN-7",
-                                          `17` = "Ctx-adult-ExN-8",
-                                          `18` = "Ctx-adult-MG",
-                                          `19` = "Ctx-adult-InN-8",
-                                          `20` = "Ctx-adult-Undef")) %>%
+                                          `0` = "FC-adult-ExN-1", 
+                                          `1` = "FC-adult-InN-1",
+                                          `2` = "FC-adult-InN-2",
+                                          `3` = "FC-adult-InN-3",
+                                          `4` = "FC-adult-ExN-2",
+                                          `5` = "FC-adult-ExN-3",
+                                          `6` = "FC-adult-ExN-4",
+                                          `7` = "FC-adult-InN-4",
+                                          `8` = "FC-adult-ExN-5",
+                                          `9` = "FC-adult-Ast",
+                                          `10` = "FC-adult-Olig",
+                                          `11` = "FC-adult-ExN-6",
+                                          `12` = "FC-adult-InN-5",
+                                          `13` = "FC-adult-ExN-7",
+                                          `14` = "FC-adult-InN-6",
+                                          `15` = "FC-adult-OPC",
+                                          `16` = "FC-adult-InN-7",
+                                          `17` = "FC-adult-ExN-8",
+                                          `18` = "FC-adult-MG",
+                                          `19` = "FC-adult-InN-8",
+                                          `20` = "FC-adult-Undef")) %>%
       pull(clust_recode)}
   
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
@@ -889,6 +890,7 @@ recode_cluster_ids <- function(
 #' Plot a paired plot, a umap and a violin plot
 #' 
 #' @param seurat_obj A Seurat object.
+#' @param umap_reduct A string stating the umap reduction you would like to plot.
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' @param genes A vector, or factor, of genes to plot in violin plot.
 #' @param col_pal_umap A palette of colours for umap plot.
@@ -897,11 +899,12 @@ recode_cluster_ids <- function(
 #' @returns A patchwork object of a umap and violin plot.
 #' 
 #' @examples
-#' plot_paired_umap_vln(seurat_small, 'harmony_clusters_0.1', c('GAD1', 'GAD2'))
+#' plot_paired_umap_vln(seurat_small, 'harmony', harmony_clusters_0.1', c('GAD1', 'GAD2'))
 #' 
 plot_paired_umap_vln <- function(
     
   seurat_obj = NULL,
+  umap_reduct = NULL,
   meta_id = NULL,
   genes = NULL,
   col_pal_umap = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
@@ -927,7 +930,7 @@ plot_paired_umap_vln <- function(
 ) {
   
   message('Creating UMAP and Vln Paired plot:\n')
-  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, 
+  umap <- Seurat::DimPlot(seurat_obj, group.by = meta_id, reduction = umap_reduct,
                           cols = col_pal_umap, pt.size = 0.1,
                           label = T, label.size = 3, label.box = T, repel = T,
                           raster = F) + 
@@ -1080,3 +1083,432 @@ log_smk <- function() {
   }
 }
 
+## Functions for hdWGCNA
+
+# Catch cell types removed by hdWGCNA
+catch_clusters_rm_warning <- function() {
+  
+  cell_split <- str_split(names(last.warning), c(', ', ': '))
+  cell_split <- cell_split[[2]][2]
+  cell_split <- unlist(str_split(cell_split, c(', ')))
+    
+  return(cell_split )
+  
+}
+
+#' Compare cell type proportions between Seurat cell types and hdWGCNA metacell types
+#' 
+#' @param seurat_obj An Seurat object.
+#' @param meta_obj A Seurat object generated by hdWGCNA::GetMetacellObject(seurat_obj)
+#' 
+#' @returns A list. 2 dfs. 1st, cell type proportions in original Seurat object. 2nd,
+#' meta-cell type proportions generate by hdWGCNA.
+#' 
+#' @examples
+#' get_wgcna_cell_props(seurat_small, metacell_small)
+#' 
+get_wgcna_cell_props <- function(
+    
+  seurat_obj = NULL,
+  meta_obj = NULL
+  
+) {
+  
+  # Compare cell- and meta cell proportions
+  orig_prop_tbl <- seurat_obj$cellIDs %>%
+    as_tibble() %>%
+    group_by(value) %>% 
+    summarise(Count = n()) %>%
+    mutate(Percent = Count / sum(Count) * 100)
+  
+  meta_prop_tbl <- colnames(meta_obj) %>%
+    as_tibble() %>%
+    separate(value, c('value', NA), sep = '#') %>%
+    group_by(value) %>% 
+    summarise(Count = n()) %>%
+    mutate(Percent = Count / sum(Count) * 100) %>%
+    arrange(desc(Percent))
+  
+  prop_list <- list(
+    'orig' = orig_prop_tbl,
+    'meta' = meta_prop_tbl
+  )
+  
+  return(prop_list)  
+  
+}
+
+# Run WGCNA original 
+# This follows the hdWGCNA pipeline in the vinegette 
+# Saves a Seurat object to file for each cell type
+run_wgcna_orig <- function(
+    
+  seurat_obj = NULL,
+  cell_types = NULL,
+  region = NULL,
+  outdir = NULL
+  
+) {
+  
+  # Get cell
+  
+  for (cell_type in cell_types) {
+    
+    sink(paste0(outdir, region, '_', cell_type, '_hdWGCNA.log'))
+    message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_type)
+    
+    # Set up the expression matrix
+    seurat_object <- SetDatExpr(
+      seurat_obj,
+      group_name = cell_type, 
+      group.by = 'cellIDs', 
+      assay = 'RNA', # using RNA assay
+      slot = 'data' # using normalized data
+    )
+    
+    # Select soft power threshold
+    seurat_object <- TestSoftPowers(
+      seurat_object,
+      networkType = 'signed' # you can also use "unsigned" or "signed hybrid"
+    )
+    
+    power_val <- GetPowerTable(seurat_object) %>%
+      select(Power, SFT.R.sq) %>%
+      filter(SFT.R.sq > 0.8) %>%
+      pull(Power) %>%
+      dplyr::first()
+    
+    message("Soft Power threshold set to: ", power_val)
+    
+    # Construct co-expression network
+    seurat_object <- ConstructNetwork(
+      seurat_object,
+      tom_name = cell_type, # name of the topoligical overlap matrix written to disk
+      soft_power = power_val,
+      overwrite_tom = T,
+      tom_outdir = outdir
+    )
+    
+    # Compute Eigengenes and Connectivity
+    # Compute all MEs in the full single-cell dataset
+    seurat_object <- ModuleEigengenes(
+      seurat_object,
+      group.by.vars = "Sample"
+    )
+    
+    # Compute module connectivity
+    # compute eigengene-based connectivity (kME):
+    seurat_object <- ModuleConnectivity(
+      seurat_object,
+      group.by = 'cellIDs', 
+      group_name = cell_type
+    )
+    
+    # rename the modules
+    seurat_object <- ResetModuleNames(
+      seurat_object,
+      new_name = paste0(cell_type, "-M")
+    )
+    
+    saveRDS(seurat_object, file = paste0(outdir, toupper(region), 
+                                         '_', cell_type, '_hdWGCNA.rds'))
+    rm(seurat_object)
+    sink()
+    
+  }
+  
+}
+
+# Run WGCNA
+# This is my attempt so far to save all WGCNA data to the same 
+# Seurat object 
+run_wgcna <- function(
+    
+  seurat_obj = NULL,
+  cell_types = NULL,
+  region = NULL,
+  outdir = NULL
+  
+) {
+  
+  for (i in 1:length(cell_types)) {
+    
+    sink(paste0(outdir, region, '_', cell_types[i], '_hdWGCNA.log'))
+    message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_types[i])
+    
+    # Set up the expression matrix 1st seurat_obj the seurat_object
+    if (i == 1)
+      seurat_object <- SetDatExpr(
+        seurat_obj,
+        group_name = cell_types[i], 
+        group.by = 'cellIDs', 
+        assay = 'RNA', # using RNA assay
+        slot = 'data', # using normalized data
+        wgcna_name = paste0(cell_types[i], '_wgcna')
+      )
+    else
+      seurat_object <- SetDatExpr(
+        seurat_object,
+        group_name = cell_types[i], 
+        group.by = 'cellIDs', 
+        assay = 'RNA', # using RNA assay
+        slot = 'data', # using normalized data
+        wgcna_name = paste0(cell_types[i], '_wgcna')
+      )
+      
+    
+    # Select soft power threshold
+    seurat_object <- TestSoftPowers(
+      seurat_object,
+      networkType = 'signed', # you can also use "unsigned" or "signed hybrid"
+      wgcna_name = paste0(cell_types[i], '_wgcna'))
+    
+    power_val <- GetPowerTable(seurat_object, paste0(cell_types[i], '_wgcna')) %>%
+      select(Power, SFT.R.sq) %>%
+      filter(SFT.R.sq > 0.8) %>%
+      pull(Power) %>%
+      dplyr::first()
+    
+    message("Soft Power threshold set to: ", power_val)
+    
+    message("Construct co-expression network ...")
+    # Construct co-expression network
+    seurat_object <- ConstructNetwork(
+      seurat_object,
+      tom_name = cell_types[i], # name of the topoligical overlap matrix written to disk
+      soft_power = power_val,
+      overwrite_tom = T,
+      wgcna_name = paste0(cell_types[i], '_wgcna'),
+      tom_outdir = outdir
+    )
+    message("Compute Eigengenes ...")
+    # Compute Eigengenes and Connectivity
+    # Compute all MEs in the full single-cell dataset
+    seurat_object <- ModuleEigengenes(
+      seurat_object,
+      modules = GetModules(seurat_object, wgcna_name = paste0(cell_types[i], '_wgcna')),
+      group.by.vars = "Sample",
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    
+    message("Module Connect ...")
+    # Compute module connectivity
+    # compute eigengene-based connectivity (kME):
+    seurat_object <- ModuleConnectivity(
+      seurat_object,
+      group.by = 'cellIDs', 
+      group_name = cell_types[i],
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    the 
+    message("Rename modules ...")
+    # rename the modules
+    seurat_object <- ResetModuleNames(
+      seurat_object,
+      new_name = paste0(cell_types[i], "-M"),
+      wgcna_name = paste0(cell_types[i], '_wgcna')
+    )
+    
+  }
+  
+  message("Saving RDS file ...")
+  saveRDS(seurat_object, file = paste0(outdir, toupper(region), 
+                                       '_', cell_types[i], '_hdWGCNA.rds'))
+  rm(seurat_object)
+  sink()
+  
+}
+
+#' Set up object for hdWGCNA and construct metacells
+#' Note this has to be run twice. Once to set up the general WGCNA metadata slot
+#' in the Seurat object. Then once the meta cells have been established, run again
+#' to add a seprate metadata slot for each meta cell. 
+#' 
+#' @param seurat_object An Seurat object.
+#' @param gene_select A string. Either 'fraction', or 'variable' specifying method
+#' by which genes are selected to create GeX networks.
+#' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
+#' @param metacell_location A string. Name of the WGCNA experiment to copy the metacell object from. 
+#' Set this to null when first setting up object.
+#' @param meta_cell_types A vector of the cell types that survived min_cells cull 
+#' after first running this function. Set this to null when first setting up object.
+#' 
+#' @returns A Seurat object.
+#' 
+#' @examples
+#' create_wgcna_metacells(seurat_small, 'fraction', 'wgcna')
+#' create_wgcna_metacells(seurat_small, 'fraction', 'wgcna')
+#' 
+create_wgcna_metacells <- function(
+    
+  seurat_object = NULL,
+  gene_select = 'fraction',
+  wgcna_name = 'wgcna',
+  metacell_location = NULL,
+  meta_cell_types = NULL
+  
+) {
+  
+
+  
+  if (is.null(metacell_location)) {
+    
+    message('Setting up Seurat object for WGCNA ...')
+    seurat_obj <- hdWGCNA::SetupForWGCNA(
+        seurat_object,
+        gene_select = gene_select, # Default fraction is 0.05
+        wgcna_name = wgcna_name,
+        metacell_location = metacell_location)
+    
+    message('Constructing metacells for WGCNA ...')
+    seurat_obj <- hdWGCNA::MetacellsByGroups(
+      seurat_obj = seurat_obj,
+      group.by = c("cellIDs", "Sample"), # specify the columns in seurat_obj@meta.data to group by
+      reduction = 'umap', # select the dimensionality reduction to perform KNN on
+      k = 25, # nearest-neighbors parameter
+      max_shared = 10, # maximum number of shared cells between two metacells
+      ident.group = 'cellIDs', # set the Idents of the metacell seurat object
+    )
+    
+    # Normalize metacell expression matrix (only required on general misc object)
+    seurat_obj <- NormalizeMetacells(seurat_obj)
+  
+    return(seurat_obj)
+    
+  } else {
+    
+    for (i in 1:length(meta_cell_types)) {
+      
+      if (i == 1) {
+
+        message('Setting up Seurat object for ', meta_cell_types[i], ' ...')
+        seurat_all <- hdWGCNA::SetupForWGCNA(
+          seurat_object,
+          gene_select = gene_select, # Default fraction is 0.05
+          wgcna_name = paste0(meta_cell_types[i], '_wgcna'),
+          metacell_location = metacell_location)
+      
+      } else {
+
+        message('Setting up Seurat object for ', meta_cell_types[i], ' ...')
+        seurat_all <- hdWGCNA::SetupForWGCNA(
+          seurat_all,
+          gene_select = gene_select, # Default fraction is 0.05
+          wgcna_name = paste0(meta_cell_types[i], '_wgcna'),
+          metacell_location = metacell_location) }}
+    
+  return(seurat_all)}
+  
+}
+
+#' Test for overlap of dystonia genes and wgcna coexpression modules
+#' 
+#' @param seurat_object An Seurat object.
+#' @param meta_cells A string. The cellIDs retained after generating meta cells.
+#' @param region A string spcifying brain region of interest.
+#' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
+#' @param obj_dir A string where the suerat object is stored. 
+#' 
+#' @returns A list of overlapping genes for each metacell type in the surat object.
+#' 
+#' @examples
+#' run_dyst_gene_overlap(seurat_obj, meta_cell_types, region, paste0(region, '_wgcna'), wgcna_dir)
+#' 
+run_dyst_gene_overlap <- function(
+    
+  seurat_object = NULL,  
+  meta_cells = NULL,
+  region = NULL,
+  wgcna_name = NULL,
+  obj_dir = NULL
+  
+) {
+  
+  overlap_list <- list()
+  
+  for (cell_type in meta_cells) {
+    
+    seurat_object <- readRDS(paste0(obj_dir, toupper(region), 
+                                    '_', cell_type, '_hdWGCNA.rds'))
+    
+    # Get the module assignment table
+    module_names <- GetModules(seurat_object, wgcna_name) %>% 
+      subset(module != 'grey') %>%
+      select(-gene_name, -module, -color, -kME_grey) %>%
+      rename_with(~gsub("kME_", "", .x, fixed = TRUE)) %>%
+      colnames()
+    
+    for (mod in module_names) {
+      
+      print(mod)
+      genes <- GetHubGenes(seurat_object, n_hubs = 50) %>%
+        filter(module == mod) %>%
+        filter(gene_name %in% dystonia_genes) 
+      print(genes)
+      
+      overlap_list[[mod]] <- genes
+      
+    }
+    
+  }
+  
+  return(overlap_list)
+  
+}
+
+
+#' Get wgcna stats from seurat_object@misc
+#' 
+#' @param seurat_object An Seurat object.
+#' @param meta_cells A string. The cellIDs retained after generating meta cells.
+#' @param region A string spcifying brain region of interest.
+#' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
+#' @param obj_dir A string where the suerat object is stored. 
+#' 
+#' @returns A tibble.
+#' 
+#' @examples
+#' get_wgcna_stats(seurat_obj, meta_cell_types, region, paste0(region, '_wgcna'), wgcna_dir)
+#' 
+get_wgcna_stats <- function(
+    
+  seurat_object = NULL,  
+  meta_cells = NULL,
+  region = NULL,
+  wgcna_name = NULL,
+  obj_dir = NULL
+  
+) {
+  
+  for (cell_type in meta_cells) {
+    
+    message("Getting stats for ", toupper(region), ', ', cell_type, '...')
+    seurat_object <- readRDS(paste0(obj_dir, toupper(region), 
+                                    '_', cell_type, '_hdWGCNA.rds'))
+    
+    if (!exists('stats_tbl')) {
+      
+      stats_tbl <- tibble(
+        'Cell_type' = cell_type,
+        'Metacells' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_metacell_obj"]]),
+        'Power' = seurat_object@misc[[wgcna_name]][["wgcna_params"]][["power"]],
+        'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4
+      )
+      
+    } else {
+      
+      stats_tbl <- rbind(stats_tbl,
+                         tibble(
+                           'Cell_type' = cell_type,
+                           'Metacells' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_metacell_obj"]]),
+                           'Power' = seurat_object@misc[[wgcna_name]][["wgcna_params"]][["power"]],
+                           'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4
+                         ))
+      
+    }
+    
+  }
+  
+  return(stats_tbl)
+  
+}
