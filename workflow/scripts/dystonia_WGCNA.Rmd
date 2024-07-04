@@ -1,0 +1,93 @@
+---
+title: "Dystonia study - WGCNA - `r toupper(region)`"
+author: "Darren Cameron"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+### hdWGCNA {.tabset}
+
+***
+
+It's not possible to run standard WGCNA analyses on single cell data due to data 
+sparsity (i.e. an excess of zero values). To reduce sparsity, [hdWGCNA](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(23)00127-3)
+uses a KNN approach to aggregate single cells with similar GeX profiles into metacells. 
+Gene coexpression networks, and gene modules, can then be identified using WGCNA on
+said metacells.
+
+The rationale for using this is to 
+
+#### Regional info {.tabset}
+
++ Running hdWGCNA on `r toupper(region)`
++ Gene selected using: `r gene_select`
+
+##### Cell props {.tabset}
+
+###### Proportions
+
+***
+
+Compare cluster and meta-cluster proportions
+
+```{r cell_props, results='asis', echo=FALSE}
+knitr::kable(cell_props$orig, "html", caption ="Original cluster proportions") %>%
+kableExtra::kable_styling(bootstrap_options = c("hover"),
+                            full_width = FALSE, position = "float_left")
+
+knitr::kable(cell_props$meta, "html", caption ="Metacell cluster proportions") %>%
+kableExtra::kable_styling(bootstrap_options = c("hover"),
+                          full_width = FALSE, position = "float_right")
+```
+
+***
+
+###### Cells removed
+
+***
+
+Clusters removed (per donor) with cells < 100
+
+```{r clusters_rm, results='asis', echo=FALSE}
+cat(clusters_rm, sep="\n")
+```
+
+***
+
+##### Plots {.tabset}
+
+***
+
+Dendogram
+
+```{r dendo_plot, fig.dim = c(10,10), results='asis', echo=FALSE}
+#PlotDendrogram(seurat_obj, main = paste0(cell_type, ' hdWGCNA Dendrogram'))
+```
+
+***
+
+kME
+
+```{r kme_plot, fig.dim = c(10,10), echo=FALSE, results='hide', fig.keep='all'}
+#PlotKMEs(seurat_obj, ncol = 5)
+```
+
+***
+
+##### WGCNA output {.tabset}
+
+###### Overlap genes
+
+```{r overlap_genes, results='asis', echo=FALSE}
+knitr::kable(bind_rows(overlap_genes))
+```
+
+***
+
+###### Stats
+
+```{r overlap_stats, results='asis', echo=FALSE}
+knitr::kable(wgcna_stats_tbl)
+```
+
+***
