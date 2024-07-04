@@ -68,7 +68,7 @@ options(ggrepel.max.overlaps = Inf) # For DimPlots
 sketch_num <- dplyr::case_when(
   region == "fcx" ~ 1100, # 56 samples (56 * 1100 = 61600 cells)
   region == "str" ~ 5000, # 12 samples (12 * 5000 = 60000 cells)
-  region == "cer" ~ 2150) # 28 samples (28 * 1800 = 60200 cells)
+  region == "cer" ~ 2100) # 28 samples (28 * 2200 = 60200 cells)
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
