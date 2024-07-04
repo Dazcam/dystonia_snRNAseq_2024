@@ -1157,6 +1157,13 @@ run_wgcna_orig <- function(
     sink(paste0(outdir, region, '_', cell_type, '_hdWGCNA.log'))
     message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_type)
     
+    # Required to prevent running completed runs after error
+    if (file.exists(paste0(outdir, cell_type, '_TOM.rda'))) {
+      message("Skipping ", cell_type, " as TOM exists already")
+      sink()
+      next
+    }
+    
     # Set up the expression matrix
     seurat_object <- SetDatExpr(
       seurat_obj,
@@ -1179,6 +1186,13 @@ run_wgcna_orig <- function(
       dplyr::first()
     
     message("Soft Power threshold set to: ", power_val)
+    
+    if (power_val < 1 | power_val > 50 | is.na(power_val)) {
+      message('Skipping ', cell_type, 'due to spurious Power value')
+      print(cell_type, ': Stopped due to spurious power value')
+      sink()
+      next 
+      }
     
     # Construct co-expression network
     seurat_object <- ConstructNetwork(
@@ -1512,3 +1526,84 @@ get_wgcna_stats <- function(
   return(stats_tbl)
   
 }
+
+# Aggregate cell types for wgcna
+recode_wgcna_clusters <- function(
+    
+  seurat_object = NULL,
+  region = NULL
+  
+) {
+  
+  if (region == 'fcx_fetal') {
+    
+    seurat_obj$cellIDs <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(cluster_recode = recode(.data[['cellIDs']], 
+                                            "FC-ExN-1" = "FC-ExN", 
+                                            "FC-ExN-2" = "FC-ExN",
+                                            "FC-ExN-3" = "FC-ExN",
+                                            "FC-ExN-4" = "FC-ExN",
+                                            "FC-ExN-5" = "FC-ExN",
+                                            "FC-InN-1" = "FC-InN",
+                                            "FC-InN-2" = "FC-InN",
+                                            "FC-InN-3" = "FC-InN",
+                                            "FC-InN-4" = "FC-InN",
+                                            "FC-RG-1" = "FC-RG",
+                                            "FC-RG-2" = "FC-RG")) %>%
+      pull(cluster_recode)
+    
+    return(seurat_object)
+    
+  }
+  
+  if (region == 'ge_fetal') {
+    
+    seurat_obj$cellIDs <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(cluster_recode = recode(.data[['cellIDs']], 
+                                            "FC-InN-1" = "FC-InN",
+                                            "FC-InN-2" = "FC-InN",
+                                            "FC-InN-3" = "FC-InN",
+                                            "FC-InN-4" = "FC-InN",
+                                            "FC-InN-5" = "FC-InN",
+                                            "FC-InN-6" = "FC-InN",
+                                            "FC-InN-7" = "FC-InN",
+                                            "FC-RG-1" = "FC-RG",
+                                            "FC-RG-2" = "FC-RG",
+                                            "FC-RG-3" = "FC-RG")) %>%
+      pull(cluster_recode)
+    
+    return(seurat_object)
+    
+  }
+  
+  if (region == 'cer_fetal') {
+    
+    seurat_obj$cellIDs <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(cluster_recode = recode(.data[['cellIDs']], 
+                                            "Cer-ExN-1" = "Cer-ExN", 
+                                            "Cer-ExN-2" = "Cer-ExN",
+                                            "Cer-ExN-3" = "Cer-ExN",
+                                            "Cer-ExN-4" = "Cer-ExN",
+                                            "Cer-ExN-5" = "Cer-ExN",
+                                            "Cer-InN-1" = "Cer-InN",
+                                            "Cer-InN-2" = "Cer-InN",
+                                            "Cer-InN-3" = "Cer-InN",
+                                            "Cer-InN-4" = "Cer-InN",
+                                            "Cer-InN-5" = "Cer-InN",
+                                            "Cer-InN-6" = "Cer-InN",
+                                            "Cer-InN-7" = "Cer-InN",
+                                            "Cer-InN-8" = "Cer-InN",
+                                            "Cer-RG-1" = "Cer-RG",
+                                            "Cer-RG-2" = "Cer-RG",
+                                            "Cer-RG-3" = "Cer-RG")) %>%
+      pull(cluster_recode)
+    
+    return(seurat_object)
+    
+  }
+  
+  
+} 
