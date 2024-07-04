@@ -22,7 +22,15 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
-library(egg)
+#library(egg) Need to add to container
+
+library(tidyverse)
+library(cowplot)
+library(patchwork)
+library(WGCNA)
+library(hdWGCNA)
+
+library(kableExtra)
 
 ## Set variables  ---------------------------------------------------------------------
 if (exists("snakemake")) { 
@@ -44,11 +52,11 @@ fetal_dir <- paste0(data_dir, 'public_data/cameron_2023/')
 R_dir <- paste0(results_dir, '01R_objects/')
 wgcna_dir <- paste0(results_dir, '03wgcna/')
 markdown_prep_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
-markdown_prep_html <- paste0('dystonia_qc_', toupper(region), '.html')
+markdown_prep_html <- paste0('dystonia_qc_', region, '.html')
 markdown_ann_doc <- paste0(script_dir, 'dystonia_ann.Rmd')
-markdown_ann_html <- paste0('dystonia_ann_', toupper(region), '.html')
+markdown_ann_html <- paste0('dystonia_ann_', region, '.html')
 markdown_wgcna_doc <- paste0(script_dir, 'dystonia_wgcna.Rmd')
-markdown_wgcna_html <- paste0('dystonia_wgcna_', toupper(region), '.html')
+markdown_wgcna_html <- paste0('dystonia_wgcna_', region, '.html')
 regions <- c('fcx', 'str', 'cer')
 fcx_anns <- c('A13', 'A14', 'A25', 'A32', 'A44-A45', 'A46', 'FI', 'M1C')
 str_anns <- c('CaB', 'Pu')
@@ -90,5 +98,11 @@ region_recode <- dplyr::case_when(
   region == "str" ~ "GE", 
   region == "cer" ~ "Cer")
 
+
+### For WGCNA
+
+gene_select <- 'fraction'
+aggregate_cells <- FALSE
+aggregate_misc <- FALSE
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
