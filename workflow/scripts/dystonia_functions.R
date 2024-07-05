@@ -1346,6 +1346,7 @@ run_wgcna <- function(
 #' Set this to null when first setting up object.
 #' @param meta_cell_types A vector of the cell types that survived min_cells cull 
 #' after first running this function. Set this to null when first setting up object.
+#' @param set_k A string. No of cell types to merge for kNN.
 #' 
 #' @returns A Seurat object.
 #' 
@@ -1359,7 +1360,8 @@ create_wgcna_metacells <- function(
   gene_select = 'fraction',
   wgcna_name = 'wgcna',
   metacell_location = NULL,
-  meta_cell_types = NULL
+  meta_cell_types = NULL,
+  set_k = 25
   
 ) {
   
@@ -1379,7 +1381,7 @@ create_wgcna_metacells <- function(
       seurat_obj = seurat_obj,
       group.by = c("cellIDs", "Sample"), # specify the columns in seurat_obj@meta.data to group by
       reduction = 'umap', # select the dimensionality reduction to perform KNN on
-      k = 25, # nearest-neighbors parameter
+      k = set_k, # nearest-neighbors parameter
       max_shared = 10, # maximum number of shared cells between two metacells
       ident.group = 'cellIDs', # set the Idents of the metacell seurat object
     )
