@@ -51,19 +51,12 @@ if (stringr::str_detect(region, 'fetal'))
 if (stringr::str_detect(region, 'adult'))
   seurat_obj <- readRDS(paste0(R_dir, '02seurat_', str_split(region, "_")[[1]][1], '.rds'))
 
-seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, 
-                                         'str', 
-                                         'harmony_clusters_0.1')
-
-table(seurat_obj$cellIDs)
-
+# Recode clusters if adult data and set to 'cellIDs
+if (stringr::str_detect(region, 'adult'))
+  seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, 'str', 'harmony_clusters_0.1')
 
 # Aggregate cells? Set in dystonia_Renvs.R
-<<<<<<< HEAD:workflow/scripts/dystonia_WGCNA.R
-if (aggregate_cells = FALSE) 
-=======
 if (aggregate_cells == TRUE) 
->>>>>>> 9ef6b16955142a5e63c2d86c3aaed86bfdf93df3:workflow/scripts/dystonia_wgcna.R
   seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
   
 # Set up object for WGCNA to get metacells
@@ -110,6 +103,12 @@ wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, meta_cell_types, region,
 
   
 ## Create markdown doc  ---------------------------------------------------------------
+# Modify html name for testing - this will only work locally 
+#markdown_wgcna_html <- paste0(str_split(markdown_wgcna_html, '\\.')[[1]][1], '_',
+#                              str_extract(gene_select, "^.{3}"), 
+#                              if (aggregate_cells) '_agg.' else '.',
+#                              str_split(markdown_wgcna_html, '\\.')[[1]][2])
+
 rmarkdown::render(markdown_wgcna_doc, output_file = markdown_wgcna_html, output_dir = wgcna_dir)
 
 #--------------------------------------------------------------------------------------
