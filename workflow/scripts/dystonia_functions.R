@@ -818,6 +818,9 @@ recode_cluster_ids <- function(
                                           `15` = "Str-adult-InN-9")) %>%
       pull(clust_recode)}
   
+  if (is.na(clusters_recode))
+    replace_na('none')
+  
   if (region == 'cer') {
     
     cer_levels <- c("Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-InN-1", 
@@ -1603,8 +1606,8 @@ recode_wgcna_clusters <- function(
     
   }
   
-  message("New cell IDs are: ", '\n', 
-          paste0(unique(seurat_obj$cellIDs), collapse = "\n"))
-  return(seurat_object)
+  message("New cell IDs are: ", '\n', paste0(unique(seurat_obj$cellIDs), collapse = "\n"))
+  
+  return(seurat_obj)
   
 } 
