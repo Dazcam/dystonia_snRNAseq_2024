@@ -1564,16 +1564,16 @@ recode_wgcna_clusters <- function(
     seurat_obj$cellIDs <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>%
       dplyr::mutate(cluster_recode = recode(.data[['cellIDs']], 
-                                            "FC-InN-1" = "FC-InN",
-                                            "FC-InN-2" = "FC-InN",
-                                            "FC-InN-3" = "FC-InN",
-                                            "FC-InN-4" = "FC-InN",
-                                            "FC-InN-5" = "FC-InN",
-                                            "FC-InN-6" = "FC-InN",
-                                            "FC-InN-7" = "FC-InN",
-                                            "FC-RG-1" = "FC-RG",
-                                            "FC-RG-2" = "FC-RG",
-                                            "FC-RG-3" = "FC-RG")) %>%
+                                            "GE-InN-1" = "GE-InN",
+                                            "GE-InN-2" = "GE-InN",
+                                            "GE-InN-3" = "GE-InN",
+                                            "GE-InN-4" = "GE-InN",
+                                            "GE-InN-5" = "GE-InN",
+                                            "GE-InN-6" = "GE-InN",
+                                            "GE-InN-7" = "GE-InN",
+                                            "GE-RG-1" = "GE-RG",
+                                            "GE-RG-2" = "GE-RG",
+                                            "GE-RG-3" = "GE-RG")) %>%
       pull(cluster_recode)
     
   }
@@ -1603,7 +1603,8 @@ recode_wgcna_clusters <- function(
     
   }
   
-  message("New cell IDs are: ", seurat_obj$cellIDs)
+  message("New cell IDs are: ", '\n', 
+          paste0(unique(seurat_obj$cellIDs), collapse = "\n"))
   return(seurat_object)
   
 } 
