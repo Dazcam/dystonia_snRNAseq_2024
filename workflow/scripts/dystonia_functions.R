@@ -1158,7 +1158,7 @@ run_wgcna_orig <- function(
   for (cell_type in cell_types) {
     
     sink(paste0(outdir, region, '_', cell_type, '_hdWGCNA.log'))
-    message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_type)
+    message("\n\n\nRunning hdWGCNA for: ", region, ', ', cell_type)
     
     # Required to prevent running completed runs after error
     if (file.exists(paste0(outdir, cell_type, '_TOM.rda'))) {
@@ -1227,7 +1227,7 @@ run_wgcna_orig <- function(
       new_name = paste0(cell_type, "-M")
     )
     
-    saveRDS(seurat_object, file = paste0(outdir, toupper(region), 
+    saveRDS(seurat_object, file = paste0(outdir, region, 
                                          '_', cell_type, '_hdWGCNA.rds'))
     rm(seurat_object)
     sink()
