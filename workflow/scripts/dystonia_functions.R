@@ -1091,11 +1091,17 @@ log_smk <- function() {
 # Catch cell types removed by hdWGCNA
 catch_clusters_rm_warning <- function() {
   
-  cell_split <- str_split(names(last.warning), c(', ', ': '))
-  cell_split <- cell_split[[2]][2]
-  cell_split <- unlist(str_split(cell_split, c(', ')))
+  if (length(last.warning) != 1) {
     
-  return(cell_split )
+    cell_split <- 'No cells dropped.'
+    
+  } else {
+  
+    cell_split <- str_split(names(last.warning), c(', ', ': '))
+    cell_split <- cell_split[[2]][2]
+    cell_split <- unlist(str_split(cell_split, c(', ')))}
+    
+  return(cell_split)
   
 }
 
