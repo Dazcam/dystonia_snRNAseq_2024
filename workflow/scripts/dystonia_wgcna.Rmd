@@ -21,8 +21,17 @@ The rationale for using this is to
 
 + Running hdWGCNA on `r toupper(region)`
 + Gene selected using: `r gene_select`
++ k set to: `r set_k`
++ Aggregate cells: `r aggregate_cells`
++ Combine Seurat objects: `r aggregate_misc`
 
 ##### Cell props {.tabset}
+
+##### Counts
+
+```{r cell_counts, results='asis', echo=FALSE}
+knitr::kable(table(seurat_obj$cellIDs))
+```
 
 ###### Proportions
 
