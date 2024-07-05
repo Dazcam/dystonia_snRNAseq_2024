@@ -42,23 +42,27 @@ theme_set(theme_cowplot())
 set.seed(12345)
 
 # optionally enable multithreading
-enableWGCNAThreads(nThreads = 20)
+enableWGCNAThreads(nThreads = 4)
 
 ## Load Data --------------------------------------------------------------------------
 # Seurat objects  ----
-if (stringr::str_detect(region, 'fetal'))
+if (stringr::str_detect(region, 'fetal')) {
   seurat_obj <- readRDS(paste0(fetal_dir, 'seurat_', region,'.rds'))
-if (stringr::str_detect(region, 'adult'))
-  seurat_obj <- readRDS(paste0(R_dir, '02seurat_', str_split(region, "_")[[1]][1], '.rds'))
+} else { 
+  seurat_obj <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))}
 
-# Recode clusters if adult data and set to 'cellIDs
-if (stringr::str_detect(region, 'adult'))
-  seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, 'str', 'harmony_clusters_0.1')
+# Recode clusters if adult data and set to 'cellIDs'
+if (!stringr::str_detect(region, 'fetal')) {
+  seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'harmony_clusters_0.1')
+  seurat_obj$Sample <- seurat_obj$sample_id
+  DefaultAssay(seurat_obj) <- 'sketch'
+  seurat_obj <- JoinLayers(seurat_obj) # Seurat 5 objects layers must be joined
+  }
 
 # Aggregate cells? Set in dystonia_Renvs.R
 if (aggregate_cells == TRUE) 
   seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
-  
+
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
 
