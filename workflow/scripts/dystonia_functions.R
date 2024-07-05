@@ -1537,6 +1537,8 @@ recode_wgcna_clusters <- function(
   
 ) {
   
+  message('Aggregating cells for ', region, '...')
+  
   if (region == 'fcx_fetal') {
     
     seurat_obj$cellIDs <- seurat_obj@meta.data %>% 
@@ -1554,8 +1556,6 @@ recode_wgcna_clusters <- function(
                                             "FC-RG-1" = "FC-RG",
                                             "FC-RG-2" = "FC-RG")) %>%
       pull(cluster_recode)
-    
-    return(seurat_object)
     
   }
   
@@ -1575,8 +1575,6 @@ recode_wgcna_clusters <- function(
                                             "FC-RG-2" = "FC-RG",
                                             "FC-RG-3" = "FC-RG")) %>%
       pull(cluster_recode)
-    
-    return(seurat_object)
     
   }
   
@@ -1603,9 +1601,9 @@ recode_wgcna_clusters <- function(
                                             "Cer-RG-3" = "Cer-RG")) %>%
       pull(cluster_recode)
     
-    return(seurat_object)
-    
   }
   
+  message("New cell IDs are: ", seurat_obj$cellIDs)
+  return(seurat_object)
   
 } 
