@@ -27,7 +27,7 @@ The rationale for using this is to
 
 ##### Cell props {.tabset}
 
-##### Counts
+###### Counts
 
 ```{r cell_counts, results='asis', echo=FALSE}
 knitr::kable(table(seurat_obj$cellIDs))
