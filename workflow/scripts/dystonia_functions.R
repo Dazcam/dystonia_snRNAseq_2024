@@ -1257,7 +1257,7 @@ run_wgcna <- function(
   for (i in 1:length(cell_types)) {
     
     sink(paste0(outdir, region, '_', cell_types[i], '_hdWGCNA.log'))
-    message("\n\n\nRunning hdWGCNA for: ", toupper(region), ', ', cell_types[i])
+    message("\n\n\nRunning hdWGCNA for: ", region, ', ', cell_types[i])
     
     # Set up the expression matrix 1st seurat_obj the seurat_object
     if (i == 1)
@@ -1335,7 +1335,7 @@ run_wgcna <- function(
   }
   
   message("Saving RDS file ...")
-  saveRDS(seurat_object, file = paste0(outdir, toupper(region), 
+  saveRDS(seurat_object, file = paste0(outdir, region, 
                                        '_', cell_types[i], '_hdWGCNA.rds'))
   rm(seurat_object)
   sink()
