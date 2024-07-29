@@ -32,7 +32,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ## Load Data --------------------------------------------------------------------------
 adult_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
-fetal_object <- readRDS(paste0(fetal_dir, 'seurat.', fetal_region, '.final.rds'))
+fetal_object <- readRDS(paste0(fetal_dir, 'seurat_', fetal_region, '.rds'))
 
 # Fetal -----
 fetal_object$cellIDs <- stringr::str_replace_all(fetal_object$cellIDs,
@@ -67,7 +67,7 @@ fetal_plot <- VlnPlot(fetal_object, dystonia_genes, stack = TRUE, flip = TRUE,
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         strip.text.y.left = element_text(angle = 0, size = 16)) +
-  ggtitle("Fetal Ganglionic Eminences") +
+  ggtitle(fetal_title) +
   facet_wrap(~feature,  ncol = 1, strip.position = "left") +
   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
 
@@ -98,7 +98,7 @@ adult_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(adult_object,
 dystonia_adult_plot_sketch <- create_stacked_vln_plot(adult_object,
                                                 paste0(region, '_clusters'), 
                                                 dystonia_genes,
-                                                "Adult Striatum", 
+                                                adult_title, 
                                                 get(paste0(region, '_vln_cols_recode')))
 
 adult_plot <- dystonia_adult_plot_sketch +
