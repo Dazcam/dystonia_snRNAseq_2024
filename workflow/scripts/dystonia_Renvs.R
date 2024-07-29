@@ -103,7 +103,7 @@ region_recode <- dplyr::case_when(
 
 gene_select <- 'fraction'
 set_k <- 25
-aggregate_cells <- TRUE
+aggregate_cells <- FALSE
 aggregate_misc <- FALSE
 
 #--------------------------------------------------------------------------------------
