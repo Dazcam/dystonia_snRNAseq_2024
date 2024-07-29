@@ -61,12 +61,11 @@ dystonia_plot_sketch <- create_stacked_vln_plot(seurat_object,
                                                 toupper(region), 
                                                 get(paste0(region, '_vln_cols_recode')))
 
-##  Plots for sketch object  ----------
+##  Plots for whole object  ----------
 # Switch to whole dataset
 message('\nChanging to RNA object ...\n')
 DefaultAssay(seurat_object) <- 'RNA'
 seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independently
-Idents(seurat_object) <- 'cluster_full'
 
 # Recode cluster IDs - sketch object 
 seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
@@ -126,4 +125,24 @@ saveRDS(seurat_object, paste0(R_dir, '03seurat_', region, '.rds'))
 # 
 # vln_pair | clust / stiletti
 
+vln_plots_sketch <- plot_paired_vlns(seurat_object, 
+                                     paste0(region, '_clusters'), 
+                                     cholinergic_genes,
+                                     small_populations, 
+                                     get(paste0(region, '_vln_cols_recode')))
 
+bergmann <- c('NPY', 'TNC', 'LINC01727', 'FST', 'MT2A', 'PIFO', 'RSPH1')
+kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3', 
+              'PTPRK', 'PRKCD', 'NXPH1', 'CDH22', 'KLHL1', 'ALDH1A3', 'SLC6A5', 'HTR2A', 'EDIL3',
+              'DCN', 'KCNJ8', 'MRC1', 'FIT1', 'FOXJ1', 'SLC6A5', 'GRM2', 'SST', 'PTPRC')
+leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8", 
+           "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11", 
+           "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
+           "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
+           "ZC3HAV1")
+
+dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
+  filter(cluster == 'Cer-adult-Leuko?') %>%
+  slice_head(n = 30) %>%
+    pull(gene))
+  

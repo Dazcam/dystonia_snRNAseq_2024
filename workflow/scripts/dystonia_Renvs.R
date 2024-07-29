@@ -88,15 +88,25 @@ sketch_num <- dplyr::case_when(
 
 # Set fetal region based on adult region
 fetal_region <- dplyr::case_when(
-  region == "fcx" ~ "pfc", 
-  region == "str" ~ "wge", 
-  region == "cer" ~ "cer")
+  region == "fcx" ~ "fcx_fetal", 
+  region == "str" ~ "ge_fetal", 
+  region == "cer" ~ "cer_fetal")
 
 # Region recode for cell IDs in seurat objects
 region_recode <- dplyr::case_when(
   region == "fcx" ~ "FC", 
   region == "str" ~ "GE", 
   region == "cer" ~ "Cer")
+
+adult_title <- dplyr::case_when(
+  region == "fcx" ~ "Adult Frontal Cortex", 
+  region == "str" ~ "Adult Striatum", 
+  region == "cer" ~ "Adult Cerebellum")
+
+fetal_title <- dplyr::case_when(
+  region == "fcx" ~ "Fetal Frontal Cortex", 
+  region == "str" ~ "Adult Ganglionic Eminences", 
+  region == "cer" ~ "Fetal Cerebellum")
 
 
 ### For WGCNA

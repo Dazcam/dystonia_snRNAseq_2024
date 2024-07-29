@@ -51,17 +51,31 @@ if (stringr::str_detect(region, 'fetal')) {
 } else { 
   seurat_obj <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))}
 
+# Note hdWGCNA cannot handle BPCell or sketch objects
+message("Converting matrix from BPCells to in memory ...")
+DefaultAssay(seurat_obj) <- 'RNA'
+seurat_obj <- JoinLayers(seurat_obj)
+seurat_obj[["RNA"]]$counts <- as(object = seurat_obj[["RNA"]]$counts, Class = "dgCMatrix")
+
+seurat_obj[["RNA"]]$counts[1:10, 1:10]
+
 # Recode clusters if adult data and set to 'cellIDs'
 if (!stringr::str_detect(region, 'fetal')) {
   seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'harmony_clusters_0.1')
   seurat_obj$Sample <- seurat_obj$sample_id
-  DefaultAssay(seurat_obj) <- 'sketch'
-  seurat_obj <- JoinLayers(seurat_obj) # Seurat 5 objects layers must be joined
+#  DefaultAssay(seurat_obj) <- 'sketch'
+#  seurat_obj <- JoinLayers(seurat_obj) # Seurat 5 objects layers must be joined
   }
 
 # Aggregate cells? Set in dystonia_Renvs.R
 if (aggregate_cells == TRUE) 
   seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
+
+counts_by_sample <- seurat_obj@meta.data %>%
+  as_tibble() %>%
+  select(cellIDs, Sample) %>%
+  group_by(Sample) %>%
+  dplyr::count(cellIDs)
 
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
@@ -98,6 +112,7 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 # Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
+
 overlap_genes <- run_dyst_gene_overlap(seurat_obj, meta_cell_types, region, 
                                        paste0(region, '_wgcna'), wgcna_dir)
 
