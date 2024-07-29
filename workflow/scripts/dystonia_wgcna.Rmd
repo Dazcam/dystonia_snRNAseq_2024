@@ -15,8 +15,6 @@ uses a KNN approach to aggregate single cells with similar GeX profiles into met
 Gene coexpression networks, and gene modules, can then be identified using WGCNA on
 said metacells.
 
-The rationale for using this is to 
-
 #### Regional info {.tabset}
 
 + Running hdWGCNA on `r toupper(region)`
@@ -31,6 +29,12 @@ The rationale for using this is to
 
 ```{r cell_counts, results='asis', echo=FALSE}
 knitr::kable(table(seurat_obj$cellIDs))
+```
+
+###### Counts_by_sample
+
+```{r counts_by_sample, results='asis', echo=FALSE}
+knitr::kable(table(counts_by_sample))
 ```
 
 ###### Proportions
