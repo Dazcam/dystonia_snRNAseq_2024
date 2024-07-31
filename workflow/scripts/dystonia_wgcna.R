@@ -156,7 +156,7 @@ meta_cell_types
 
 run_wgcna_orig(seurat_obj = seurat_obj, 
                cell_types = meta_cell_types, 
-               cluster_column = 'cell_IDs', 
+               cluster_column = 'cellIDs', 
                meta_column = 'sample_id',
                region = region, 
                outdir = wgcna_dir,
@@ -181,14 +181,14 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 # Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
-message("Calculating overlap genes ...")
-overlap_genes <- run_dyst_gene_overlap(seurat_obj, 'Str-adult-InN-1', region, 
-                                       paste0(region, '_wgcna'), wgcna_dir)
-overlap_genes
-
-message("Getting stats tbl ...")
-wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, 'Str-adult-InN-1', region, 
-                                   paste0(region, '_wgcna'), wgcna_dir)
+#message("Calculating overlap genes ...")
+#overlap_genes <- run_dyst_gene_overlap(seurat_obj, 'Str-adult-InN-1', region, 
+#                                       paste0(region, '_wgcna'), wgcna_dir)
+#overlap_genes
+#
+#message("Getting stats tbl ...")
+#wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, 'Str-adult-InN-1', region, 
+#                                   paste0(region, '_wgcna'), wgcna_dir)
 
   
 ## Create markdown doc  ---------------------------------------------------------------
