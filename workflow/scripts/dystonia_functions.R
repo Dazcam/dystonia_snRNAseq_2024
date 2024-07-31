@@ -1083,7 +1083,7 @@ log_smk <- function() {
   }
 }
 
-## Functions for hdWGCNA
+## Functions for hdWGCNA  -------------------------------------------------------------
 
 # Catch cell types removed by hdWGCNA
 catch_clusters_rm_warning <- function() {
@@ -1145,14 +1145,17 @@ get_wgcna_cell_props <- function(
 }
 
 # Run WGCNA original 
-# This follows the hdWGCNA pipeline in the vinegette 
+# This follows the hdWGCNA pipeline in the vingette 
 # Saves a Seurat object to file for each cell type
 run_wgcna_orig <- function(
     
   seurat_obj = NULL,
   cell_types = NULL,
+  cluster_column = 'cellIDs',
+  meta_column = 'sample_id',	
   region = NULL,
-  outdir = NULL
+  outdir = NULL,
+  wgcna_name = NULL
   
 ) {
   
@@ -1160,7 +1163,7 @@ run_wgcna_orig <- function(
   
   for (cell_type in cell_types) {
     
-    sink(paste0(outdir, region, '_', cell_type, '_hdWGCNA.log'))
+    sink(paste0(outdir, cell_type, '_hdWGCNA.log'))
     message("\n\n\nRunning hdWGCNA for: ", region, ', ', cell_type)
     
     # Required to prevent running completed runs after error
@@ -1170,22 +1173,23 @@ run_wgcna_orig <- function(
       next
     }
     
-    # Set up the expression matrix
-    seurat_object <- SetDatExpr(
+    message("\nSet data expression matrix ...\n")
+    seurat_obj <- SetDatExpr(
       seurat_obj,
-      group_name = cell_type, 
-      group.by = 'cellIDs', 
+      group_name = cell_type, # the name of the group of interest in the group.by column
+      group.by = cluster_column, # the metadata column containing the cell type info. This same column should have also been used in MetacellsByGroups
       assay = 'RNA', # using RNA assay
       slot = 'data' # using normalized data
     )
     
-    # Select soft power threshold
-    seurat_object <- TestSoftPowers(
-      seurat_object,
-      networkType = 'signed' # you can also use "unsigned" or "signed hybrid"
-    )
+    message("\nGet soft power Thresh ...\n")
+    seurat_obj <- TestSoftPowers(
+      seurat_obj,
+      networkType = 'signed', # you can also use "unsigned" or "signed hybrid"
+      wgcna_name = wgcna_name)
     
-    power_val <- GetPowerTable(seurat_object) %>%
+    message("\nSet power val ...\n")
+    power_val <- GetPowerTable(seurat_obj, paste0(region, '_wgcna')) %>%
       select(Power, SFT.R.sq) %>%
       filter(SFT.R.sq > 0.8) %>%
       pull(Power) %>%
@@ -1201,12 +1205,22 @@ run_wgcna_orig <- function(
       }
     
     # Construct co-expression network
-    seurat_object <- ConstructNetwork(
-      seurat_object,
+    seurat_obj <- ConstructNetwork(
+      seurat_obj,
       tom_name = cell_type, # name of the topoligical overlap matrix written to disk
       soft_power = power_val,
       overwrite_tom = T,
       tom_outdir = outdir
+    )
+    
+    message("\nConstruct co-expression network ...\n")
+    seurat_obj <- ConstructNetwork(
+      seurat_obj,
+      tom_name = cell_type, # name of the topoligical overlap matrix written to disk
+      soft_power = power_val,
+      overwrite_tom = T,
+      wgcna_name = wgcna_name,
+      tom_outdir = '../results/03wgcna/'
     )
     
     # Compute Eigengenes and Connectivity
@@ -1214,6 +1228,19 @@ run_wgcna_orig <- function(
     seurat_object <- ModuleEigengenes(
       seurat_object,
       group.by.vars = "Sample"
+    )
+    
+    # Required to avoid harmony error https://github.com/smorabit/hdWGCNA/issues/17
+    message("\nScaling Data ...\n")
+    seurat_obj <- ScaleData(seurat_obj)
+    
+    message("\nCompute Eigengenes ...\n")
+    # Compute all MEs in the full single-cell dataset
+    seurat_obj <- ModuleEigengenes(
+      seurat_obj,
+      modules = GetModules(seurat_obj, wgcna_name = paste0(region, '_wgcna')),
+      group.by.vars = meta_column,
+      wgcna_name = wgcna_name
     )
     
     # Compute module connectivity
@@ -1224,15 +1251,24 @@ run_wgcna_orig <- function(
       group_name = cell_type
     )
     
-    # rename the modules
-    seurat_object <- ResetModuleNames(
-      seurat_object,
-      new_name = paste0(cell_type, "-M")
+    message("\nModule Connectivity ...\n")
+    seurat_obj <- ModuleConnectivity(
+      seurat_obj,
+      group.by = cluster_column, 
+      group_name = cell_type,
+      wgcna_name = wgcna_name 
     )
     
-    saveRDS(seurat_object, file = paste0(outdir, region, 
-                                         '_', cell_type, '_hdWGCNA.rds'))
-    rm(seurat_object)
+    message("\nRename modules ...\n")
+    # rename the modules
+    seurat_obj <- ResetModuleNames(
+      seurat_obj,
+      new_name = paste0(cell_type, "-M"),
+      wgcna_name = wgcna_name
+    )
+    
+    saveRDS(seurat_obj, file = paste0(outdir, cell_type, '_hdWGCNA.rds'))
+    rm(seurat_obj)
     sink()
     
   }
