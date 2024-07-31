@@ -5,4 +5,4 @@ include: 'rules/01seurat.smk'
 rule all:
     input:
 #        expand("../results/01R_objects/03seurat_{region}.rds", region = config['region']),
-        expand("../results/03wgcna/dystonia_wgcna_{wgcna_region}.html", wgcna_region = config['wgcna_region'])
+        expand("../results/03wgcna/dystonia_wgcna_{wgcna_region}.html", wgcna_region = config['region'])

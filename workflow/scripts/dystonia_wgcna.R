@@ -42,7 +42,7 @@ theme_set(theme_cowplot())
 set.seed(12345)
 
 # optionally enable multithreading
-enableWGCNAThreads(nThreads = 4)
+enableWGCNAThreads(nThreads = 20)
 
 ## Load Data --------------------------------------------------------------------------
 # Seurat objects  ----
@@ -56,42 +56,123 @@ message("Converting matrix from BPCells to in memory ...")
 DefaultAssay(seurat_obj) <- 'RNA'
 seurat_obj <- JoinLayers(seurat_obj)
 seurat_obj[["RNA"]]$counts <- as(object = seurat_obj[["RNA"]]$counts, Class = "dgCMatrix")
-
 seurat_obj[["RNA"]]$counts[1:10, 1:10]
 
+message("Recode cluster IDs ... ")
+seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'cluster_full')
+unique(seurat_obj$cellIDs)
+
+message("Subsetting seurat object for testing ...")
+seurat_obj <- subset(seurat_obj, downsample = 1000)
+
 # Recode clusters if adult data and set to 'cellIDs'
-if (!stringr::str_detect(region, 'fetal')) {
-  seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'harmony_clusters_0.1')
-  seurat_obj$Sample <- seurat_obj$sample_id
+#if (!stringr::str_detect(region, 'fetal')) {
+#  seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'harmony_clusters_0.1')
+#  seurat_obj$Sample <- seurat_obj$sample_id
 #  DefaultAssay(seurat_obj) <- 'sketch'
 #  seurat_obj <- JoinLayers(seurat_obj) # Seurat 5 objects layers must be joined
-  }
+#  }
 
-# Aggregate cells? Set in dystonia_Renvs.R
-if (aggregate_cells == TRUE) 
-  seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
+## Aggregate cells? Set in dystonia_Renvs.R
+#if (aggregate_cells == TRUE) 
+#  seurat_obj <- recode_wgcna_clusters(seurat_obj, region)
 
 counts_by_sample <- seurat_obj@meta.data %>%
   as_tibble() %>%
-  select(cellIDs, Sample) %>%
-  group_by(Sample) %>%
+  select(cellIDs, sample_id) %>%
+  group_by(sample_id) %>%
   dplyr::count(cellIDs)
 
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
+
+seurat_obj@misc
 
 # Run basic stats - move to markdown?
 clusters_rm <- catch_clusters_rm_warning()
 meta_obj <- GetMetacellObject(seurat_obj)
 cell_props <- get_wgcna_cell_props(seurat_obj, meta_obj)
 
+message("Get meta cell types ...")
 meta_cell_types <- colnames(meta_obj) %>%
   as_tibble() %>%
   separate(value, c('value', NA), sep = '#') %>%
   distinct() %>%
   pull()
 
-run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
+meta_cell_types
+
+message("Set dat exp ...")
+seurat_obj <- SetDatExpr(
+  seurat_obj,
+  group_name = "Str-adult-InN-1", # the name of the group of interest in the group.by column
+  group.by='cellIDs', # the metadata column containing the cell type info. This same column should have also been used in MetacellsByGroups
+  assay = 'RNA', # using RNA assay
+  slot = 'data' # using normalized data
+)
+
+# Select soft power threshold
+message("Get soft power Thresh ...")
+seurat_obj <- TestSoftPowers(
+  seurat_obj,
+  networkType = 'signed', # you can also use "unsigned" or "signed hybrid"
+  wgcna_name = paste0(region, '_wgcna'))
+    
+message("Set power val ...")
+power_val <- GetPowerTable(seurat_obj, paste0(region, '_wgcna')) %>%
+  select(Power, SFT.R.sq) %>%
+  filter(SFT.R.sq > 0.8) %>%
+  pull(Power) %>%
+  dplyr::first()
+    
+  message("Soft Power threshold set to: ", power_val)
+
+message("Construct co-expression network ...")
+ seurat_obj <- ConstructNetwork(
+      seurat_obj,
+      tom_name = 'Str-adult-InN-1', # name of the topoligical overlap matrix written to disk
+      soft_power = power_val,
+      overwrite_tom = T,
+      wgcna_name = paste0(region, '_wgcna'),
+      tom_outdir = '../results/05wgcna/'
+    )
+
+# Required to avoid harmony error https://github.com/smorabit/hdWGCNA/issues/17
+message("Scaling Data ...")
+seurat_obj <- ScaleData(seurat_obj)
+
+    message("Compute Eigengenes ...")
+    # Compute Eigengenes and Connectivity
+    # Compute all MEs in the full single-cell dataset
+    seurat_obj <- ModuleEigengenes(
+      seurat_obj,
+      modules = GetModules(seurat_obj, wgcna_name = paste0(region, '_wgcna')),
+      group.by.vars = "sample_id",
+      wgcna_name = paste0(region, '_wgcna')
+    )
+
+    message("Module Connect ...")
+    # Compute module connectivity
+    # compute eigengene-based connectivity (kME):
+    seurat_obj <- ModuleConnectivity(
+      seurat_obj,
+      group.by = 'cellIDs', 
+      group_name = 'Str-adult-InN-1',
+      wgcna_name = paste0(region, '_wgcna')
+    )
+    
+    message("Rename modules ...")
+    # rename the modules
+    seurat_obj <- ResetModuleNames(
+      seurat_obj,
+      new_name = paste0("Str-adult-InN-1-M"),
+      wgcna_name = paste0(region, '_wgcna')
+    )
+
+  message("Saving RDS file ...")
+  saveRDS(seurat_obj, file = '../results/05wgcna/Str-adult-InN-1.rds')
+
+#run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
 
 ### ------ Testing -------
 # Aggregate all cell type specific WGCNA objects in single Seurat object

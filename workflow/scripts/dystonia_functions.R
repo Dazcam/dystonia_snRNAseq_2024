@@ -1353,7 +1353,8 @@ run_wgcna <- function(
 #' @param meta_cell_types A vector of the cell types that survived min_cells cull 
 #' after first running this function. Set this to null when first setting up object.
 #' @param set_k A string. No of cell types to merge for kNN.
-#' 
+#' @param meta_column A string. The meta column ID to group by. 
+#'
 #' @returns A Seurat object.
 #' 
 #' @examples
@@ -1367,7 +1368,10 @@ create_wgcna_metacells <- function(
   wgcna_name = 'wgcna',
   metacell_location = NULL,
   meta_cell_types = NULL,
-  set_k = 25
+  set_k = 25,
+  reduction = 'umap.full',
+  cluster_column = 'cellIDs'
+  meta_column = 'sample_id'	
   
 ) {
   
@@ -1385,11 +1389,11 @@ create_wgcna_metacells <- function(
     message('Constructing metacells for WGCNA ...')
     seurat_obj <- hdWGCNA::MetacellsByGroups(
       seurat_obj = seurat_obj,
-      group.by = c("cellIDs", "Sample"), # specify the columns in seurat_obj@meta.data to group by
-      reduction = 'umap', # select the dimensionality reduction to perform KNN on
+      group.by = c(cluster_column, meta_column), # specify the columns in seurat_obj@meta.data to group by
+      reduction = reduction, # select the dimensionality reduction to perform KNN on
       k = set_k, # nearest-neighbors parameter
       max_shared = 10, # maximum number of shared cells between two metacells
-      ident.group = 'cellIDs', # set the Idents of the metacell seurat object
+      ident.group = cluster_column, # set the Idents of the metacell seurat object
     )
     
     # Normalize metacell expression matrix (only required on general misc object)

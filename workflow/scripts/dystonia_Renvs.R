@@ -36,6 +36,8 @@ library(kableExtra)
 if (exists("snakemake")) { 
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
+  threads <- snakemake@threads
+  cat("Threads are set to: ", threads)
   future::plan("multicore", workers = snakemake@threads) 
   plan()
   log_smk() 
