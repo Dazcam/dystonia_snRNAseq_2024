@@ -1223,13 +1223,6 @@ run_wgcna_orig <- function(
       tom_outdir = '../results/03wgcna/'
     )
     
-    # Compute Eigengenes and Connectivity
-    # Compute all MEs in the full single-cell dataset
-    seurat_object <- ModuleEigengenes(
-      seurat_object,
-      group.by.vars = "Sample"
-    )
-    
     # Required to avoid harmony error https://github.com/smorabit/hdWGCNA/issues/17
     message("\nScaling Data ...\n")
     seurat_obj <- ScaleData(seurat_obj)
@@ -1241,14 +1234,6 @@ run_wgcna_orig <- function(
       modules = GetModules(seurat_obj, wgcna_name = paste0(region, '_wgcna')),
       group.by.vars = meta_column,
       wgcna_name = wgcna_name
-    )
-    
-    # Compute module connectivity
-    # compute eigengene-based connectivity (kME):
-    seurat_object <- ModuleConnectivity(
-      seurat_object,
-      group.by = 'cellIDs', 
-      group_name = cell_type
     )
     
     message("\nModule Connectivity ...\n")
