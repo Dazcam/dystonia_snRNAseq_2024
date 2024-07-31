@@ -1370,7 +1370,7 @@ create_wgcna_metacells <- function(
   meta_cell_types = NULL,
   set_k = 25,
   reduction = 'umap.full',
-  cluster_column = 'cellIDs'
+  cluster_column = 'cellIDs',
   meta_column = 'sample_id'	
   
 ) {

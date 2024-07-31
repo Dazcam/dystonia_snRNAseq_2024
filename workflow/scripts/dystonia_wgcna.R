@@ -86,23 +86,24 @@ counts_by_sample <- seurat_obj@meta.data %>%
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
 
-seurat_obj@misc
+head(seurat_obj@misc)
 
 # Run basic stats - move to markdown?
 clusters_rm <- catch_clusters_rm_warning()
 meta_obj <- GetMetacellObject(seurat_obj)
 cell_props <- get_wgcna_cell_props(seurat_obj, meta_obj)
 
-message("Get meta cell types ...")
+message("\nGet meta cell types ...\n")
 meta_cell_types <- colnames(meta_obj) %>%
   as_tibble() %>%
   separate(value, c('value', NA), sep = '#') %>%
   distinct() %>%
   pull()
 
+
 meta_cell_types
 
-message("Set dat exp ...")
+message("n\Set dat exp ...\n")
 seurat_obj <- SetDatExpr(
   seurat_obj,
   group_name = "Str-adult-InN-1", # the name of the group of interest in the group.by column
@@ -112,22 +113,22 @@ seurat_obj <- SetDatExpr(
 )
 
 # Select soft power threshold
-message("Get soft power Thresh ...")
+message("\nGet soft power Thresh ...\n")
 seurat_obj <- TestSoftPowers(
   seurat_obj,
   networkType = 'signed', # you can also use "unsigned" or "signed hybrid"
   wgcna_name = paste0(region, '_wgcna'))
     
-message("Set power val ...")
+message("\nSet power val ...\n")
 power_val <- GetPowerTable(seurat_obj, paste0(region, '_wgcna')) %>%
   select(Power, SFT.R.sq) %>%
   filter(SFT.R.sq > 0.8) %>%
   pull(Power) %>%
   dplyr::first()
     
-  message("Soft Power threshold set to: ", power_val)
+  message("\nSoft Power threshold set to: ", power_val, '\n')
 
-message("Construct co-expression network ...")
+message("\nConstruct co-expression network ...\n")
  seurat_obj <- ConstructNetwork(
       seurat_obj,
       tom_name = 'Str-adult-InN-1', # name of the topoligical overlap matrix written to disk
@@ -138,10 +139,10 @@ message("Construct co-expression network ...")
     )
 
 # Required to avoid harmony error https://github.com/smorabit/hdWGCNA/issues/17
-message("Scaling Data ...")
+message("\nScaling Data ...\n")
 seurat_obj <- ScaleData(seurat_obj)
 
-    message("Compute Eigengenes ...")
+    message("\nCompute Eigengenes ...\n")
     # Compute Eigengenes and Connectivity
     # Compute all MEs in the full single-cell dataset
     seurat_obj <- ModuleEigengenes(
@@ -151,7 +152,7 @@ seurat_obj <- ScaleData(seurat_obj)
       wgcna_name = paste0(region, '_wgcna')
     )
 
-    message("Module Connect ...")
+    message("\nModule Connect ...\n")
     # Compute module connectivity
     # compute eigengene-based connectivity (kME):
     seurat_obj <- ModuleConnectivity(
@@ -161,7 +162,7 @@ seurat_obj <- ScaleData(seurat_obj)
       wgcna_name = paste0(region, '_wgcna')
     )
     
-    message("Rename modules ...")
+    message("\nRename modules ...\n")
     # rename the modules
     seurat_obj <- ResetModuleNames(
       seurat_obj,
@@ -169,7 +170,7 @@ seurat_obj <- ScaleData(seurat_obj)
       wgcna_name = paste0(region, '_wgcna')
     )
 
-  message("Saving RDS file ...")
+  message("\nSaving RDS file ...\n")
   saveRDS(seurat_obj, file = '../results/05wgcna/Str-adult-InN-1.rds')
 
 #run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
