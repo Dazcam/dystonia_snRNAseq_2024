@@ -1443,7 +1443,7 @@ create_wgcna_metacells <- function(
 run_dyst_gene_overlap <- function(
     
   seurat_object = NULL,  
-  meta_cells = NULL,
+  meta_cell_type = NULL,
   region = NULL,
   wgcna_name = NULL,
   obj_dir = NULL
@@ -1454,8 +1454,7 @@ run_dyst_gene_overlap <- function(
   
   for (cell_type in meta_cells) {
     
-    seurat_object <- readRDS(paste0(obj_dir, toupper(region), 
-                                    '_', cell_type, '_hdWGCNA.rds'))
+    seurat_object <- readRDS(paste0(obj_dir, meta_cell_type, '.rds'))
     
     # Get the module assignment table
     module_names <- GetModules(seurat_object, wgcna_name) %>% 
@@ -1499,7 +1498,7 @@ run_dyst_gene_overlap <- function(
 get_wgcna_stats <- function(
     
   seurat_object = NULL,  
-  meta_cells = NULL,
+  meta_cell_type = NULL,
   region = NULL,
   wgcna_name = NULL,
   obj_dir = NULL
@@ -1508,9 +1507,8 @@ get_wgcna_stats <- function(
   
   for (cell_type in meta_cells) {
     
-    message("Getting stats for ", toupper(region), ', ', cell_type, '...')
-    seurat_object <- readRDS(paste0(obj_dir, toupper(region), 
-                                    '_', cell_type, '_hdWGCNA.rds'))
+    message("Getting stats for ", region, meta_cell_type, '...')
+    seurat_object <- readRDS(paste0(obj_dir, meta_cell_type, '_hdWGCNA.rds'))
     
     if (!exists('stats_tbl')) {
       
