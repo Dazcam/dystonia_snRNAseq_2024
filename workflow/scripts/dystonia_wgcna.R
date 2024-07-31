@@ -56,6 +56,7 @@ message("Converting matrix from BPCells to in memory ...")
 DefaultAssay(seurat_obj) <- 'RNA'
 seurat_obj <- JoinLayers(seurat_obj)
 seurat_obj[["RNA"]]$counts <- as(object = seurat_obj[["RNA"]]$counts, Class = "dgCMatrix")
+seurat_obj[["RNA"]]$data <- as(object = seurat_obj[["RNA"]]$data, Class = "dgCMatrix")
 seurat_obj[["RNA"]]$counts[1:10, 1:10]
 
 message("Recode cluster IDs ... ")
@@ -171,7 +172,7 @@ seurat_obj <- ScaleData(seurat_obj)
     )
 
   message("\nSaving RDS file ...\n")
-  saveRDS(seurat_obj, file = '../results/05wgcna/Str-adult-InN-1.rds')
+  saveRDS(seurat_obj, file = '../results/03wgcna/Str-adult-InN-1.rds')
 
 #run_wgcna_orig(seurat_obj, meta_cell_types, region, wgcna_dir)
 
@@ -194,11 +195,13 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 # Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
-overlap_genes <- run_dyst_gene_overlap(seurat_obj, meta_cell_types, region, 
+message("Calculating overlap genes ...")
+overlap_genes <- run_dyst_gene_overlap(seurat_obj, 'Str-adult-InN-1', region, 
                                        paste0(region, '_wgcna'), wgcna_dir)
+overlap_genes
 
-# Get 
-wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, meta_cell_types, region, 
+message("Getting stats tbl ...")
+wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, 'Str-adult-InN-1', region, 
                                    paste0(region, '_wgcna'), wgcna_dir)
 
   
