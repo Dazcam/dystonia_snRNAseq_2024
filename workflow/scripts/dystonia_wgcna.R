@@ -103,7 +103,7 @@ meta_cell_types <- colnames(meta_obj) %>%
 
 meta_cell_types
 
-message("n\Set dat exp ...\n")
+message("\nSet dat exp ...\n")
 seurat_obj <- SetDatExpr(
   seurat_obj,
   group_name = "Str-adult-InN-1", # the name of the group of interest in the group.by column
@@ -194,7 +194,6 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 # Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
-
 overlap_genes <- run_dyst_gene_overlap(seurat_obj, meta_cell_types, region, 
                                        paste0(region, '_wgcna'), wgcna_dir)
 
