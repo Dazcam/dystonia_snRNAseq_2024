@@ -112,7 +112,7 @@ fetal_title <- dplyr::case_when(
 
 
 ### For WGCNA
-
+subset_seurat_hdWGCNA = FALSE
 gene_select <- 'fraction'
 set_k <- 25
 aggregate_cells <- FALSE

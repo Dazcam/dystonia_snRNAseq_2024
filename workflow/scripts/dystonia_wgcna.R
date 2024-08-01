@@ -62,8 +62,9 @@ message("Recode cluster IDs ... ")
 seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'cluster_full')
 unique(seurat_obj$cellIDs)
 
-message("Subsetting seurat object for testing ...")
-seurat_obj <- subset(seurat_obj, downsample = 1000)
+if (subset_seurat_hdWGCNA = TRUE) {
+  message("Subsetting seurat object for testing ...")
+  seurat_obj <- subset(seurat_obj, downsample = 1000)}
 
 ## Aggregate cells? Set in dystonia_Renvs.R
 #if (aggregate_cells == TRUE) 
@@ -78,81 +79,16 @@ counts_by_sample <- seurat_obj@meta.data %>%
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
 
-head(seurat_obj@misc)
-
-# Run basic stats - move to markdown?
-clusters_rm <- catch_clusters_rm_warning()
-meta_obj <- GetMetacellObject(seurat_obj)
-cell_props <- get_wgcna_cell_props(seurat_obj, meta_obj)
-
 message("\nGet meta cell types ...\n")
-meta_cell_types <- colnames(meta_obj) %>%
-  as_tibble() %>%
-  separate(value, c('value', NA), sep = '#') %>%
-  distinct() %>%
+meta_cell_types <- colnames(meta_obj) |>
+  as_tibble() |>
+  separate(value, c('value', NA), sep = '#') |>
+  distinct() |>
+  filter(str_detect(value, 'InN|ExN')) |>
   pull()
 
-
-meta_cell_types
-
-# Test code to run adult data on Hawk 
-# rm if run_wgcna_orig() edits work without hiccups
-### ------ Testing -------
-
-# message("\nSet power val ...\n")
-# power_val <- GetPowerTable(seurat_obj, paste0(region, '_wgcna')) %>%
-#   select(Power, SFT.R.sq) %>%
-#   filter(SFT.R.sq > 0.8) %>%
-#   pull(Power) %>%
-#   dplyr::first()
-#     
-#   message("\nSoft Power threshold set to: ", power_val, '\n')
-# 
-# message("\nConstruct co-expression network ...\n")
-#  seurat_obj <- ConstructNetwork(
-#       seurat_obj,
-#       tom_name = 'Str-adult-InN-1', # name of the topoligical overlap matrix written to disk
-#       soft_power = power_val,
-#       overwrite_tom = T,
-#       wgcna_name = paste0(region, '_wgcna'),
-#       tom_outdir = '../results/05wgcna/'
-#     )
-# 
-# # Required to avoid harmony error https://github.com/smorabit/hdWGCNA/issues/17
-# message("\nScaling Data ...\n")
-# seurat_obj <- ScaleData(seurat_obj)
-# 
-#     message("\nCompute Eigengenes ...\n")
-#     # Compute Eigengenes and Connectivity
-#     # Compute all MEs in the full single-cell dataset
-#     seurat_obj <- ModuleEigengenes(
-#       seurat_obj,
-#       modules = GetModules(seurat_obj, wgcna_name = paste0(region, '_wgcna')),
-#       group.by.vars = "sample_id",
-#       wgcna_name = paste0(region, '_wgcna')
-#     )
-# 
-#     message("\nModule Connect ...\n")
-#     # Compute module connectivity
-#     # compute eigengene-based connectivity (kME):
-#     seurat_obj <- ModuleConnectivity(
-#       seurat_obj,
-#       group.by = 'cellIDs', 
-#       group_name = 'Str-adult-InN-1',
-#       wgcna_name = paste0(region, '_wgcna')
-#     )
-#     
-#     message("\nRename modules ...\n")
-#     # rename the modules
-#     seurat_obj <- ResetModuleNames(
-#       seurat_obj,
-#       new_name = paste0("Str-adult-InN-1-M"),
-#       wgcna_name = paste0(region, '_wgcna')
-#     )
-# 
-#   message("\nSaving RDS file ...\n")
-#   saveRDS(seurat_obj, file = '../results/03wgcna/Str-adult-InN-1.rds')
-### ------ 
+message("\nRunning the following meta cell types:\n")
+message(paste0(capture.output(meta_cell_types), collapse = "\n"), '\n')
 
 run_wgcna_orig(seurat_obj = seurat_obj, 
                cell_types = meta_cell_types, 
@@ -175,30 +111,14 @@ if (aggregate_misc == TRUE) {
   # Run WGCNA - Throwing errors
   run_wgcna(seurat_obj, meta_cell_types, region, wgcna_dir)}
 
+
 # Issue from here is these function don't return the modified seurat object
 # And currently there is a single object for each cell type per region
 
 ### ------
 
-# Run overlaps between dystonia genes and WGCNA modules - atm 50 hub genes
-#message("Calculating overlap genes ...")
-#overlap_genes <- run_dyst_gene_overlap(seurat_obj, 'Str-adult-InN-1', region, 
-#                                       paste0(region, '_wgcna'), wgcna_dir)
-#overlap_genes
-#
-#message("Getting stats tbl ...")
-#wgcna_stats_tbl <- get_wgcna_stats(seurat_obj, 'Str-adult-InN-1', region, 
-#                                   paste0(region, '_wgcna'), wgcna_dir)
-
-  
-## Create markdown doc  ---------------------------------------------------------------
-# Modify html name for testing - this will only work locally 
-#markdown_wgcna_html <- paste0(str_split(markdown_wgcna_html, '\\.')[[1]][1], '_',
-#                              str_extract(gene_select, "^.{3}"), 
-#                              if (aggregate_cells) '_agg.' else '.',
-#                              str_split(markdown_wgcna_html, '\\.')[[1]][2])
-
-rmarkdown::render(markdown_wgcna_doc, output_file = markdown_wgcna_html, output_dir = wgcna_dir)
+message("\nWriting metacell list to file ...\n")
+write_tsv(as_tibble(meta_cell_types), paste0(wgcna_dir, region, '_metacells.tsv'), col_names = FALSE)
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
