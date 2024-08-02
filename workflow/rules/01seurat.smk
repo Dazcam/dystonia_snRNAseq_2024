@@ -55,11 +55,11 @@ rule pseudobulk:
 
 rule wgcna_adult:
     input: "../results/01R_objects/03seurat_{region}.rds"
-    output: "../results/03wgcna/dystonia_wgcna_{region}.html"
+    output: "../results/03wgcna/{region}_metacells.tsv"
     singularity: "../resources/containers/seurat5c_latest.sif"
     params: root_dir = "../",
             region = lambda wc: wc.get("region")
-    resources: threads = 20, mem_mb = 80000, time="0-12:00:00"
+    resources: threads = 16, mem_mb = 80000, time="0-12:00:00"
     log:    "../results/00LOG/05wgcna_{region}.log"
     script:
             "../scripts/dystonia_wgcna.R"
