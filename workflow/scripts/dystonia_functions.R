@@ -1198,8 +1198,7 @@ run_wgcna_orig <- function(
     message("Soft Power threshold set to: ", power_val)
     
     if (power_val < 1 | power_val > 50 | is.na(power_val)) {
-      message('Skipping ', cell_type, 'due to spurious Power value')
-      print(cell_type, ': Stopped due to spurious power value')
+      message('\nSkipping ', cell_type, 'due to spurious Power value.\n')
       sink()
       next 
       }
