@@ -62,7 +62,7 @@ message("Recode cluster IDs ... ")
 seurat_obj$cellIDs <- recode_cluster_ids(seurat_obj, region, 'cluster_full')
 unique(seurat_obj$cellIDs)
 
-if (subset_seurat_hdWGCNA = TRUE) {
+if (subset_seurat_hdWGCNA == TRUE) {
   message("Subsetting seurat object for testing ...")
   seurat_obj <- subset(seurat_obj, downsample = 1000)}
 
@@ -79,7 +79,10 @@ counts_by_sample <- seurat_obj@meta.data %>%
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
 
+
+
 message("\nGet meta cell types ...\n")
+meta_obj <- GetMetacellObject(seurat_obj)
 meta_cell_types <- colnames(meta_obj) |>
   as_tibble() |>
   separate(value, c('value', NA), sep = '#') |>
