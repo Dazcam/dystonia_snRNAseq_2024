@@ -92,7 +92,7 @@ kME
 ###### Overlap genes
 
 ```{r overlap_genes, results='asis', echo=FALSE}
-knitr::kable(bind_rows(overlap_genes))
+#knitr::kable(bind_rows(overlap_genes))
 ```
 
 ***
@@ -100,7 +100,7 @@ knitr::kable(bind_rows(overlap_genes))
 ###### Stats
 
 ```{r overlap_stats, results='asis', echo=FALSE}
-knitr::kable(wgcna_stats_tbl)
+#knitr::kable(wgcna_stats_tbl)
 ```
 
 ***
