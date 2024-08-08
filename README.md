@@ -213,5 +213,80 @@ Memory Efficiency: 55.37% of 195.31 GB
 ```
 </details>
 
+<details>
+
+<summary>Benchmarking for hdWGCNA Slurm</summary>
+
+Again problems with FCX in particular. Main problem is 
+transposing the count matrix at the start of the script.
+
+Tried close to max resources on the HTC cluster:
+
+- Settings: `threads = 24, mem_mb = 240000, -p highmem`
+- Fail: OOM
+
+```bash
+Job ID: 58052149
+Cluster: hawk
+User/Group: c.c1477909/c.c1477909
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 24
+CPU Utilized: 02:37:42
+CPU Efficiency: 4.03% of 2-17:11:12 core-walltime
+Job Wall-clock time: 02:42:58
+Memory Utilized: 206.46 GB
+Memory Efficiency: 88.09% of 234.38 GB
+```
+
+Tried to run it on the `highmem` partition, but even
+approaching the absolute resource limits for that:
+
+- Settings: `threads = 20, mem_mb = 300000, -p highmem`
+- Fail: OOM
+
+```bash
+Job ID: 58057393
+Cluster: hawk
+User/Group: c.c1477909/c.c1477909
+State: OUT_OF_MEMORY (exit code 0)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 02:32:34
+CPU Efficiency: 4.87% of 2-04:13:20 core-walltime
+Job Wall-clock time: 02:36:40
+Memory Utilized: 236.51 GB
+```
+
+- Settings: `threads = 20, mem_mb = 350000, -p highmem`
+- Fail: (exit code 1)
+
+```bash
+Job ID: 58100400
+Cluster: hawk
+User/Group: c.c1477909/c.c1477909
+State: FAILED (exit code 1)
+Nodes: 1
+Cores per node: 20
+CPU Utilized: 02:55:44
+CPU Efficiency: 4.89% of 2-11:57:20 core-walltime
+Job Wall-clock time: 02:59:52
+Memory Utilized: 310.64 GB
+Memory Efficiency: 90.89% of 341.80 GB
+```
+
+In this run R threw the following error:
+
+```r
+Error in mcfork() : 
+  unable to fork, possible reason: Cannot allocate memory
+```
+
+This was due to the threads allocation in the R script (40) 
+not matching that set by snakemake (20). The run passed the
+point it usually fails at, so next run with same reosurces 
+may complete.
 
 ***
+
+
