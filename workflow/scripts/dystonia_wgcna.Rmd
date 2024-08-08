@@ -2,10 +2,12 @@
 title: "Dystonia study - WGCNA - `r toupper(region)`"
 author: "Darren Cameron"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    df_print: paged
 ---
 
-### hdWGCNA {.tabset}
+## hdWGCNA {.tabset}
 
 ***
 
@@ -15,92 +17,88 @@ uses a KNN approach to aggregate single cells with similar GeX profiles into met
 Gene coexpression networks, and gene modules, can then be identified using WGCNA on
 said metacells.
 
-#### Regional info {.tabset}
+***
 
-+ Running hdWGCNA on `r toupper(region)`
+**Method for hdWGCNA**
+
+1. Run hdWGCNA pipeline to find co-expression modules (default settings)
+2. Run GO Analysis on all modules on the following databses:
+  + GO_Biological_Process_2023
+  + GO_Cellular_Component_2023
+  + GO_Molecular_Function_2023
+3. Take top 50 hub genes from each module and check for overlap with 25 dystonia genes
+4. If there is at least a single gene overlap extract top 20 GO terms (Padj < 0.05) and plot
+5. Modules are excluded if there is no gene overlap with 25 dystonia genes or no GO Terms at Padj < 0.05
+6. Only ExN or InN cell types tested
+7. Cells excluded if no valid Power Threshold could be generated (usually too few cells)
+
+***
+
+### Param settings {.tabset}
+
++ Running hdWGCNA on `r cell_type`
 + Gene selected using: `r gene_select`
 + k set to: `r set_k`
 + Aggregate cells: `r aggregate_cells`
 + Combine Seurat objects: `r aggregate_misc`
 
-##### Cell props {.tabset}
-
-###### Counts
+#### Stats table 
 
 ```{r cell_counts, results='asis', echo=FALSE}
-knitr::kable(table(seurat_obj$cellIDs))
+knitr::kable(wgcna_stats_tbl)
 ```
 
-###### Counts_by_sample
-
-```{r counts_by_sample, results='asis', echo=FALSE}
-knitr::kable(table(counts_by_sample))
-```
-
-###### Proportions
-
-***
-
-Compare cluster and meta-cluster proportions
-
-```{r cell_props, results='asis', echo=FALSE}
-knitr::kable(cell_props$orig, "html", caption ="Original cluster proportions") %>%
-kableExtra::kable_styling(bootstrap_options = c("hover"),
-                            full_width = FALSE, position = "float_left")
-
-knitr::kable(cell_props$meta, "html", caption ="Metacell cluster proportions") %>%
-kableExtra::kable_styling(bootstrap_options = c("hover"),
-                          full_width = FALSE, position = "float_right")
-```
-
-***
-
-###### Cells removed
-
-***
-
-Clusters removed (per donor) with cells < 100
-
-```{r clusters_rm, results='asis', echo=FALSE}
-cat(clusters_rm, sep="\n")
-```
-
-***
-
-##### Plots {.tabset}
-
-***
-
-Dendogram
-
-```{r dendo_plot, fig.dim = c(10,10), results='asis', echo=FALSE}
-#PlotDendrogram(seurat_obj, main = paste0(cell_type, ' hdWGCNA Dendrogram'))
-```
-
-***
-
-kME
-
-```{r kme_plot, fig.dim = c(10,10), echo=FALSE, results='hide', fig.keep='all'}
-#PlotKMEs(seurat_obj, ncol = 5)
-```
-
-***
-
-##### WGCNA output {.tabset}
-
-###### Overlap genes
+#### Overlap genes
 
 ```{r overlap_genes, results='asis', echo=FALSE}
-#knitr::kable(bind_rows(overlap_genes))
+knitr::kable(bind_rows(overlap_genes))
 ```
 
 ***
 
-###### Stats
+#### hdWGCNA Plots {.tabset}
 
-```{r overlap_stats, results='asis', echo=FALSE}
-#knitr::kable(wgcna_stats_tbl)
+***
+
+##### Dendogram
+
+```{r dendo_plot, fig.dim = c(5,5), results='asis', echo=FALSE}
+PlotDendrogram(seurat_obj, main = paste0(cell_type, ' hdWGCNA Dendrogram'))
 ```
 
 ***
+
+##### kME
+
+```{r kme_plot, fig.dim = c(10,10), echo=FALSE, results='hide', fig.keep='all'}
+PlotKMEs(seurat_obj, ncol = 5)
+```
+
+***
+
+#### GO plots {.tabset}
+
++ Plots show (at most) the top 20 GO terms with Padj < 0.05. 
++ Note modules with no terms with Padj < 0.05 not plotted
+
+***
+
+```{r go_mod_tbl, results='asis', echo=FALSE}
+knitr::kable(go_module_tbl)
+```
+
+***
+
+```{r go_plts, results='asis', echo=FALSE, fig.dim = c(20,20)}
+for(module in module_overlaps) {
+  cat("  \n##### ", module, "\n", sep = "")
+  plot(plot_list[[module]])
+  cat(' \n')
+}
+
+```
+
+***
+
+
+
