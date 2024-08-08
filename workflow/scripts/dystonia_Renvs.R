@@ -32,6 +32,10 @@ library(hdWGCNA)
 
 library(kableExtra)
 
+library(enrichR)
+library(GeneOverlap)
+library(rmarkdown)
+
 ## Set variables  ---------------------------------------------------------------------
 if (exists("snakemake")) { 
   root_dir <- snakemake@params[['root_dir']]

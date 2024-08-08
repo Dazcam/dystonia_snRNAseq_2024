@@ -35,13 +35,6 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   
 }
 
-# Need to add the packages to the container
-# gene enrichment packages
-library(enrichR)
-library(GeneOverlap)
-library(rmarkdown)
-
-
 # Read in cell types that hdWGCNA was run on
 cell_types <- read_tsv(paste0(wgcna_dir, 'str_metacells.tsv'), col_names = 'cell_id') 
 
@@ -176,6 +169,7 @@ for (cell_type in cell_types$cell_id) {
   
 }
 
+file.create(paste0(wgcna_dir, region, '_wgcna_plots.done'))
 
 ## Other plots  -----------------------------
 

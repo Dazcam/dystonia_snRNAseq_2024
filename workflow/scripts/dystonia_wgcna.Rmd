@@ -14,7 +14,7 @@ output:
 It's not possible to run standard WGCNA analyses on single cell data due to data 
 sparsity (i.e. an excess of zero values). To reduce sparsity, [hdWGCNA](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(23)00127-3)
 uses a KNN approach to aggregate single cells with similar GeX profiles into metacells. 
-Gene coexpression networks, and gene modules, can then be identified using WGCNA on
+Gene co-expression networks, and gene modules, can then be identified using WGCNA on
 said metacells.
 
 ***
@@ -22,7 +22,7 @@ said metacells.
 **Method for hdWGCNA**
 
 1. Run hdWGCNA pipeline to find co-expression modules (default settings)
-2. Run GO Analysis on all modules on the following databses:
+2. Run GO Analysis on all modules on the following databases:
   + GO_Biological_Process_2023
   + GO_Cellular_Component_2023
   + GO_Molecular_Function_2023
