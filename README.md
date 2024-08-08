@@ -60,6 +60,12 @@ From: bioconductor/bioconductor_docker:devel
     R --no-echo -e 'BiocManager::install(c("scuttle", "scater"))'
     R --no-echo -e 'install.packages(c("scCustomize", "readxl", "harmony")'
 
+    # For hdWGCNA
+    R --no-echo -e 'BiocManager::install(c("WGCNA", "igraph", "devtools", "GeneOverlap", "ggrepel", "UCell"))'
+    R --no-echo -e 'devtools::install_github("NightingaleHealth/ggforestplot")'
+    R --no-echo -e 'devtools::install_github("smorabit/hdWGCNA", ref="dev")'
+    R --no-echo -e 'install.packages(c("tidyverse", "kableExtra", "enrichR"))'
+
     apt clean
 ```
 </details>
