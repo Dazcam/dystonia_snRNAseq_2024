@@ -1454,6 +1454,7 @@ create_wgcna_metacells <- function(
 #' @param region A string spcifying brain region of interest.
 #' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
 #' @param obj_dir A string where the suerat object is stored. 
+#' @param n_hubs An integer. Number of hub genes to extract.
 #' 
 #' @returns A list of overlapping genes for each metacell type in the surat object.
 #' 
@@ -1463,18 +1464,17 @@ create_wgcna_metacells <- function(
 run_dyst_gene_overlap <- function(
     
   seurat_object = NULL,  
-  meta_cell_type = NULL,
+  meta_cells = NULL,
   region = NULL,
   wgcna_name = NULL,
-  obj_dir = NULL
+  obj_dir = NULL,
+  n_hubs = 50
   
 ) {
   
   overlap_list <- list()
   
   for (cell_type in meta_cells) {
-    
-    seurat_object <- readRDS(paste0(obj_dir, meta_cell_type, '.rds'))
     
     # Get the module assignment table
     module_names <- GetModules(seurat_object, wgcna_name) %>% 
@@ -1509,6 +1509,7 @@ run_dyst_gene_overlap <- function(
 #' @param region A string spcifying brain region of interest.
 #' @param wgcna_name A string. Name for the WGCNA object stored in seurat_object@misc. 
 #' @param obj_dir A string where the suerat object is stored. 
+#' @param mod_overlaps An integer of the number of module x dystonia gene overlaps 
 #' 
 #' @returns A tibble.
 #' 
@@ -1518,35 +1519,37 @@ run_dyst_gene_overlap <- function(
 get_wgcna_stats <- function(
     
   seurat_object = NULL,  
-  meta_cell_type = NULL,
+  meta_cells = NULL,
   region = NULL,
   wgcna_name = NULL,
-  obj_dir = NULL
+  obj_dir = NULL,
+  mod_overlaps = NULL
   
 ) {
   
   for (cell_type in meta_cells) {
     
-    message("Getting stats for ", region, meta_cell_type, '...')
-    seurat_object <- readRDS(paste0(obj_dir, meta_cell_type, '_hdWGCNA.rds'))
+    message("Getting stats for ", cell_type, '...')
     
     if (!exists('stats_tbl')) {
       
       stats_tbl <- tibble(
-        'Cell_type' = cell_type,
-        'Metacells' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_metacell_obj"]]),
+        'Cell type' = cell_type,
+        'Cell count' = seurat_object@meta.data |> filter(cellIDs == .env$cell_type) |> nrow(),
         'Power' = seurat_object@misc[[wgcna_name]][["wgcna_params"]][["power"]],
-        'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4
+        'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4,
+        'Mod x dyst gene overlaps' = mod_overlaps
       )
       
     } else {
       
       stats_tbl <- rbind(stats_tbl,
                          tibble(
-                           'Cell_type' = cell_type,
-                           'Metacells' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_metacell_obj"]]),
+                           'Cell type' = cell_type,
+                           'Cell count' = seurat_object@meta.data |> filter(cellIDs == .env$cell_type) |> nrow(),
                            'Power' = seurat_object@misc[[wgcna_name]][["wgcna_params"]][["power"]],
-                           'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4
+                           'Modules' = ncol(seurat_object@misc[[wgcna_name]][["wgcna_modules"]]) - 4,
+                           'Mod x dyst gene overlaps' = mod_overlaps
                          ))
       
     }
