@@ -121,7 +121,9 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 message("\nWriting metacell list to file ...\n")
-write_tsv(as_tibble(meta_cell_types), paste0(wgcna_dir, region, '_metacells.tsv'), col_names = FALSE)
+final_cell_types <- str_split_i(list.files(paste0(wgcna_dir), '_hdWGCNA.rds'), '_', 1)
+
+write_tsv(as_tibble(final_cell_types), paste0(wgcna_dir, region, '_metacells.tsv'), col_names = FALSE)
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
