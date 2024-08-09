@@ -38,16 +38,17 @@ library(rmarkdown)
 
 ## Set variables  ---------------------------------------------------------------------
 if (exists("snakemake")) { 
+  log_smk() 
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
   threads <- snakemake@threads
-  cat("Threads are set to: ", threads)
+  cat("Threads are set to: ", threads, '\n')
   future::plan("multicore", workers = snakemake@threads) 
   plan()
-  log_smk() 
-  # Also try this: plan("cluster")
-  # future::plan("cluster", workers = 19)
-  # future::plan()
+  
+  if (exists(snakemake@params[['wgcna_plot']])) {
+    enableWGCNAThreads(snakemake@threads)
+    cat("WGCNA threads enabled. Set to: ", threads, '\n')}
 }
 
 data_dir <- paste0(root_dir, 'resources/')
