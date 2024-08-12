@@ -42,13 +42,16 @@ if (exists("snakemake")) {
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
   threads <- snakemake@threads
-  cat("Threads are set to: ", threads, '\n')
-  future::plan("multicore", workers = snakemake@threads) 
-  plan()
   
-  if (exists(snakemake@params[['wgcna_plot']])) {
+  if (exists(snakemake@params[['wgcna']])) {
     enableWGCNAThreads(snakemake@threads)
-    cat("WGCNA threads enabled. Set to: ", threads, '\n')}
+    cat("WGCNA threads enabled. Set to: ", threads, '\n')
+  } else {
+    cat("Threads are set to: ", threads, '\n')
+    future::plan("multicore", workers = snakemake@threads)
+    plan()
+  }
+
 }
 
 data_dir <- paste0(root_dir, 'resources/')
