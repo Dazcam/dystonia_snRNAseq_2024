@@ -41,9 +41,6 @@ theme_set(theme_cowplot())
 # set random seed for reproducibility
 set.seed(12345)
 
-# optionally enable multithreading
-enableWGCNAThreads(nThreads = 20)
-
 ## Load Data --------------------------------------------------------------------------
 # Seurat objects  ----
 if (stringr::str_detect(region, 'fetal')) {
