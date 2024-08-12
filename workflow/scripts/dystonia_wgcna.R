@@ -118,8 +118,7 @@ if (aggregate_misc == TRUE) {
 ### ------
 
 message("\nWriting metacell list to file ...\n")
-final_cell_types <- str_split_i(list.files(paste0(wgcna_dir), '_hdWGCNA.rds'), '_', 1)
-
+final_cell_types <- str_split_i(list.files(wgcna_dir, pattern = paste0(str_to_title(region), "-adult-[A-Za-z]{3}-[0-9]_hdWGCNA.rds")), '_', 1)
 write_tsv(as_tibble(final_cell_types), paste0(wgcna_dir, region, '_metacells.tsv'), col_names = FALSE)
 
 #--------------------------------------------------------------------------------------

@@ -36,7 +36,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 # Read in cell types that hdWGCNA was run on
-cell_types <- read_tsv(paste0(wgcna_dir, 'str_metacells.tsv'), col_names = 'cell_id') 
+cell_types <- read_tsv(paste0(wgcna_dir, region, '_metacells.tsv'), col_names = 'cell_id') 
 
 for (cell_type in cell_types$cell_id) {
   
