@@ -65,6 +65,7 @@ From: bioconductor/bioconductor_docker:devel
     R --no-echo -e 'devtools::install_github("NightingaleHealth/ggforestplot")'
     R --no-echo -e 'devtools::install_github("smorabit/hdWGCNA", ref="dev")'
     R --no-echo -e 'install.packages(c("tidyverse", "kableExtra", "enrichR"))'
+    R --no-echo -e 'install.packages(c("egg", "MatrixExtra"))'
 
     apt clean
 ```
