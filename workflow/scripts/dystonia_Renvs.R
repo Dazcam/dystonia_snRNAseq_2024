@@ -115,7 +115,7 @@ adult_title <- dplyr::case_when(
 
 fetal_title <- dplyr::case_when(
   region == "fcx" ~ "Fetal Frontal Cortex", 
-  region == "str" ~ "Adult Ganglionic Eminences", 
+  region == "str" ~ "Fetal Ganglionic Eminences", 
   region == "cer" ~ "Fetal Cerebellum")
 
 
