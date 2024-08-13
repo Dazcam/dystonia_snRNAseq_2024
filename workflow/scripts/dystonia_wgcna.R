@@ -73,10 +73,24 @@ counts_by_sample <- seurat_obj@meta.data %>%
   group_by(sample_id) %>%
   dplyr::count(cellIDs)
 
+# FCX needs too much resource need to subset and run InNs and ExNs separately
+if (region == 'fcx') {
+  cells_retain <- 'InN'
+  message("Subsetting FCX seurat object. Retaining ", cells_retain, " cells ...")
+  message("Cells before subset: ", ncol(seurat_obj))
+  cells_keep <- seurat_obj@meta.data |>
+    filter(str_detect(cellIDs, cells_retain)) |>
+    pull(cellIDs) |>
+    unique() |>
+    as.character()
+  
+  seurat_obj <- subset(seurat_obj, subset = cellIDs %in% cells_keep)
+  message("Cells after subset: ", ncol(seurat_obj))
+}
+
+
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
-
-
 
 message("\nGet meta cell types ...\n")
 meta_obj <- GetMetacellObject(seurat_obj)
