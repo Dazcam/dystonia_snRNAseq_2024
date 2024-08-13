@@ -22,7 +22,8 @@ library(readxl)
 library(cowplot)
 library(scuttle)
 library(scater)
-#library(egg) Need to add to container
+library(egg) 
+library(MatrixExtra)
 
 library(tidyverse)
 library(cowplot)
