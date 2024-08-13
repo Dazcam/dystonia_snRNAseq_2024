@@ -31,6 +31,9 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 ## Load Data --------------------------------------------------------------------------
+#R_dir <- '../results/01R_objects/'
+#region <- 'cer'
+#fetal_dir <- '../resources/public_data/cameron_2023/'
 adult_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
 fetal_object <- readRDS(paste0(fetal_dir, 'seurat_', fetal_region, '.rds'))
 
@@ -71,7 +74,7 @@ fetal_plot <- VlnPlot(fetal_object, dystonia_genes, stack = TRUE, flip = TRUE,
   facet_wrap(~feature,  ncol = 1, strip.position = "left") +
   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
 
-
+#layer_data(fetal_plot, 1) # Pull info from plot
 # Adult -----
 # Subset seurat object and add empty row for gene TH
 # VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
@@ -91,11 +94,28 @@ fetal_plot <- VlnPlot(fetal_object, dystonia_genes, stack = TRUE, flip = TRUE,
 
 
 # Recode cluster IDs - sketch object 
+message("Converting BPCells counts and data matrix to in memory format for hdWGCNA ...")
+DefaultAssay(adult_object) <- 'RNA'
+adult_object <- JoinLayers(adult_object)
+adult_object[["RNA"]]$counts <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
+adult_object[["RNA"]]$data <- as(object = adult_object[["RNA"]]$data, Class = "dgCMatrix")
+
+message("Recode cluster IDs ... ")
+adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
+unique(adult_object$cellIDs)
+
+message("Add blank row  cluster IDs ... ")
+if (region == 'cer') {
+
+  th_mat <- as(MatrixExtra::emptySparse(nrow = 1, ncol = ncol(adult_object)), "dgCMatrix")
+  rownames(th_mat) <- 'TH'
+  adult_object[["RNA"]]$data <- rbind(adult_object[["RNA"]]$data, th_mat)
+}
+
 adult_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(adult_object, 
                                                                   region, 
                                                                   'harmony_clusters_0.1')
-
-dystonia_adult_plot_sketch <- create_stacked_vln_plot(adult_object,
+dystonia_adult_plot_RNA <- create_stacked_vln_plot(adult_object,
                                                 paste0(region, '_clusters'), 
                                                 dystonia_genes,
                                                 adult_title, 
@@ -119,6 +139,35 @@ adult_plot <- dystonia_adult_plot_sketch +
 
 # Join y-axes
 egg::ggarrange(fetal_plot, adult_plot, nrow = 1)
+
+# Add summary stats
+for (sum_stat in c('mean', 'median')) {
+  
+  fetal_stat_plot <- fetal_plot +
+    stat_summary(fun = sum_stat, colour = "red", size = 2.5, # Adds text statistic
+                 geom = "text", aes(label = round(after_stat(y), 2)),
+                 position = position_nudge(x = 0.25, y = 2)) 
+  #  stat_summary(fun = median, geom = "point",  # Adds median line
+  #               size = 5, colour = "white", shape = 95) +
+  
+  adult_stat_plot <- adult_plot +
+    stat_summary(fun = sum_stat, colour = "red", size = 2.5,
+                 geom = "text", aes(label = round(after_stat(y), 2)),
+                 position = position_nudge(x = 0.25, y = 2)) 
+  #  stat_summary(fun = median, geom = "point", 
+  #               size = 5, colour = "white", shape = 95) +
+  
+  # Join y-axes
+  vln_stat_plt <- egg::ggarrange(fetal_stat_plot, adult_stat_plot, nrow = 1)
+  
+  ggsave(filename = paste0(R_dir, region, "_vln_plt_with_", sum_stat, ".svg"),
+         plot = vln_stat_plt, 
+         width = 40, 
+         height = 30, 
+         dpi = 300, 
+         units = "cm")
+} 
+
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
