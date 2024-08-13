@@ -94,19 +94,20 @@ fetal_plot <- VlnPlot(fetal_object, dystonia_genes, stack = TRUE, flip = TRUE,
 
 
 # Recode cluster IDs - sketch object 
-message("Converting BPCells counts and data matrix to in memory format for hdWGCNA ...")
+
 DefaultAssay(adult_object) <- 'RNA'
 adult_object <- JoinLayers(adult_object)
-adult_object[["RNA"]]$counts <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
-adult_object[["RNA"]]$data <- as(object = adult_object[["RNA"]]$data, Class = "dgCMatrix")
 
 message("Recode cluster IDs ... ")
 adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
 unique(adult_object$cellIDs)
 
-message("Add blank row  cluster IDs ... ")
+message("Add blank row to data object for TH gene ... ")
 if (region == 'cer') {
 
+  message("Converting BPCells counts and data matrix to in memory format first ...")
+  adult_object[["RNA"]]$counts <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
+  adult_object[["RNA"]]$data <- as(object = adult_object[["RNA"]]$data, Class = "dgCMatrix")
   th_mat <- as(MatrixExtra::emptySparse(nrow = 1, ncol = ncol(adult_object)), "dgCMatrix")
   rownames(th_mat) <- 'TH'
   adult_object[["RNA"]]$data <- rbind(adult_object[["RNA"]]$data, th_mat)
