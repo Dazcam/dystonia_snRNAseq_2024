@@ -27,6 +27,9 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ## Load Data --------------------------------------------------------------------------
 seurat_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
+fetal_region <- str_split_i(fetal_region, '_', 1)
+seurat_fetal <- readRDS(paste0(fetal_dir, 'seurat.', fetal_region, '.fetal.rds'))
+Idents(seurat_fetal) <- 'cellIDs'
 
 # Switch to whole dataset
 message('\nChanging to RNA object ...\n')
@@ -39,17 +42,22 @@ seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object
                                                                    'cluster_full')
 
 # Set Idents 
-message("Any NAs after recode of cluster IDs? ",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
+message("Any NAs after recode of cluster IDs ?",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
 #Idents(seurat_object) <- seurat_object[[paste0(region, '_clusters')]]
 
-# Calculate aggregate and average expression
-ag_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
-av_mat <- calculate_average_expression(seurat_object, dystonia_genes)
+# Calculate aggregate and average expression - adult
+ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
+av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
+
+ag_fetal_mat <- calculate_aggregated_expression(seurat_fetal, dystonia_genes)
+av_fetal_mat <- calculate_average_expression(seurat_fetal, dystonia_genes)
 
 # Save 
 message('\nSaving objects ...\n')
-saveRDS(ag_mat, paste0(R_dir, 'seurat_aggr_exp_', region, '.rds'))
-saveRDS(av_mat, paste0(R_dir, 'seurat_aver_exp_', region, '.rds'))
+saveRDS(ag_adult_mat, paste0(R_dir, 'seurat_aggr_adult_', region, '.rds'))
+saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
+saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
+saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
