@@ -39,14 +39,15 @@ seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object
                                                                    'cluster_full')
 
 # Set Idents 
-message("Any NAs after recode of cluster IDs?",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
-Idents(seurat_object) <- seurat_object[[paste0(region, '_clusters')]]
+message("Any NAs after recode of cluster IDs? ",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
+#Idents(seurat_object) <- seurat_object[[paste0(region, '_clusters')]]
 
 # Calculate aggregate and average expression
-ag_mat <- calculate_aggregated_expression(seurat_obj, dystonia_genes)
-av_mat <- calculate_average_expression(seurat_obj, dystonia_genes)
+ag_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
+av_mat <- calculate_average_expression(seurat_object, dystonia_genes)
 
 # Save 
+message('\nSaving objects ...\n')
 saveRDS(ag_mat, paste0(R_dir, 'seurat_aggr_exp_', region, '.rds'))
 saveRDS(av_mat, paste0(R_dir, 'seurat_aver_exp_', region, '.rds'))
 

@@ -44,15 +44,16 @@ if (exists("snakemake")) {
   root_dir <- snakemake@params[['root_dir']]
   region <- snakemake@params[['region']]
   threads <- snakemake@threads
-  
-  if (exists(snakemake@params[['wgcna']])) {
-    enableWGCNAThreads(snakemake@threads)
-    cat("WGCNA threads enabled. Set to: ", threads, '\n')
-  } else {
-    cat("Threads are set to: ", threads, '\n')
-    future::plan("multicore", workers = snakemake@threads)
-    plan()
-  }
+
+# Only works atm when snakemake@params[['wgcna']] is present in rule  
+#  if (exists(snakemake@params[['wgcna']])) {
+#    enableWGCNAThreads(snakemake@threads)
+#    cat("WGCNA threads enabled. Set to: ", threads, '\n')
+#  } else {
+#    cat("Threads are set to: ", threads, '\n')
+#    future::plan("multicore", workers = snakemake@threads)
+#    plan()
+#  }
 
 }
 
