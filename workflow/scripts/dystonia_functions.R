@@ -989,13 +989,15 @@ plot_paired_vlns <- function(
 calculate_average_expression <- function(
     
   seurat_obj = NULL,
-  gene_list = NULL
+  gene_list = NULL,
+  layer = 'data'
   
 ) {
   
   message('Calculating average expression ...')
-  av_exp_mat <- AverageExpression(seurat_obj, layer = 'counts', features = gene_list)
-  av_exp_mat <- av_exp_mat$RNA
+  av_exp_obj <- AverageExpression(seurat_obj, features = gene_list, return.seurat = TRUE)
+  av_exp_mat <- LayerData(av_exp_obj, assay = "RNA", layer = layer)
+  rm(av_exp_obj)
   #colnames(av_exp_mat) <- paste0(prefix, '_', colnames(av_exp_mat))
   
   return(av_exp_mat)
@@ -1007,13 +1009,15 @@ calculate_average_expression <- function(
 calculate_aggregated_expression <- function(
     
   seurat_obj = NULL,
-  gene_list = NULL
+  gene_list = NULL,
+  layer = 'data'
   
 ) {
   
   message('Calculating aggregated feature expression ...')
-  agg_exp_mat <- AggregateExpression(seurat_obj, features = gene_list)
-  agg_exp_mat <- agg_exp_mat$RNA
+  agg_exp_obj <- AggregateExpression(seurat_obj, features = gene_list, return.seurat = TRUE)
+  agg_exp_mat <- LayerData(agg_exp_obj, assay = "RNA", layer = layer)
+  rm(agg_exp_obj)
   #colnames(agg_exp_mat) <- paste0(prefix, '_', colnames(agg_exp_mat))
   
   return(agg_exp_mat)
