@@ -1,0 +1,249 @@
+---
+title: "Dystonia - Brain Span Analyses"
+author: "Darren Cameron"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+## Info
+
+We have gene expression data and metadata for:
+
++ 481 individuals
++ 12 dev stages
++ 8 brain regions
++ Covariates: `Sex`, `RIN`, `Ethnicity` 
+
+```{r setup, include=FALSE}
+library(tidyverse)
+root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
+results_dir <- paste0(root_dir, 'results/')
+bulk_dir <- paste0(results_dir, '02Bulk_data/')
+resources_dir <- paste0(root_dir, 'resources/sheets/')
+dystonia_genes <- c("EIF2AK2", "GNAO1", "KCTD17", "TUBB4A", "ATP1A3", "KMT2B", 
+                    "DNAJC12", "KCNA1", "SPR", "SLC2A1", "HPCA", "PNKD", "SGCE", 
+                    "ADCY5", "TH", "PRKRA", "SCN8A", "VPS16")
+
+##  Load Data  ------------------------------------------------------------------------
+expr_tbl <- readxl::read_xlsx(paste0(resources_dir, 'RPKM_Adjustment_7.1.xlsx'))
+```
+
+***
+
+## Step 1
+
++ Correct original gene expression measures for `RIN`, `Ethnicity` and `Sex`
++ Run 25 linear models 1 per gene
++ This pulls out covariate corrected gene expression scores 
++ Extract the linear model residuals for next steps
++ Example:
+  `lm(paste0(gene, '~', 'RIN + Ethnicity + Sex'), data = expr_tbl)`
+
+```{r }
+all_lm_lst <- list()
+all_lm_res_lst <- list()
+
+# Recode to remove spaces in data
+expr_tbl <- expr_tbl |>
+  mutate(Region.2 = case_match(Region.2,
+      "Prefrontal Cortex" ~ "PFC",
+      "Non-Prefrontal Cortex" ~ "nPFC",
+      "Primary Motor-Sensory Cortex" ~ "PMC" ,
+      "Hippocampus" ~ "Hip",
+      "Striatum" ~ "Str",
+      "Cerebellum" ~ "Cer",
+      "Thalamus" ~ "Tha",
+      "Other Subcortical Regions" ~ "Tha",
+      .default = Region.2
+    )) |>
+  mutate(Dev_stage = str_replace(Dev_stage, " ", "-"))
+
+for (gene in c(dystonia_genes)) {
+  
+  #message('Running linear model for: ', gene)
+  
+  # Run linear model for dystonia genes
+  linear_model <- lm(paste0(gene, '~', 'RIN + Ethnicity + Sex'), data = expr_tbl)
+  lm_residuals <- linear_model$residuals
+  summary(linear_model)
+  linear_model <- broom::tidy(linear_model)
+
+  # Add gene summary (with name) to list
+  all_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
+  all_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
+
+} 
+
+```
+
+***
+
+## Step 1.5
+
++ Prep data for step 2
++ `lm()` handles catagorical variables (`Region.2`, `Dev_stage`) automatically
++ Coerce residuals from step 1 into single expression column using `pivot_longer()`
++ Table below shows input for step 2:
+
+***
+
+```{r step_1.5}
+step1_tbl <- expr_tbl |>
+  dplyr::select(Dev_stage, Region.2) |>
+  bind_cols(all_lm_res_lst |> as_tibble()) |>
+  pivot_longer(EIF2AK2_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
+glimpse(step1_tbl)
+```
+***
+
+## Step 2
+
++ Run 7 linear models on residuals from step 1 on:
+  + residuals from a single brain region of interest
+  + all developmental stages
+  + `lm(paste0(step1_residuals, '~', 'Dev Stage'), data = step1_tbl)`
+  + Region is implied in model as only region specific residuals retained on each run
++ Extract: `-log10(P) x sgn(B)`
++ Issues:
+  + We lose a developmental stage: `lm()` automatically assigns a stage as the baseline
+  + Adolescence column is randomly sacrificed which probably inflates fetal values
+
+```{r }
+regional_lm_lst <- list()
+regional_lm_p <- list()
+
+# Loop through each brain region and run a separate model
+for (region in unique(step1_tbl$Region.2)) {
+  
+  region_data <- step1_tbl |>
+    filter(Region.2 == region)
+  
+  linear_model <- lm(step1_residuals ~ Dev_stage, data = region_data) 
+
+  lm_pval <- summary(linear_model)$coefficients[1,]
+  linear_model <- broom::tidy(linear_model)
+
+  # Add gene summary (with name) to list
+  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
+  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
+}
+```
+
+***
+
+### Step 2 results {.tabset}
+
++ No nominally significant p-values at general regional level
++ But likely several significant p-values at a specific developmental stages across regions (once baeline fixed)
++ Dotted lines in plots: BF correction for 7 tests
+
+#### General 
+
+```{r }
+knitr::kable(bind_rows(regional_lm_p) |>
+  mutate(region = names(regional_lm_p)) |>
+  relocate(region), caption = 'Regional Linear regression results')
+```
+
+```{r,results='asis', echo=FALSE}
+for(i in names(regional_lm_lst)){
+  cat('####',i,' \n')
+  print(knitr::kable(regional_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Bar charts 
+
+```{r plots, fig.dim=c(10,10)}
+dev_levels <- c("Early-Fetal", "Early-Midfetal", "Late-Midfetal", "Midfetal", "Late-Fetal",
+                "Early-Infancy", "Late-Infancy", "Early-Childhood", "Late-Childhood",
+                "Early-Adulthood", "Mid-Adulthood")
+
+# "Adolescence" due to multicolinearity
+
+plot_list <- list()
+for (i in seq_along(regional_lm_lst)) {
+  
+    region <- str_replace(paste0(names(regional_lm_lst)[i]), '_lm', '')  
+    region_plt <- regional_lm_lst[[i]] |>
+      mutate(neglog10p = -log10(p.value)) |>
+      mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+      mutate(term = str_replace(term, 'Dev_stage', '')) |>
+      filter(term != "(Intercept)") |>
+      mutate(term = factor(term, levels = rev(dev_levels))) |>
+      ggplot(aes(x = term, y = neglog10p)) +
+      geom_col(aes(fill = term)) +
+      coord_flip() +  # Flip the coordinates for better readability
+      labs(title = region, x = "", y = "-log10(P) x sgn(B)") +
+      theme_minimal() +
+      geom_hline(yintercept = 0, color = "black") +
+      geom_hline(yintercept=log10(0.05/7), linetype = "dotted", color = "black") +
+      geom_hline(yintercept=-log10(0.05/7), linetype = "dotted", color = "black") +
+      theme(panel.grid.major.x = element_blank()) +
+      ylim(-6, 6) +
+      scale_fill_manual(values = rev(c("#dfbef0", "#bb98e4", "#a87dcf", 
+                                   "#804cb8", "#6a47b0", "#abe892", 
+                                   "#47922c", "#ffbc96", "#f59620", 
+                                   "#b3e7f0", "#5ac0e1"))) +
+      Seurat::NoLegend()
+    # Adolecence colour: "#e66b00",
+      
+    
+    # Print the plot
+    plot_list[[paste0(region, '_plt')]] <- region_plt
+}
+print(cowplot::plot_grid(plotlist = plot_list))
+```
+
+***
+## Dummy variables
+
++ I tried running the analyses using dummy variables to try and force the model to show all developmental stages
++ However `lm()` randomly assigns `NA` to `MidFetal` in all models 
++ I think it does this as it detects multicollinearity in the `Dev_stage` columns, so automatically omits one column (or sets it to the baseline)
++ Showing 1 result below:
+
+```{r dummy_variables}
+regional_lm_lst <- list()
+regional_lm_p <- list()
+
+# Loop through each brain region and run a separate model
+for (region in unique(step1_tbl$Region.2)) {
+  
+  region_data <- step1_tbl |>
+    filter(Region.2 == region)
+  
+  # Add dummy variables to retain all dev stages
+  region_data <- model.matrix(~ Dev_stage - 1, data = region_data) |>
+    as_tibble() |>
+    bind_cols(region_data) |>
+    select(-c(Dev_stage, Region.2, gene)) |>
+    rename_with(~ str_replace(., 'Dev_stage', ''))
+  
+  linear_model <- lm(step1_residuals ~ ., data = region_data)
+
+  lm_pval <- summary(linear_model)$coefficients[1,]
+  linear_model <- broom::tidy(linear_model)
+
+  # Add gene summary (with name) to list
+  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
+  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
+}
+regional_lm_lst[['PFC_lm']]
+```
+
+***
+
+## Questions
+
+***
+
++ Is there something we can do to have a neutral, rather than a comparative, baseline?
++ I think, visually, several bar charts are a vast improvement on a single heatmap
+
+***
