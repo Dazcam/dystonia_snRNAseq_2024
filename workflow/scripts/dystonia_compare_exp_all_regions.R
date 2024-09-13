@@ -22,7 +22,7 @@ library(cowplot)
 
 ## Set variables  ---------------------------------------------------------------------
 fetal_dir <- '~/Desktop/fetal_brain_snRNAseq_110122/resources/R_objects/'
-R_dir <- '~/Desktop/dystonia_snRNAseq_2024/results/01R/'
+R_dir <- '~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/'
 
 ## Load Data --------------------------------------------------------------------------
 # Fetal data
@@ -46,6 +46,7 @@ for (region in c('fcx', 'str')) {
   assign(paste0('adult_aggr_', region), seurat_obj_ag, envir = .GlobalEnv)
   
 }
+
 
 ##  Join data 
 av_exp_mat <- cbind(fetal_aver_cer, fetal_aver_pfc, fetal_aver_wge, fetal_aver_hip, fetal_aver_tha,
