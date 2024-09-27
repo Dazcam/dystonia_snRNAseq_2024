@@ -23,7 +23,7 @@ library(cowplot)
 library(scuttle)
 library(scater)
 library(egg) 
-#library(MatrixExtra) # This clashes with Seurat. Used here for hdWGCNA markdown
+#library(MatrixExtra) # This clashes with Seurat. Used here for hdWGCNA markdown, if needed, call it explicitly 
 # Need to load within script just before markdown. See https://github.com/satijalab/seurat/issues/9221
 
 library(tidyverse)

@@ -5,4 +5,7 @@ include: 'rules/01seurat.smk'
 rule all:
     input:
 #        expand("../results/01R_objects/03seurat_{region}.rds", region = config['region']),
-        expand("../results/03wgcna/{region}_metacells.tsv", region = config['region'])
+#        expand("../results/03wgcna/{region}_metacells.tsv", region = config['region'])
+#         expand("../results/03wgcna/{region}_wgcna_plots.done", region = config['region'])
+#         expand("../results/01R_objects/seurat_aver_fetal_{region}.rds", region = config['region'])
+        expand("../results/01R_objects/{region}_vln_plot.rds", region = config['region']) 

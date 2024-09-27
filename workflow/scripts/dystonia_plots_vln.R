@@ -155,7 +155,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   
   message("Recode cluster IDs ... ")
   adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
-  unique(adult_object$cellIDs)
+  Idents(adult_object) <- adult_object$cellIDs
+  message('Number of NAs in Idents: ', anyNA(Idents(adult_object)))
   
   # Set plot colours
   plot_cols <- get(paste0(region, '_vln_cols_recode'))
@@ -179,7 +180,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
             strip.text.y.left = element_text(angle = 0, size = 16)) +
-      ggtitle('Fetal Frontal Cortex') +
+      ggtitle('Frontal Cortex') +
       facet_wrap(~feature,  ncol = 1, strip.position = "left") +
       scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
@@ -201,17 +202,20 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     
     new_counts <- rbind(adult_object[["RNA"]]$counts, th_mat)
     new_data <- rbind(adult_object[["RNA"]]$data, th_mat)
-    obj_meta <- adult_object@meta.data
+    new_meta <- adult_object@meta.data
     
     message("Counts old: ", nrow(adult_object[["RNA"]]$counts), " ; Counts new: ", nrow(new_counts))
     message("Data old: ", nrow(adult_object[["RNA"]]$data), " ; Data new: ", nrow(new_data))
     
-    new_cer_obj <- CreateSeuratObject(counts = new_counts, meta.data = obj_meta)
+    new_cer_obj <- CreateSeuratObject(counts = new_counts, meta.data = new_meta)
     new_cer_obj[["RNA"]]$data <- new_data
     
+    Idents(new_cer_obj) <- new_cer_obj$cellIDs
+    message('Number of NAs in Idents: ', anyNA(Idents(new_cer_obj)))
+    
     message('Plotting ', region, ' plot ...')
-    mid_plot <- VlnPlot(cer_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                        cols = cer_fetal_cols,
+    mid_plot <- VlnPlot(new_cer_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                        cols = plot_cols,
                         same.y.lims = TRUE, fill.by = 'ident') + 
       theme(legend.position = "none",
             plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
@@ -236,9 +240,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     
     message('Plotting ', region, ' plot ...')
   
-    rhs_plot <- VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                        cols = ge_fetal_cols,
-                        same.y.lims = TRUE, fill.by = 'ident') +
+    rhs_plot <- VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
+                        cols = plot_cols, same.y.lims = TRUE, fill.by = 'ident') +
       theme(legend.position = "none",
             plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
             panel.grid.major = element_blank(), 
@@ -250,7 +253,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
             axis.title.x = element_blank(),
             axis.title.y = element_text(size = 14),
             strip.text.y.left = element_blank()) +
-      ggtitle('Fetal Ganglionic Eminences') +
+      ggtitle('Striatum') +
       facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
       scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
