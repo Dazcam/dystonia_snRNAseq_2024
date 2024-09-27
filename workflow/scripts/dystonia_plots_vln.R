@@ -31,143 +31,264 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 ## Load Data --------------------------------------------------------------------------
-#R_dir <- '../results/01R_objects/'
-#region <- 'cer'
-#fetal_dir <- '../resources/public_data/cameron_2023/'
-adult_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
-fetal_object <- readRDS(paste0(fetal_dir, 'seurat_', fetal_region, '.rds'))
+# R_dir <- '../results/01R_objects/'
+# region <- 'cer'
+# fetal_dir <- '../resources/public_data/cameron_2023/'
 
-# Fetal -----
-fetal_object$cellIDs <- stringr::str_replace_all(fetal_object$cellIDs,
-                                                 paste0(region_recode, "-"), 
-                                                 paste0(region_recode, "-fetal-"))
+# Run fetal plots locally
+if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
-if (region == "fcx" || region == "cer") {
-  
-  Idents(fetal_object) <- factor(names(get(paste0('fetal_', region, '_vln_recode'))), 
-                                 levels = names(get(paste0('fetal_', region, '_vln_recode'))))
-  plot_cols <- get(paste0('fetal_', region, '_vln_recode'))
-
-  } else {
+  # Fetal -----
+  for (brain_region in c('ge_fetal', 'cer_fetal', 'fcx_fetal')) {
     
-    Idents(fetal_object) <- factor(names(fetal_ge_vln_recode), 
-                                   levels = names(fetal_ge_vln_recode))
-    plot_cols <- fetal_ge_vln_recode
-}
-
-fetal_plot <- VlnPlot(fetal_object, dystonia_genes, stack = TRUE, flip = TRUE,  
-                      cols = plot_cols,
+    fetal_object <- readRDS(paste0(fetal_dir, 'seurat_', brain_region, '.rds'))
+  
+    fetal_object$cellIDs <- stringr::str_replace_all(fetal_object$cellIDs,
+                                                     paste0(region_recode, "-"), 
+                                                     paste0(region_recode, "-fetal-"))
+    assign(paste0(brain_region, '_obj'), fetal_object)
+    rm(fetal_object)
+    
+  }
+  
+  # Set factors and colours
+  for (brain_region in c('ge_fetal', 'cer_fetal', 'fcx_fetal')) {
+    
+    local_region <- str_replace(brain_region, '_fetal', '')
+    fetal_object <- get(paste0(brain_region, '_obj'))
+    
+  
+    if (brain_region == "fcx_fetal" || brain_region == "cer_fetal") {
+      
+      Idents(fetal_object) <- factor(names(get(paste0('fetal_', local_region, '_vln_recode'))), 
+                                     levels = names(get(paste0('fetal_', local_region, '_vln_recode'))))
+      plot_cols <- get(paste0('fetal_', local_region, '_vln_recode'))
+      
+      assign(paste0(brain_region, '_obj'), fetal_object)
+      assign(paste0(brain_region, '_cols'), plot_cols)
+      
+      } else {
+        
+        Idents(fetal_object) <- factor(names(fetal_ge_vln_recode), 
+                                       levels = names(fetal_ge_vln_recode))
+        plot_cols <- fetal_ge_vln_recode
+        
+        assign(paste0(brain_region, '_obj'), fetal_object)
+        assign(paste0(brain_region, '_cols'), plot_cols)
+        
+      }
+    
+    rm(fetal_object, plot_cols)
+    
+  }
+  
+  lhs_plot <- VlnPlot(fcx_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = fcx_fetal_cols,
                       same.y.lims = TRUE, fill.by = 'ident') +
-  theme(legend.position = "none",
-        plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(hjust = 0.5),
-        text = element_text(size = 12),
-        axis.text.x  = element_text(colour = "#000000", size = 12),
-        axis.text.y  = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        strip.text.y.left = element_text(angle = 0, size = 16)) +
-  ggtitle(fetal_title) +
-  facet_wrap(~feature,  ncol = 1, strip.position = "left") +
-  scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+    theme(legend.position = "none",
+          plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5, size = 16),
+          text = element_text(size = 12),
+          axis.text.x  = element_text(colour = "#000000", size = 12),
+          axis.text.y  = element_blank(),
+          axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+          axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          strip.text.y.left = element_text(angle = 0, size = 16)) +
+    ggtitle('Fetal Frontal Cortex') +
+    facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+    scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+  
+  mid_plot <- VlnPlot(cer_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = cer_fetal_cols,
+                      same.y.lims = TRUE, fill.by = 'ident') + 
+    theme(legend.position = "none",
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5, size = 16),
+          axis.text.x  = element_text(colour = "#000000", size = 12),
+          axis.text.y  = element_blank(),  # Hides y-axis text
+          axis.ticks.y = element_blank(),  # Hides y-axis ticks
+          axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          strip.text = element_blank(),
+          strip.background = element_blank()) +  
+    ggtitle('Fetal Cerebellum') +
+    facet_wrap(~feature, ncol = 1, strip.position = "left") +
+    scale_y_continuous(position = "right", limits = c(-0.00004, 5), breaks = 4)
+  
+  rhs_plot <- VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = ge_fetal_cols,
+                      same.y.lims = TRUE, fill.by = 'ident') +
+    theme(legend.position = "none",
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(hjust = 0.5, size = 16),
+          text = element_text(size = 12),
+          axis.text.x  = element_text(colour = "#000000", size = 12),
+          axis.text.y  = element_text(colour = "#000000", size = 12),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = 14),
+          strip.text.y.left = element_blank()) +
+    ggtitle('Fetal Ganglionic Eminences') +
+    facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
+    scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+    
+  # Join y-axes
+  egg::ggarrange(lhs_plot, mid_plot, rhs_plot, nrow = 1)
 
-#layer_data(fetal_plot, 1) # Pull info from plot
-# Adult -----
-# Subset seurat object and add empty row for gene TH
-# VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
-#         cols = get(paste0(region, '_vln_cols_recode')),
-#         same.y.lims = TRUE, fill.by = 'ident') +
-#   facet_wrap(feature ~ ., drop = F) +
-#   theme(strip.text.y.left = element_text(angle = 0, size = 16)) +
-#   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
-# 
-# th_mat <- as(MatrixExtra::emptySparse(nrow = 1, ncol = 15), "dgCMatrix")
-# rownames(th_mat) <- 'TH'
-# aggr_adult_cer <- rbind(aggr_adult_cer, th_mat)
-# 
-# str(dystonia_adult_plot_sketch$facet$params$drop)
-# adult_plot$facet$params$drop = FALSE
-# adult_2 <- subset(adult_object, features = dystonia_genes)
+  # Create adult plots on Hawk
+  } else {
 
-
-# Recode cluster IDs - sketch object 
-
-DefaultAssay(adult_object) <- 'RNA'
-adult_object <- JoinLayers(adult_object)
-
-message("Recode cluster IDs ... ")
-adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
-unique(adult_object$cellIDs)
-
-message("Add blank row to data object for TH gene ... ")
-if (region == 'cer') {
-
-  message("Converting BPCells counts and data matrix to in memory format first ...")
-  adult_object[["RNA"]]$counts <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
-  adult_object[["RNA"]]$data <- as(object = adult_object[["RNA"]]$data, Class = "dgCMatrix")
-  th_mat <- as(MatrixExtra::emptySparse(nrow = 1, ncol = ncol(adult_object)), "dgCMatrix")
-  rownames(th_mat) <- 'TH'
-  adult_object[["RNA"]]$data <- rbind(adult_object[["RNA"]]$data, th_mat)
+  ## Adult -------
+  adult_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
+  
+  # Recode cluster IDs - sketch object 
+  DefaultAssay(adult_object) <- 'RNA'
+  adult_object <- JoinLayers(adult_object)
+  
+  message("Recode cluster IDs ... ")
+  adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
+  unique(adult_object$cellIDs)
+  
+  # Set plot colours
+  plot_cols <- get(paste0(region, '_vln_cols_recode'))
+  
+  if (region == 'fcx') {
+    
+    message('Plotting ', region, ' plot ...')
+    lhs_plot <- VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
+                        cols = plot_cols,
+                        same.y.lims = TRUE, fill.by = 'ident') +
+      theme(legend.position = "none",
+            plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 16),
+            text = element_text(size = 12),
+            axis.text.x  = element_text(colour = "#000000", size = 12),
+            axis.text.y  = element_blank(),
+            axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+            axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            strip.text.y.left = element_text(angle = 0, size = 16)) +
+      ggtitle('Fetal Frontal Cortex') +
+      facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+      scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+    
+    saveRDS(lhs_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+  
+  if (region == 'cer') {
+    
+    message("Add blank row to cer Seurat object for TH gene ... ")
+    message("Converting BPCells counts and data matrix to in memory format first ...")
+    
+    message("Count matrix ...")
+    adult_object[["RNA"]]$counts <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
+    
+    message("Data matrix ...")
+    adult_object[["RNA"]]$data <- as(object = adult_object[["RNA"]]$data, Class = "dgCMatrix")
+    
+    th_mat <- as(MatrixExtra::emptySparse(nrow = 1, ncol = ncol(adult_object)), "dgCMatrix")
+    rownames(th_mat) <- 'TH'
+    
+    new_counts <- rbind(adult_object[["RNA"]]$counts, th_mat)
+    new_data <- rbind(adult_object[["RNA"]]$data, th_mat)
+    obj_meta <- adult_object@meta.data
+    
+    message("Counts old: ", nrow(adult_object[["RNA"]]$counts), " ; Counts new: ", nrow(new_counts))
+    message("Data old: ", nrow(adult_object[["RNA"]]$data), " ; Data new: ", nrow(new_data))
+    
+    new_cer_obj <- CreateSeuratObject(counts = new_counts, meta.data = obj_meta)
+    new_cer_obj[["RNA"]]$data <- new_data
+    
+    message('Plotting ', region, ' plot ...')
+    mid_plot <- VlnPlot(cer_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                        cols = cer_fetal_cols,
+                        same.y.lims = TRUE, fill.by = 'ident') + 
+      theme(legend.position = "none",
+            plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 16),
+            axis.text.x  = element_text(colour = "#000000", size = 12),
+            axis.text.y  = element_blank(),  # Hides y-axis text
+            axis.ticks.y = element_blank(),  # Hides y-axis ticks
+            axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            strip.text = element_blank(),
+            strip.background = element_blank()) +  
+      ggtitle('Cerebellum') +
+      facet_wrap(~feature, ncol = 1, strip.position = "left") +
+      scale_y_continuous(position = "right", limits = c(-0.00004, 5), breaks = 4)
+    
+    saveRDS(mid_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+  
+  if (region == 'str') {
+    
+    message('Plotting ', region, ' plot ...')
+  
+    rhs_plot <- VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                        cols = ge_fetal_cols,
+                        same.y.lims = TRUE, fill.by = 'ident') +
+      theme(legend.position = "none",
+            plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+            panel.grid.major = element_blank(), 
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 16),
+            text = element_text(size = 12),
+            axis.text.x  = element_text(colour = "#000000", size = 12),
+            axis.text.y  = element_text(colour = "#000000", size = 12),
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(size = 14),
+            strip.text.y.left = element_blank()) +
+      ggtitle('Fetal Ganglionic Eminences') +
+      facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
+      scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+    
+    saveRDS(rhs_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+  
 }
-
-adult_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(adult_object, 
-                                                                  region, 
-                                                                  'harmony_clusters_0.1')
-dystonia_adult_plot_RNA <- create_stacked_vln_plot(adult_object,
-                                                paste0(region, '_clusters'), 
-                                                dystonia_genes,
-                                                adult_title, 
-                                                get(paste0(region, '_vln_cols_recode')))
-
-adult_plot <- dystonia_adult_plot_sketch +
-  theme(legend.position = "none",
-        plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(hjust = 0.5),
-        text = element_text(size = 12),
-        axis.text.x  = element_text(colour = "#000000", size = 12),
-        axis.text.y  = element_text(colour = "#000000", size = 12),
-        axis.title.x = element_blank(),
-        axis.title.y = element_text(size = 14),
-        strip.text.y.left = element_blank()) +
-  scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4) +
-  facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F)
-
 
 # Join y-axes
-egg::ggarrange(fetal_plot, adult_plot, nrow = 1)
+#egg::ggarrange(fetal_plot, adult_plot, nrow = 1)
 
-# Add summary stats
-for (sum_stat in c('mean', 'median')) {
-  
-  fetal_stat_plot <- fetal_plot +
-    stat_summary(fun = sum_stat, colour = "red", size = 2.5, # Adds text statistic
-                 geom = "text", aes(label = round(after_stat(y), 2)),
-                 position = position_nudge(x = 0.25, y = 2)) 
-  #  stat_summary(fun = median, geom = "point",  # Adds median line
-  #               size = 5, colour = "white", shape = 95) +
-  
-  adult_stat_plot <- adult_plot +
-    stat_summary(fun = sum_stat, colour = "red", size = 2.5,
-                 geom = "text", aes(label = round(after_stat(y), 2)),
-                 position = position_nudge(x = 0.25, y = 2)) 
-  #  stat_summary(fun = median, geom = "point", 
-  #               size = 5, colour = "white", shape = 95) +
-  
-  # Join y-axes
-  vln_stat_plt <- egg::ggarrange(fetal_stat_plot, adult_stat_plot, nrow = 1)
-  
-  ggsave(filename = paste0(R_dir, region, "_vln_plt_with_", sum_stat, ".svg"),
-         plot = vln_stat_plt, 
-         width = 40, 
-         height = 30, 
-         dpi = 300, 
-         units = "cm")
-} 
+# # Add summary stats
+# for (sum_stat in c('mean', 'median')) {
+#   
+#   fetal_stat_plot <- fetal_plot +
+#     stat_summary(fun = sum_stat, colour = "red", size = 2.5, # Adds text statistic
+#                  geom = "text", aes(label = round(after_stat(y), 2)),
+#                  position = position_nudge(x = 0.25, y = 2)) 
+#   #  stat_summary(fun = median, geom = "point",  # Adds median line
+#   #               size = 5, colour = "white", shape = 95) +
+#   
+#   adult_stat_plot <- adult_plot +
+#     stat_summary(fun = sum_stat, colour = "red", size = 2.5,
+#                  geom = "text", aes(label = round(after_stat(y), 2)),
+#                  position = position_nudge(x = 0.25, y = 2)) 
+#   #  stat_summary(fun = median, geom = "point", 
+#   #               size = 5, colour = "white", shape = 95) +
+#   
+#   # Join y-axes
+#   vln_stat_plt <- egg::ggarrange(fetal_stat_plot, adult_stat_plot, nrow = 1)
+#   
+#   ggsave(filename = paste0(R_dir, region, "_vln_plt_with_", sum_stat, ".svg"),
+#          plot = vln_stat_plt, 
+#          width = 40, 
+#          height = 30, 
+#          dpi = 300, 
+#          units = "cm")
+# } 
+
 
 
 #--------------------------------------------------------------------------------------
