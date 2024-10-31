@@ -15,7 +15,7 @@ output:
 We have gene expression data and metadata for:
 
 + 39 individuals
-+ ~~481~~ 438 independent dissections (see `dystonia_brain_span_prep_data.r`)
++ ~~481~~ ~~438~~ 447 independent dissections (see `dystonia_brain_span_prep_data.r`)
 + RPKM correct expression values
 + ~~12~~ 7 dev stages
 + ~~8~~ ~~6~~ 8 brain regions
@@ -46,6 +46,15 @@ dystonia_genes <- c("ADCY5", "ANO3", "ATP1A3", "DNAJC12", "EIF2AK2", "GCH1", "GN
                     "GNAO1", "HPCA", "KCNA1", "KCNMA1", "KCTD17", "KMT2B", "PNKD", 
                     "PRKRA", "PRRT2", "SCN8A", "SGCE", "SLC2A1", "SPR", "TH", "THAP1", 
                     "TOR1A", "TUBB4A", "VPS16")
+dystonia_genes_ensembl <- c("ENSG00000173175", "ENSG00000134343", "ENSG00000105409", 
+                            "ENSG00000108176", "ENSG00000055332", "ENSG00000131979", 
+                            "ENSG00000141404", "ENSG00000087258", "ENSG00000121905", 
+                            "ENSG00000111262", "ENSG00000156113", "ENSG00000100379", 
+                            "ENSG00000167548", "ENSG00000127838", "ENSG00000180228", 
+                            "ENSG00000167371", "ENSG00000196876", "ENSG00000127990", 
+                            "ENSG00000117394", "ENSG00000116096", "ENSG00000180176", 
+                            "ENSG00000131931", "ENSG00000136827", "ENSG00000104833", 
+                            "ENSG00000215305")
 brain_levels <- c("PFC", "PMSC", "NPFC", "Str", "Cer", "Hip", "Tha", "Amy")
 dev_levels <- c("EarlyFetal", "MidFetal", "LateFetal", "Infancy", "Childhood",
                 "Adolescence", "Adulthood")
@@ -53,573 +62,29 @@ dev_levels <- c("EarlyFetal", "MidFetal", "LateFetal", "Infancy", "Childhood",
 ##  Load Data  ------------------------------------------------------------------------
 expr_tbl <- readRDS(paste0(bulk_dir, 'dystonia_brain_span_clean_tbl.rds')) %>%
   dplyr::select(donor, region, dev_stage, ethnicity, rin, sex, sort(names(.)[7:31]))
+
+expr_all_tbl <- readRDS(paste0(bulk_dir, 'dystonia_brain_span_clean_all_tbl.rds')) 
 ```
 
 ***
 
-## Step 1.0: Linear models covariate correction {.tabset}
+## Step 1: Linear models covariate correction (yeojohn2) {.tabset}
 
-+ Correct original gene expression measures for `rin`, `ethnicity` and `sex` 
-+ Run 25 linear models 1 per gene
-+ This pulls out covariate corrected gene expression scores 
-+ Extract the linear model residuals for next steps
-+ Model 1: `lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = expr_tbl)`
-+ Check model assumptions
-
-```{r step 1, echo=FALSE, warning=FALSE, message=FALSE}
-all_lm_lst <- list()
-all_lm_res_lst <- list()
-assumptions_lm_lst <- list()
-gq_test_lst <- list()
-ks_test_lst <- list()
-
-for (gene in dystonia_genes) {
-  
-  # Run linear model for dystonia genes
-  linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = expr_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_lst[[paste0(gene)]] <- gq_test
-  ks_test_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1_data, layout="l-body-outset"}
-data <- bind_rows(all_lm_lst) |>
-  mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
-  relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-
-```{r gq_diagnostic_1}
-data <- bind_rows(gq_test_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-+ Though we have 438 residuals per gene here
-
-```{r ks_diagnostic_1}
-data <- bind_rows(ks_test_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.1: Linear models covariate correction (log2) {.tabset}
-
-+ Run step 1 again with log transformations
++ Run step 1 with Yeo-Johnson transformations
 
 ```{r step 1.1, echo=FALSE, warning=FALSE, message=FALSE}
-all_log_lm_lst <- list()
-all_log_lm_res_lst <- list()
-assumptions_log_lm_lst <- list()
-gq_test_log_lst <- list()
-ks_test_log_lst <- list()
-
-# Log transform - data are already log transformed
-exp_log_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ log2(.x + 1)))
-
-for (gene in c(dystonia_genes)) {
-
-  # Run linear model for dystonia genes
-  linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = exp_log_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_log_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_log_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_log_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_log_lst[[paste0(gene)]] <- gq_test
-  ks_test_log_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.1_data, layout="l-body-outset"}
-data <- bind_rows(all_log_lm_lst) |>
-  mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
-  relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots  {.tabset}
-
-```{r diagnostic_plots_model_1.1, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_log_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_log_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.1, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_log_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_log_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.1}
-data <- bind_rows(gq_test_log_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_log_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_log_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-
-```{r ks_diagnostic_1.1}
-data <- bind_rows(ks_test_log_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_log_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.2: Linear models covariate correction (sqrt) {.tabset}
-
-+ Run step 1 again with square root transformations
-
-```{r step 1.2, echo=FALSE, warning=FALSE, message=FALSE}
-all_sqrt_lm_lst <- list()
-all_sqrt_lm_res_lst <- list()
-assumptions_sqrt_lm_lst <- list()
-gq_test_sqrt_lst <- list()
-ks_test_sqrt_lst <- list()
-
-# Log transform - data are already log transformed
-exp_sqrt_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ sqrt(.x + 1)))
-
-for (gene in c(dystonia_genes)) {
-  
-  #message('Running linear model for: ', gene)
-  
-  # Run linear model for dystonia genes
-  linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = exp_sqrt_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_sqrt_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_sqrt_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_sqrt_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_sqrt_lst[[paste0(gene)]] <- gq_test
-  ks_test_sqrt_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.2_data, layout="l-body-outset"}
-data <- bind_rows(all_sqrt_lm_lst) |>
-  mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
-  relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1.2, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_sqrt_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_sqrt_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.2, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_sqrt_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-***
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_sqrt_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.2}
-data <- bind_rows(gq_test_sqrt_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_sqrt_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_sqrt_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
-
-```{r ks_diagnostic_1.2}
-data <- bind_rows(ks_test_sqrt_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_sqrt_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.3: Linear models covariate correction (quantile norm) {.tabset}
-
-+ Run step 1 again using quantile normalisation (by sample)
-+ Not sure of the validity of this given we already have RPKM normalised data
-
-```{r step 1.3, echo=FALSE, warning=FALSE, message=FALSE}
-all_norm_lm_lst <- list()
-all_norm_lm_res_lst <- list()
-assumptions_norm_lm_lst <- list()
-gq_test_norm_lst <- list()
-ks_test_norm_lst <- list()
-
-# Extract gene expression data excluding metadata
-gene_expression_data <- expr_tbl %>% select(-donor, -region, -dev_stage, -ethnicity, -rin, -sex)
-
-# Apply quantile normalization
-normalized_data <- normalize.quantiles(as.matrix(t(gene_expression_data)))
-
-# Convert back to tibble for further analysis
-exp_norm_tbl <- expr_tbl %>%
-  select(donor, region, dev_stage, ethnicity, rin, sex) %>%
-  bind_cols(as_tibble(t(normalized_data), .name_repair = "unique")) # Ensure unique names
-
-colnames(exp_norm_tbl)[7:ncol(exp_norm_tbl)] <- colnames(gene_expression_data)
-
-for (gene in dystonia_genes) {
-  
-  # Run linear model for dystonia genes
-  linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = exp_norm_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_norm_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_norm_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_norm_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_norm_lst[[paste0(gene)]] <- gq_test
-  ks_test_norm_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.3_data, layout="l-body-outset"}
-data <- bind_rows(all_norm_lm_lst) |>
-  mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
-  relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1.3, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_norm_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_norm_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.3, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_norm_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-***
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_norm_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.3}
-data <- bind_rows(gq_test_norm_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_norm_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_norm_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
-
-```{r ks_diagnostic_1.3}
-data <- bind_rows(ks_test_norm_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_norm_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.4: Explore Normalisation options {.tabset}
-
-+ Check optimal gene specific normalisation 
-
-### Best normalise
-
-```{r, best_normalise}
-transform_tbl <- tibble(gene = character(), 
-                        best_method = character(), 
-                        stringsAsFactors = FALSE)
-
-for (gene in dystonia_genes) {
-  
-  result <- bestNormalize(expr_tbl[[gene]])
-  transform_tbl <- rbind(transform_tbl, 
-                         tibble(gene = gene, 
-                         best_method = class(result$chosen_transform)[1]))
-  
-}
-rmarkdown::paged_table(transform_tbl, options = list(rows.print = 8))
-```
-
-***
-
-## Step 1.5: Linear models covariate correction (Yeo-Johnson) {.tabset} 
-
-+ Run step 1 again using Yeo-Johnson normalisation
-
-
-```{r step 1.5, echo=FALSE, warning=FALSE, message=FALSE}
 all_yeojohn_lm_lst <- list()
 all_yeojohn_lm_res_lst <- list()
 assumptions_yeojohn_lm_lst <- list()
 gq_test_yeojohn_lst <- list()
 ks_test_yeojohn_lst <- list()
 
-# Log transform - data are already log transformed
+# yeojohn transform - data are already yeojohn transformed
 exp_yeojohn_tbl <- expr_tbl |> 
    mutate(across(ADCY5:VPS16, ~ yeojohnson(.x)$x.t))
 
+for (gene in c(dystonia_genes)) {
 
-for (gene in dystonia_genes) {
-  
   # Run linear model for dystonia genes
   linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = exp_yeojohn_tbl)
   lm_residuals <- linear_model$residuals
@@ -652,11 +117,11 @@ for (gene in dystonia_genes) {
 
 ### Linear model
 
-```{r model_1.5_data, layout="l-body-outset"}
+```{r model_1.1_data, layout="l-body-outset"}
 data <- bind_rows(all_yeojohn_lm_lst) |>
   mutate(across(where(is.numeric), 
                  ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
+  mutate(gene = rep(str_split_i(names(all_yeojohn_lm_lst), '_', 1), each = 7)) |>
   relocate(gene)
 rmarkdown::paged_table(data, options = list(rows.print = 7))
 ```
@@ -665,9 +130,9 @@ rmarkdown::paged_table(data, options = list(rows.print = 7))
 
 ### Diagnostic plots {.tabset}
 
-#### LM assumption plots {.tabset}
+#### LM assumption plots  {.tabset}
 
-```{r diagnostic_plots_model_1.5, results='asis', echo=FALSE, fig.dim=c(10,10)}
+```{r diagnostic_plots_model_1.1, results='asis', echo=FALSE, fig.dim=c(10,10)}
 for(i in names(assumptions_yeojohn_lm_lst)){
   cat('#####',i,' \n')
   plot(assumptions_yeojohn_lm_lst[[i]])
@@ -679,7 +144,7 @@ for(i in names(assumptions_yeojohn_lm_lst)){
 
 #### Residual normality plots {.tabset}
 
-```{r residual_norm_plots_1.5, results='asis', echo=FALSE, warnings=FALSE}
+```{r residual_norm_plots_1.1, results='asis', echo=FALSE, warnings=FALSE}
 residuals_df <- bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |>
   rename_with(~ str_replace(., "_res", ""))
   
@@ -698,7 +163,7 @@ for(i in colnames(residuals_df)){
 
 + Genes with significant p-values: `r length(bind_rows(gq_test_yeojohn_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
 
-```{r gq_diagnostic_1.5}
+```{r gq_diagnostic_1.1}
 data <- bind_rows(gq_test_yeojohn_lst) |>
   arrange(p.value)
 
@@ -717,9 +182,8 @@ rmarkdown::paged_table(data, options = list(rows.print = 10))
 #### Kolmogorov-Smirnov test for normality
 
 + Genes with significant p-values: `r length(bind_rows(ks_test_yeojohn_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
 
-```{r ks_diagnostic_1.5}
+```{r ks_diagnostic_1.1}
 data <- bind_rows(ks_test_yeojohn_lst) |>
   arrange(p.value)
 
@@ -733,394 +197,7 @@ rmarkdown::paged_table(data, options = list(rows.print = 10))
 
 ***
 
-## Step 1.6: Linear models covariate correction (arcsinh) {.tabset}
-
-+ Run step 1 again with square root transformations
-
-```{r 1.6, echo=FALSE, warning=FALSE, message=FALSE}
-all_asinh_lm_lst <- list()
-all_asinh_lm_res_lst <- list()
-assumptions_asinh_lm_lst <- list()
-gq_test_asinh_lst <- list()
-ks_test_asinh_lst <- list()
-
-# Log transform - data are already log transformed
-exp_asinh_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ asinh(.x)))
-
-for (gene in c(dystonia_genes)) {
-  
-  #message('Running linear model for: ', gene)
-  
-  # Run linear model for dystonia genes
-  linear_model <- lm(paste0(gene, '~', 'rin + ethnicity + sex'), data = exp_asinh_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_asinh_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_asinh_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_asinh_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_asinh_lst[[paste0(gene)]] <- gq_test
-  ks_test_asinh_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.6_data, layout="l-body-outset"}
-data <- bind_rows(all_asinh_lm_lst) |>
-  mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  mutate(gene = rep(str_split_i(names(all_lm_lst), '_', 1), each = 7)) |>
-  relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1.6, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_asinh_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_asinh_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.6, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_asinh_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-***
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_asinh_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.6}
-data <- bind_rows(gq_test_asinh_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_asinh_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_asinh_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
-
-```{r ks_diagnostic_1.6}
-data <- bind_rows(ks_test_asinh_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_asinh_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-## Step 1.7: Linear models covariate correction (LAD) {.tabset}
-
-+ Run step 1 again using Least Absolute Deviations Regression
-+ log2 normalise first
-
-```{r step 1.7, echo=FALSE, warning=FALSE, message=FALSE}
-all_LAD_lm_lst <- list()
-all_LAD_lm_res_lst <- list()
-assumptions_LAD_lm_lst <- list()
-gq_test_LAD_lst <- list()
-ks_test_LAD_lst <- list()
-
-# Log transform - data are already log transformed
-exp_log_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ log2(.x + 1)))
-
-for (gene in c(dystonia_genes)) {
-
-  # Run least absolute deviations model for dystonia genes
-  linear_model <- rlm(as.formula(paste0(gene, "~ rin + ethnicity + sex")), data = exp_log_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_LAD_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_LAD_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_LAD_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_LAD_lst[[paste0(gene)]] <- gq_test
-  ks_test_LAD_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.7_data, layout="l-body-outset"}
-data <- bind_rows(all_LAD_lm_lst) |>
-  dplyr::mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  dplyr::mutate(gene = rep(str_split_i(names(all_LAD_lm_lst), '_', 1), each = 7)) |>
-  dplyr::relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1.7, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_LAD_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_LAD_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.7, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_LAD_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-***
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_LAD_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.7}
-data <- bind_rows(gq_test_LAD_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_LAD_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_LAD_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
-
-```{r ks_diagnostic_1.7}
-data <- bind_rows(ks_test_LAD_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_LAD_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.8: Linear models covariate correction (GLM) {.tabset}
-
-+ Run step 1 again using Least Absolute Deviations Regression
-+ log2 normalise first
-
-```{r step 1.8, echo=FALSE, warning=FALSE, message=FALSE}
-all_GLM_lm_lst <- list()
-all_GLM_lm_res_lst <- list()
-assumptions_GLM_lm_lst <- list()
-gq_test_GLM_lst <- list()
-ks_test_GLM_lst <- list()
-
-# Log transform - data are already log transformed
-exp_log_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ log2(.x + 1)))
-
-for (gene in c(dystonia_genes)) {
-
-  # Run least absolute deviations model for dystonia genes
-  linear_model <- rlm(as.formula(paste0(gene, "~ rin + ethnicity + sex")), data = exp_log_tbl)
-  lm_residuals <- linear_model$residuals
-  
-  # Run tests to check assumptions
-  model_assumptions <- check_model(linear_model)
-  gq_test <- broom::tidy(lmtest::gqtest(linear_model)) |> # Goldfeld-Quant test for heteroscedasticity
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-    
-  ks_test <- broom::tidy(ks.test(lm_residuals, "pnorm", 
-                                 mean = mean(lm_residuals), 
-                                 sd = sd(lm_residuals))) |> # Kolmogorov-Smirnov Test test for normality of residuals
-    mutate(gene = gene) |>
-    dplyr::select(gene, statistic, p.value)
-      
-  linear_model <- broom::tidy(linear_model)
-
-  # Add gene summary (with name) to list
-  all_GLM_lm_lst[[paste0(gene, '_lm_all')]] <- linear_model
-  all_GLM_lm_res_lst[[paste0(gene, '_res')]] <- lm_residuals
-  assumptions_GLM_lm_lst[[paste0(gene)]] <- model_assumptions
-  gq_test_GLM_lst[[paste0(gene)]] <- gq_test
-  ks_test_GLM_lst[[paste0(gene)]] <- ks_test
-} 
-
-```
-
-***
-
-### Linear model
-
-```{r model_1.8_data, layout="l-body-outset"}
-data <- bind_rows(all_GLM_lm_lst) |>
-  dplyr::mutate(across(where(is.numeric), 
-                 ~ formatC(., format = "e", digits = 2))) |>
-  dplyr::mutate(gene = rep(str_split_i(names(all_GLM_lm_lst), '_', 1), each = 7)) |>
-  dplyr::relocate(gene)
-rmarkdown::paged_table(data, options = list(rows.print = 7))
-```
-
-***
-
-### Diagnostic plots {.tabset}
-
-#### LM assumption plots {.tabset}
-
-```{r diagnostic_plots_model_1.8, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_GLM_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_GLM_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Residual normality plots {.tabset}
-
-```{r residual_norm_plots_1.8, results='asis', echo=FALSE, warnings=FALSE}
-residuals_df <- bind_cols(all_GLM_lm_res_lst |> as_tibble()) |>
-  rename_with(~ str_replace(., "_res", ""))
-  
-for(i in colnames(residuals_df)){
-  cat('#####',i,' \n')
-  plot_normality(residuals_df, i)
-  cat('\n\n\n')
-}
-```
-
-***
-
-### Diagnostic tests {.tabset}
-
-#### Goldfeld-Quant test for heteroscedasticity
-
-+ Genes with significant p-values: `r length(bind_rows(gq_test_GLM_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))` 
-
-```{r gq_diagnostic_1.8}
-data <- bind_rows(gq_test_GLM_lst) |>
-  arrange(p.value)
-
-bind_rows(gq_test_GLM_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-#### Kolmogorov-Smirnov test for normality
-
-+ Genes with significant p-values: `r length(bind_rows(ks_test_GLM_lst) |> filter(p.value < 0.05) |> arrange(gene) |> pull(gene))`
-+ Though we have 438 residuals here
-
-```{r ks_diagnostic_1.8}
-data <- bind_rows(ks_test_GLM_lst) |>
-  arrange(p.value)
-
-bind_rows(ks_test_GLM_lst) |>
-  filter(p.value < 0.05) |>
-  arrange(gene) |>
-  pull(gene)
-
-rmarkdown::paged_table(data, options = list(rows.print = 10))
-```
-
-***
-
-## Step 1.8: Combine residuals (all genes)
+## Step 1.5: Combine residuals (all genes)
 
 + Prep data for step 2
 + `lm()` handles catagorical variables (`region`, `dev_stage`) automatically
@@ -1132,7 +209,7 @@ rmarkdown::paged_table(data, options = list(rows.print = 10))
 ```{r step_1.8}
 expr_res_tbl <- expr_tbl |>
   dplyr::select(dev_stage, region, donor) |>
-  bind_cols(all_lm_res_lst |> as_tibble())
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble())
 
 step1_tbl <- expr_res_tbl |> # Add step 1 residuals to tbl
   pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
@@ -1141,575 +218,17 @@ glimpse(step1_tbl)
 
 ***
 
-## Step 1.9: Outliers {.tabset}
-
-### expr_tbl {.tabset}
-
-#### Table
-
-```{r diagnose_outliers}
-diagnose_numeric(expr_tbl[7:31]) |> flextable() |>
-    set_formatter(p_value = function(x) {
-    formatC(x, format = "e", digits = 2)
-  })
-```
-
-#### Plot {.tabset}
-
-```{r plot_outlier, results='asis', echo=FALSE, warnings=FALSE}
-for(i in colnames(expr_tbl)[7:31]){
-  cat('#####',i,' \n')
-  plot_outlier(expr_tbl, i) 
-  cat('\n\n\n')
-}
-```
-
-### log2(expr_tbl) {.tabset}
-
-#### Table
-
-```{r diagnose_outliers_log2}
-diagnose_numeric(log2(expr_tbl[7:31])) |> flextable()
-```
-
-#### Plot {.tabset}
-
-```{r plot_outlier_log2, results='asis', echo=FALSE, warnings=FALSE}
-for(i in colnames(expr_tbl)[7:31]){
-  cat('#####',i,' \n')
-  exp_log_tbl <- expr_tbl |> 
-   mutate(across(ADCY5:VPS16, ~ log2(.x + 1)))
-  
-  plot_outlier(exp_log_tbl, i)
-  cat('\n\n\n')
-}
-```
-
-### yeoJohnson(expr_tbl) {.tabset}
-
-#### Table
-
-```{r diagnose_outliers_yeojohn}
-expr_tbl[7:31] |> 
-  mutate(across(ADCY5:VPS16, ~ yeojohnson(.x)$x.t)) |> 
-  diagnose_numeric() |>
-  flextable()
-```
-
-#### Plot {.tabset}
-
-```{r plot_outlier_yeojohn, results='asis', echo=FALSE, warnings=FALSE}
-exp_yeojohn_tbl <- expr_tbl |> 
-  mutate(across(ADCY5:VPS16, ~ yeojohnson(.x)$x.t))
-
-for(i in colnames(expr_tbl)[7:31]){
-  cat('#####',i,' \n')
-  plot_outlier(exp_yeojohn_tbl, i)
-  cat('\n\n\n')
-}
-```
-
-### asinh(expr_tbl) {.tabset}
-
-#### Table
-
-```{r diagnose_outliers_asinh}
-expr_tbl[7:31] |> 
-  mutate(across(ADCY5:VPS16, ~ asinh(.x))) |> 
-  diagnose_numeric() |>
-  flextable()
-```
-
-#### Plot {.tabset}
-
-```{r plot_outlier_asinh, results='asis', echo=FALSE, warnings=FALSE}
-asinh_tbl <- expr_tbl |> 
-  mutate(across(ADCY5:VPS16, ~ asinh(.x)))
-
-for(i in colnames(expr_tbl)[7:31]){
-  cat('#####',i,' \n')
-  plot_outlier(asinh_tbl, i)
-  cat('\n\n\n')
-}
-```
-
-## Step 1.X: Test best normalisation method for all genes
-
-+ Not run yet
-
-```{r best_norm_all, eval=FALSE}
-# Define normalization methods
-normalize_methods <- list(
-  log2 = ~ log2(. + 1),   # Adding 1 to avoid log(0)
-  yeo_johnson = ~ bestNormalize(., approach = "YeoJohnson")$x.t,
-  arcsinh = ~ asinh(.),
-  boxcox = ~ bestNormalize(., approach = "BoxCox")$x.t
-)
-
-# Prepare for evaluation across specified genes
-results <- map_dfr(names(normalize_methods), function(norm_name) {
-  normalized_data <- expr_tbl %>%
-    mutate(across(ADCY5:VPS16, normalize_methods[[norm_name]])) %>%
-    pivot_longer(cols = ADCY5:VPS16, names_to = "gene", values_to = "expression")
-  
-  # Fit models and collect RMSE for each gene
-  normalized_data %>%
-    group_by(gene) %>%
-    summarise(rmse = sqrt(mean((lm(expression ~ rin + ethnicity +
-                                   sex, data = cur_data()) %>% residuals()) ^ 2)), .groups = 'drop') %>%
-    mutate(normalization = norm_name)
-})
-
-# Display the best normalization method for all genes
-best_norm <- results %>%
-  group_by(normalization) %>%
-  summarise(mean_rmse = mean(rmse), .groups = 'drop') %>%
-  filter(mean_rmse == min(mean_rmse))
-
-print(best_norm)
-```
+## Step 2: Linear models 
 
 ***
 
+### Model 1 {.tabset}
 
-
-## Step 2: Linear models (uncorrected)
-
-+ Retaining models 4 and 5 from previous analyses
-
-***
-
-### Model 4 {.tabset}
-
-+ Model 4: `lm(step1_residuals ~ PFC + dev_stage + donor, data)` 
-+ Specify brain region dummy variable column in model, include all Dev stages (no dataframe subsetting)
++ Model 1: `lm(step1_residuals ~ PFC + dev_stage + donor, data)` 
 
 #### Plot
 
-```{r model_4, fig.dim=c(5,3)}
-regional_lm_lst <- list()
-regional_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Add dummy variables to retain all dev stages
-model_4_data <- model.matrix(~ region - 1, data = step1_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'region', '')) |>
-  bind_cols(step1_tbl) 
-
-# Run model for each region
-for (region in unique(step1_tbl$region)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage + donor'), data = model_4_data)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
-  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
-  
-  region <- str_split_i(model_name, '_', 1)
-  
-  df <- regional_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == region)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(regional_lms) |>
-  mutate(region = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(region = factor(region, levels = rev(brain_levels))) |>
-  select(-term) |>
-  relocate(region)
-  
-region_plt <- plt_data |>
-  ggplot(aes(x = region, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  ylim(-12, 12) +
-  Seurat::NoLegend()
-
-
-print(region_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model4, results='asis', echo=FALSE}
-for(i in names(regional_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(regional_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-#### Diagnostic plots {.tabset}
-
-```{r Diagnostic_plots_model4, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Data
-
-```{r model_4_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
-```
-
-***
-
-### Model 5 {.tabset}
-
-+ Model 5: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
-+ Specify Dev stage dummy variable column in model, include all regions (no dataframe subsetting)
-
-#### Plot
-
-```{r model_5, fig.dim=c(5,3)}
-dev_stage_lm_lst <- list()
-dev_stage_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Add dummy variables to retain all dev stages
-model_5_data <- model.matrix(~ dev_stage - 1, data = step1_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'dev_stage', '')) |>
-  bind_cols(step1_tbl) 
-
-# Run model for each Dev_stage
-for (dev_stage in unique(step1_tbl$dev_stage)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region + donor'), data = model_5_data)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
-  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
-  
-  dev_stage <- str_split_i(model_name, '_', 1)
-  
-  df <- dev_stage_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == dev_stage)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(dev_stage_lms) |>
-  mutate(dev_stage = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
-  select(-term) |>
-  relocate(dev_stage)
-  
-dev_stage_plt <- plt_data |>
-  ggplot(aes(x = dev_stage, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  ylim(-13, 13) +
-  Seurat::NoLegend()
-
-
-print(dev_stage_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model_5, results='asis', echo=FALSE}
-for(i in names(dev_stage_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(dev_stage_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-#### Diagnostic plots  {.tabset}
-
-```{r Diagnostic_plots_model_5, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Data
-
-```{r model_5_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
-```
-
-***
-
-### Model 6 {.tabset}
-
-+ Model 6: `lm(step1_residuals ~ PFC + dev_stage, data)` 
-+ Rerun model 4 without adding Brain ID as a covariate
-
-#### Plot
-
-```{r model_6, fig.dim=c(5,3)}
-regional_lm_lst <- list()
-regional_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Add dummy variables to retain all dev stages
-model_4_data <- model.matrix(~ region - 1, data = step1_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'region', '')) |>
-  bind_cols(step1_tbl) 
-
-# Run model for each region
-for (region in unique(step1_tbl$region)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage'), data = model_4_data)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
-  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
-  
-  region <- str_split_i(model_name, '_', 1)
-  
-  df <- regional_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == region)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(regional_lms) |>
-  mutate(region = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(region = factor(region, levels = rev(brain_levels))) |>
-  select(-term) |>
-  relocate(region)
-  
-region_plt <- plt_data |>
-  ggplot(aes(x = region, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  ylim(-6, 6) +
-  Seurat::NoLegend()
-
-
-print(region_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model_6, results='asis', echo=FALSE}
-for(i in names(regional_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(regional_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-#### Data
-
-```{r model_6_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
-```
-
-***
-
-
-### Model 7 {.tabset}
-
-+ Model 7: `lm(step1_residuals ~ EarlyFetal + region, data)` 
-+ Rerun model 5 without adding Brain ID as a covariate
-
-#### Plot
-
-```{r model_7, fig.dim=c(5,3)}
-dev_stage_lm_lst <- list()
-dev_stage_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Add dummy variables to retain all dev stages
-model_5_data <- model.matrix(~ dev_stage - 1, data = step1_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'dev_stage', '')) |>
-  bind_cols(step1_tbl) 
-
-# Run model for each Dev_stage
-for (dev_stage in unique(step1_tbl$dev_stage)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region'), data = model_5_data)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
-  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
-  
-  dev_stage <- str_split_i(model_name, '_', 1)
-  
-  df <- dev_stage_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == dev_stage)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(dev_stage_lms) |>
-  mutate(dev_stage = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
-  select(-term) |>
-  relocate(dev_stage)
-  
-dev_stage_plt <- plt_data |>
-  ggplot(aes(x = dev_stage, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) + # All are sig, but print out a red when all values TRUE 
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  ylim(-18, 18) +
-  Seurat::NoLegend() 
-
-
-print(dev_stage_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model_7, results='asis', echo=FALSE}
-for(i in names(dev_stage_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(dev_stage_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-##### Data
-
-```{r model_7_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
-```
-
-***
-
-## Step 3: Linear models (corrected)
-
-### Model 8 {.tabset}
-
-+ Model 8: `lm(step1_residuals ~ PFC + dev_stage + donor, data)` 
-+ Rerun model 4 with YeoJohnson corrected values
-
-#### Plot
-
-```{r model_8, fig.dim=c(5,3)}
+```{r model_1, fig.dim=c(5,3)}
 regional_lm_lst <- list()
 regional_lm_p <- list()
 assumptions_lm_lst <- list()
@@ -1719,251 +238,6 @@ step1_yeoJohn_tbl <- expr_tbl |>
   dplyr::select(dev_stage, region, donor) |>
   bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
   pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
-
-# Add dummy variables to retain all dev stages
-step1_yeoJohn_tbl <- model.matrix(~ region - 1, data = step1_yeoJohn_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'region', '')) |>
-  bind_cols(step1_yeoJohn_tbl) 
-
-# Run model for each region
-for (region in unique(step1_yeoJohn_tbl$region)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage + donor'), data = step1_yeoJohn_tbl)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
-  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
-  
-  region <- str_split_i(model_name, '_', 1)
-  
-  df <- regional_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == region)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(regional_lms) |>
-  mutate(region = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(region = factor(region, levels = rev(brain_levels))) |>
-  select(-term) |>
-  relocate(region)
-  
-region_plt <- plt_data |>
-  ggplot(aes(x = region, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  ylim(-28, 28) +
-  Seurat::NoLegend()
-
-
-print(region_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model_8, results='asis', echo=FALSE}
-for(i in names(regional_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(regional_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-#### Diagnostic plots {.tabset}
-
-```{r Diagnostic_plots_model_8, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Data
-
-```{r model_8_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
-```
-
-***
-
-### Model 9 {.tabset}
-
-+ Model 9: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
-+ Rerun model 5 with YeoJohnson corrected values
-
-#### Plot
-
-```{r model_9, fig.dim=c(8,3)}
-dev_stage_lm_lst <- list()
-dev_stage_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Create input tbl from yeoJohnson corrected residuals
-step1_yeoJohn_tbl <- expr_tbl |>
-  dplyr::select(dev_stage, region, donor) |>
-  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
-  pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
-
-# Add dummy variables to retain all dev stages
-step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
-  as_tibble() |>
-  rename_with(~ str_replace(., 'dev_stage', '')) |>
-  bind_cols(step1_yeoJohn_tbl) 
-
-# Run model for each Dev_stage
-for (dev_stage in unique(step1_yeoJohn_tbl$dev_stage)) {
-  
-  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region + donor'), step1_yeoJohn_tbl)
-  model_assumptions <- check_model(linear_model)
-  
-  lm_pval <- summary(linear_model)$coefficients[2,]
-  linear_model <- broom::tidy(linear_model)
-  
-  # Add gene summary (with name) to list
-  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
-  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
-  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
-
-}
-  
-# Pull out region line of lms and retain item name
-dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
-  
-  dev_stage <- str_split_i(model_name, '_', 1)
-  
-  df <- dev_stage_lm_lst[[model_name]]
-  intercept_data <- df |> 
-    filter(term == dev_stage)
-  
-  # Replace '(Intercept)' with the model name
-  intercept_data <- intercept_data %>%
-    mutate(term = model_name) 
-  
-  return(intercept_data)})
-
-plt_data <- bind_rows(dev_stage_lms) |>
-  mutate(dev_stage = str_replace(term, '_lm', '')) |>
-  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
-  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
-  mutate(neglog10p = -log10(P_fdr)) |>
-  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
-  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
-  select(-term) |>
-  relocate(dev_stage)
-  
-dev_stage_plt <- plt_data |>
-  ggplot(aes(x = dev_stage, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
-  coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
-  theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
-  scale_fill_manual(values = "#56B4E9") + # Need to add this as everything is sig.
-  ylim(-40, 40) +
-  Seurat::NoLegend()
-
-
-print(dev_stage_plt)
-```
-
-***
-
-#### LM raw {.tabset}
-
-```{r all_LM_raw_model_9, results='asis', echo=FALSE}
-for(i in names(dev_stage_lm_lst)){
-  cat('#####',i,' \n')
-  print(knitr::kable(dev_stage_lm_lst[[i]])) 
-  cat('\n')
-}
-```
-
-***
-
-#### Diagnostic plots  {.tabset}
-
-```{r Diagnostic_plots_model_9, results='asis', echo=FALSE, fig.dim=c(10,10)}
-for(i in names(assumptions_lm_lst)){
-  cat('#####',i,' \n')
-  plot(assumptions_lm_lst[[i]])
-  cat('\n\n')
-}
-```
-
-***
-
-#### Data
-
-```{r model_9_data, layout="l-body-outset"}
-rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
-```
-
-***
-
-
-
-
-***
-
-## Step 4: Linear models (genes removed)
-
-***
-
-### Model 10 {.tabset}
-
-+ Model 10: `lm(step1_residuals ~ PFC + dev_stage + donor, data)` 
-+ Rerun model 4 with YeoJohnson corrected values and genes failing Goldfeld-Quant removed
-
-#### Plot
-
-```{r model_10, fig.dim=c(5,3)}
-regional_lm_lst <- list()
-regional_lm_p <- list()
-assumptions_lm_lst <- list()
-
-# Create input tbl from yeoJohnson corrected residuals
-step1_yeoJohn_tbl <- expr_tbl |>
-  dplyr::select(dev_stage, region, donor) |>
-  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
-  select(-contains(gq_genes)) |> # Keep only genes that passed Goldfeld-Quant
-  pivot_longer(DNAJC12_res:TUBB4A_res, names_to = "gene", values_to = "step1_residuals") 
 
 # Add dummy variables to retain all dev stages
 step1_yeoJohn_tbl <- model.matrix(~ region - 1, data = step1_yeoJohn_tbl) |>
@@ -2034,7 +308,7 @@ print(region_plt)
 
 #### LM raw {.tabset}
 
-```{r all_LM_raw_model_10, results='asis', echo=FALSE}
+```{r all_LM_raw_model_1, results='asis', echo=FALSE}
 for(i in names(regional_lm_lst)){
   cat('#####',i,' \n')
   print(knitr::kable(regional_lm_lst[[i]])) 
@@ -2046,7 +320,7 @@ for(i in names(regional_lm_lst)){
 
 #### Diagnostic plots {.tabset}
 
-```{r Diagnostic_plots_model_10, results='asis', echo=FALSE, fig.dim=c(10,10)}
+```{r Diagnostic_plots_model_1, results='asis', echo=FALSE, fig.dim=c(10,10)}
 for(i in names(assumptions_lm_lst)){
   cat('#####',i,' \n')
   plot(assumptions_lm_lst[[i]])
@@ -2058,20 +332,260 @@ for(i in names(assumptions_lm_lst)){
 
 #### Data
 
-```{r model_10_data, layout="l-body-outset"}
+```{r model_1_data, layout="l-body-outset"}
 rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
 ```
 
 ***
 
-### Model 11 {.tabset}
+### Model 2 {.tabset}
 
-+ Model 11: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
-+ Rerun model 5 with YeoJohnson corrected values and genes failing Goldfeld-Quant removed
++ Model 2: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
 
 #### Plot
 
-```{r model_11, fig.dim=c(8,3)}
+```{r model_2, fig.dim=c(8,3)}
+dev_stage_lm_lst <- list()
+dev_stage_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'dev_stage', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each Dev_stage
+for (dev_stage in unique(step1_yeoJohn_tbl$dev_stage)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region + donor'), step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
+  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
+  
+  dev_stage <- str_split_i(model_name, '_', 1)
+  
+  df <- dev_stage_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == dev_stage)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(dev_stage_lms) |>
+  mutate(dev_stage = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
+  select(-term) |>
+  relocate(dev_stage)
+  
+dev_stage_plt <- plt_data |>
+  ggplot(aes(x = dev_stage, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+  scale_fill_manual(values=c("#00BFC4")) +
+  ylim(-42, 42) +
+  Seurat::NoLegend()
+
+
+print(dev_stage_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_2, results='asis', echo=FALSE}
+for(i in names(dev_stage_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(dev_stage_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots  {.tabset}
+
+```{r Diagnostic_plots_model_2, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_2_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
+```
+
+***
+
+
+## Step 3: Linear models (genes removed)
+
+***
+
+### Model 3 {.tabset}
+
++ Model 3: `lm(step1_residuals ~ PFC + dev_stage + donor, data)` 
++ Rerun model 1 with genes failing Goldfeld-Quant removed
+
+#### Plot
+
+```{r model_3, fig.dim=c(5,3)}
+regional_lm_lst <- list()
+regional_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  select(-contains(gq_genes)) |> # Keep only genes that passed Goldfeld-Quant
+  pivot_longer(contains('_res'), names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ region - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'region', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each region
+for (region in unique(step1_yeoJohn_tbl$region)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage + donor'), data = step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
+  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
+  
+  region <- str_split_i(model_name, '_', 1)
+  
+  df <- regional_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == region)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(regional_lms) |>
+  mutate(region = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(region = factor(region, levels = rev(brain_levels))) |>
+  select(-term) |>
+  relocate(region)
+  
+region_plt <- plt_data |>
+  ggplot(aes(x = region, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+  ylim(-35, 35) +
+  Seurat::NoLegend()
+
+
+print(region_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_3, results='asis', echo=FALSE}
+for(i in names(regional_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(regional_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots {.tabset}
+
+```{r Diagnostic_plots_model_3, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_3_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
+```
+
+***
+
+### Model 4 {.tabset}
+
++ Model 4: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
++ Rerun model 2 with genes failing Goldfeld-Quant removed
+
+#### Plot
+
+```{r model_4, fig.dim=c(8,3)}
 dev_stage_lm_lst <- list()
 dev_stage_lm_p <- list()
 assumptions_lm_lst <- list()
@@ -2081,7 +595,7 @@ step1_yeoJohn_tbl <- expr_tbl |>
   dplyr::select(dev_stage, region, donor) |>
   bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
   select(-contains(gq_genes)) |> # Keep only genes that passed Goldfeld-Quant
-  pivot_longer(DNAJC12_res:TUBB4A_res, names_to = "gene", values_to = "step1_residuals") 
+  pivot_longer(contains('_res'), names_to = "gene", values_to = "step1_residuals") 
 
 # Add dummy variables to retain all dev stages
 step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
@@ -2152,7 +666,7 @@ print(dev_stage_plt)
 
 #### LM raw {.tabset}
 
-```{r all_LM_raw_model_11, results='asis', echo=FALSE}
+```{r all_LM_raw_model_4, results='asis', echo=FALSE}
 for(i in names(dev_stage_lm_lst)){
   cat('#####',i,' \n')
   print(knitr::kable(dev_stage_lm_lst[[i]])) 
@@ -2164,7 +678,7 @@ for(i in names(dev_stage_lm_lst)){
 
 #### Diagnostic plots  {.tabset}
 
-```{r Diagnostic_plots_model_11, results='asis', echo=FALSE, fig.dim=c(10,10)}
+```{r Diagnostic_plots_model_4, results='asis', echo=FALSE, fig.dim=c(10,10)}
 for(i in names(assumptions_lm_lst)){
   cat('#####',i,' \n')
   plot(assumptions_lm_lst[[i]])
@@ -2176,9 +690,485 @@ for(i in names(assumptions_lm_lst)){
 
 #### Data
 
-```{r model_11_data, layout="l-body-outset"}
+```{r model_4_data, layout="l-body-outset"}
 rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
 ```
 
 ***
 
+
+## Step 4: Linear models (donor removed)
+
+### Model 5 {.tabset}
+
++ Model 5: `lm(step1_residuals ~ PFC + dev_stage, data)` 
++ Remove donor as a covariate
+
+#### Plot
+
+```{r model_5, fig.dim=c(5,3)}
+regional_lm_lst <- list()
+regional_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ region - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'region', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each region
+for (region in unique(step1_yeoJohn_tbl$region)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage'), data = step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
+  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
+  
+  region <- str_split_i(model_name, '_', 1)
+  
+  df <- regional_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == region)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(regional_lms) |>
+  mutate(region = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(region = factor(region, levels = rev(brain_levels))) |>
+  select(-term) |>
+  relocate(region)
+  
+region_plt <- plt_data |>
+  ggplot(aes(x = region, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+  ylim(-28, 28) +
+  Seurat::NoLegend()
+
+
+print(region_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_5, results='asis', echo=FALSE}
+for(i in names(regional_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(regional_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots {.tabset}
+
+```{r Diagnostic_plots_model_5, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_5_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
+```
+
+***
+
+### Model 6 {.tabset}
+
++ Model 6: `lm(step1_residuals ~ EarlyFetal + region, data)` 
++ Remove donor as a covariate
+
+#### Plot
+
+```{r model_6, fig.dim=c(5,3)}
+dev_stage_lm_lst <- list()
+dev_stage_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'dev_stage', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each Dev_stage
+for (dev_stage in unique(step1_yeoJohn_tbl$dev_stage)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region'), step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
+  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
+  
+  dev_stage <- str_split_i(model_name, '_', 1)
+  
+  df <- dev_stage_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == dev_stage)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(dev_stage_lms) |>
+  mutate(dev_stage = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
+  select(-term) |>
+  relocate(dev_stage)
+  
+dev_stage_plt <- plt_data |>
+  ggplot(aes(x = dev_stage, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+ # scale_fill_manual(values = "#00BFC4") + # Need to add this as everything is sig.
+  ylim(-125, 125) +
+  Seurat::NoLegend()
+
+
+print(dev_stage_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_6, results='asis', echo=FALSE}
+for(i in names(dev_stage_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(dev_stage_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots  {.tabset}
+
+```{r Diagnostic_plots_model_6, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_6_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
+```
+
+***
+
+## Step 5: Linear models (donor and genes removed)
+
+### Model 7 {.tabset}
+
++ Model 7: `lm(step1_residuals ~ PFC + dev_stage, data)` 
++ Rerun model 5 with genes failing Goldfeld-Quant removed
+
+#### Plot
+
+```{r model_7, fig.dim=c(5,3)}
+regional_lm_lst <- list()
+regional_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  select(-contains(gq_genes)) |> # Keep only genes that passed Goldfeld-Quant
+  pivot_longer(contains('_res'), names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ region - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'region', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each region
+for (region in unique(step1_yeoJohn_tbl$region)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', region, '+ dev_stage'), data = step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  regional_lm_lst[[paste0(region, '_lm')]] <- linear_model
+  regional_lm_p[[paste0(region, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(region)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+regional_lms <- lapply(names(regional_lm_lst), function(model_name) {
+  
+  region <- str_split_i(model_name, '_', 1)
+  
+  df <- regional_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == region)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(regional_lms) |>
+  mutate(region = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(region = factor(region, levels = rev(brain_levels))) |>
+  select(-term) |>
+  relocate(region)
+  
+region_plt <- plt_data |>
+  ggplot(aes(x = region, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+  ylim(-35, 35) +
+  Seurat::NoLegend()
+
+
+print(region_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_7, results='asis', echo=FALSE}
+for(i in names(regional_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(regional_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots {.tabset}
+
+```{r Diagnostic_plots_model_7, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_7_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 8))
+```
+
+***
+
+### Model 8 {.tabset}
+
++ Model 8: `lm(step1_residuals ~ EarlyFetal + region + donor, data)` 
++ Rerun model 6 with genes failing Goldfeld-Quant removed
+
+#### Plot
+
+```{r model_8, fig.dim=c(8,3)}
+dev_stage_lm_lst <- list()
+dev_stage_lm_p <- list()
+assumptions_lm_lst <- list()
+
+# Create input tbl from yeoJohnson corrected residuals
+step1_yeoJohn_tbl <- expr_tbl |>
+  dplyr::select(dev_stage, region, donor) |>
+  bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
+  select(-contains(gq_genes)) |> # Keep only genes that passed Goldfeld-Quant
+  pivot_longer(contains('_res'), names_to = "gene", values_to = "step1_residuals") 
+
+# Add dummy variables to retain all dev stages
+step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
+  as_tibble() |>
+  rename_with(~ str_replace(., 'dev_stage', '')) |>
+  bind_cols(step1_yeoJohn_tbl) 
+
+# Run model for each Dev_stage
+for (dev_stage in unique(step1_yeoJohn_tbl$dev_stage)) {
+  
+  linear_model <- lm(paste0('step1_residuals', '~', dev_stage, '+ region'), step1_yeoJohn_tbl)
+  model_assumptions <- check_model(linear_model)
+  
+  lm_pval <- summary(linear_model)$coefficients[2,]
+  linear_model <- broom::tidy(linear_model)
+  
+  # Add gene summary (with name) to list
+  dev_stage_lm_lst[[paste0(dev_stage, '_lm')]] <- linear_model
+  dev_stage_lm_p[[paste0(dev_stage, '_P')]] <- lm_pval
+  assumptions_lm_lst[[paste0(dev_stage)]] <- model_assumptions
+
+}
+  
+# Pull out region line of lms and retain item name
+dev_stage_lms <- lapply(names(dev_stage_lm_lst), function(model_name) {
+  
+  dev_stage <- str_split_i(model_name, '_', 1)
+  
+  df <- dev_stage_lm_lst[[model_name]]
+  intercept_data <- df |> 
+    filter(term == dev_stage)
+  
+  # Replace '(Intercept)' with the model name
+  intercept_data <- intercept_data %>%
+    mutate(term = model_name) 
+  
+  return(intercept_data)})
+
+plt_data <- bind_rows(dev_stage_lms) |>
+  mutate(dev_stage = str_replace(term, '_lm', '')) |>
+  mutate(P_fdr = p.adjust(p.value, method = "fdr")) |>
+  mutate(P_fdr_bool = ifelse(P_fdr < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(P_fdr)) |>
+  mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
+  mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
+  select(-term) |>
+  relocate(dev_stage)
+  
+dev_stage_plt <- plt_data |>
+  ggplot(aes(x = dev_stage, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool)) +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text = element_text(size = 12)) +
+  ylim(-90, 90) +
+  scale_fill_manual(values=c("#00BFC4")) +
+  Seurat::NoLegend()
+
+
+print(dev_stage_plt)
+```
+
+***
+
+#### LM raw {.tabset}
+
+```{r all_LM_raw_model_8, results='asis', echo=FALSE}
+for(i in names(dev_stage_lm_lst)){
+  cat('#####',i,' \n')
+  print(knitr::kable(dev_stage_lm_lst[[i]])) 
+  cat('\n')
+}
+```
+
+***
+
+#### Diagnostic plots  {.tabset}
+
+```{r Diagnostic_plots_model_8, results='asis', echo=FALSE, fig.dim=c(10,10)}
+for(i in names(assumptions_lm_lst)){
+  cat('#####',i,' \n')
+  plot(assumptions_lm_lst[[i]])
+  cat('\n\n')
+}
+```
+
+***
+
+#### Data
+
+```{r model_8_data, layout="l-body-outset"}
+rmarkdown::paged_table(plt_data, options = list(rows.print = 7))
+```
+
+***
