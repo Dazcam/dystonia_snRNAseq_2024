@@ -91,10 +91,6 @@ seurat_object$cellIDs <- recode_cluster_ids(seurat_object, region, 'cluster_full
 Idents(seurat_object) <- seurat_object$cellIDs
 message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
 
-# Recode cluster IDs - sketch object 
-DefaultAssay(seurat_object) <- 'RNA'
-seurat_object <- JoinLayers(seurat_object)
-
 # Plot paired vln
 vln_plots_rna <- plot_paired_vlns(seurat_object, 
                                   'cellIDs', 
@@ -107,10 +103,19 @@ umap_vln_plots_rna <- plot_paired_umap_vln(seurat_object,
                                            'umap.full',
                                            'cellIDs', 
                                            get(paste0(region, '_final_genes')),
+                                           adult_title,
                                            get(paste0(region, '_umap_cols_recode')), 
                                            get(paste0(region, '_vln_cols_recode')))
 
-saveRDS(umap_vln_plots_rna, paste0(R_dir, '03seurat_umap_vln_plt_rna', region, '.rds'))
+umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object, 
+                                              'umap.harmony',
+                                              paste0(region, '_clusters'), 
+                                              get(paste0(region, '_final_genes')),
+                                              adult_title,
+                                              get(paste0(region, '_umap_cols_recode')), 
+                                              get(paste0(region, '_vln_cols_recode')))
+
+saveRDS(umap_vln_plots_rna, paste0(R_dir, '03seurat_umap_vln_plt_rna_', region, '.rds'))
 
 # Plot dystonia genes
 dystonia_plot_rna <- create_stacked_vln_plot(seurat_object, 
@@ -118,9 +123,6 @@ dystonia_plot_rna <- create_stacked_vln_plot(seurat_object,
                                              dystonia_genes,
                                              toupper(region),
                                              get(paste0(region, '_vln_cols_recode')))
-
-
-
 
 ## Find differential expressed marker genes in clusters  ------------------------------
 message('\nCalculating diff exp markers ...\n')
