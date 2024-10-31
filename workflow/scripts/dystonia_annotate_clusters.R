@@ -35,6 +35,10 @@ seurat_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
 
 ##  Plots for sketch object  ----------
 # Recode cluster IDs - sketch object 
+message('\nChanging to Sketch object ...\n')
+DefaultAssay(seurat_object) <- 'sketch'
+
+message("Recode cluster IDs ... ")
 seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
                                                                    region, 
                                                                    'harmony_clusters_0.1')
@@ -89,7 +93,6 @@ message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
 DefaultAssay(seurat_object) <- 'RNA'
 seurat_object <- JoinLayers(seurat_object)
 
-
 # Plot paired vln
 vln_plots_rna <- plot_paired_vlns(seurat_object, 
                                   'cellIDs', 
@@ -119,9 +122,9 @@ dystonia_plot_rna <- create_stacked_vln_plot(seurat_object,
 
 ## Find differential expressed marker genes in clusters  ------------------------------
 message('\nCalculating diff exp markers ...\n')
-Idents(seurat_object) <- 'cellIDs'
-marker_genes <- FindAllMarkers(seurat_object)
-readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
+# Idents(seurat_object) <- 'cellIDs'
+# marker_genes <- FindAllMarkers(seurat_object)
+# readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
 
 ## Back to sketch
 message('\nChanging to sketch object ...\n')
