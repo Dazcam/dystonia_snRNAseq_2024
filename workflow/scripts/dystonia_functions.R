@@ -750,19 +750,25 @@ create_stacked_vln_plot <- function(
   
   message('Creating stacked vln plot: ', region, ' ...')
   Idents(seurat_obj) <- unname(unlist((seurat_obj[[set_ident]])))
-  VlnPlot(seurat_obj, genes, stack = TRUE, flip = TRUE, 
-          same.y.lims = TRUE, fill.by = 'ident', cols = col_pal) +
+  VlnPlot(seurat_obj, genes, stack = TRUE, flip = TRUE,  
+          cols = col_pal, same.y.lims = TRUE, fill.by = 'ident') +
     theme(legend.position = "none",
-          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+          plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          text = element_text(size = 18),
-          axis.text.x  = element_text(colour = "#000000", size = 16),
-          axis.text.y  = element_text(colour = "#000000", size = 16)) +
-    xlab('Cell type') +
+          plot.title = element_text(hjust = 0.5, size = 16),
+          text = element_text(size = 12),
+          axis.text.x  = element_text(colour = "#000000", size = 13),
+          axis.text.y  = element_text(colour = "#000000", size = 12),
+          #axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+          #axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size = 13),
+          strip.text.y.left = element_text(angle = 0, size = 16)) +
     ggtitle(plot_title) +
-    facet_grid(feature ~ ., drop = F)
+    ylab('Expression Level') +
+    facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+    scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
   
 }
 
@@ -793,54 +799,54 @@ recode_cluster_ids <- function(
     str_levels <- c("Str-adult-InN-1", "Str-adult-InN-2", "Str-adult-InN-3", 
                     "Str-adult-InN-4", "Str-adult-InN-5", "Str-adult-InN-6", 
                     "Str-adult-InN-7", "Str-adult-InN-8", "Str-adult-InN-9", 
-                    "Str-adult-ExN", "Str-adult-Ast-1", "Str-adult-Ast-2", 
+                    "Str-adult-InN-10", "Str-adult-Ast", "Str-adult-Ependy", 
                     "Str-adult-Olig-1", "Str-adult-OPC", "Str-adult-MG", 
                     "Str-adult-Misc-1")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>%
       dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
-                                          `0` = "Str-adult-InN-1", 
-                                          `1` = "Str-adult-InN-2",
+                                          `0` = "Str-adult-InN-5",
+                                          `1` = "Str-adult-InN-1",
                                           `2` = "Str-adult-Olig-1",
-                                          `3` = "Str-adult-InN-5",
-                                          `4` = "Str-adult-InN-6",
-                                          `5` = "Str-adult-InN-7",
-                                          `6` = "Str-adult-Ast-2",
+                                          `3` = "Str-adult-InN-2",
+                                          `4` = "Str-adult-InN-7",
+                                          `5` = "Str-adult-InN-9",
+                                          `6` = "Str-adult-Ast",
                                           `7` = "Str-adult-OPC",
-                                          `8` = "Str-adult-ExN",
-                                          `9` = "Str-adult-InN-8",
-                                          `10` = "Str-adult-InN-3",
-                                          `11` = "Str-adult-InN-4",
+                                          `8` = "Str-adult-InN-10",
+                                          `9` = "Str-adult-InN-4",
+                                          `10` = "Str-adult-InN-8",
+                                          `11` = "Str-adult-InN-3",
                                           `12` = "Str-adult-MG",
                                           `13` = "Str-adult-Misc-1",
-                                          `14` = "Str-adult-Ast-1",
-                                          `15` = "Str-adult-InN-9")) %>%
+                                          `14` = "Str-adult-Ependy",
+                                          `15` = "Str-adult-InN-6")) %>%
       pull(clust_recode)}
   
   if (region == 'cer') {
     
     cer_levels <- c("Cer-adult-ExN", "Cer-adult-UBC", "Cer-adult-InN-1", 
-                    "Cer-adult-InN-2", "Cer-adult-InN-3", "Cer-adult-BGli?", 
-                    "Cer-adult-Olig", "Cer-adult-OPC", "Cer-adult-Ast", 
-                    "Cer-adult-MG", "Cer-adult-Endo?", "Cer-adult-Pericyte?",
-                    "Cer-adult-Leuko?")
+                    "Cer-adult-InN-2", "Cer-adult-InN-3", "Cer-adult-Ast", 
+                    "Cer-adult-BGli", "Cer-adult-Olig", "Cer-adult-OPC", 
+                    "Cer-adult-MG", "Cer-adult-Fibro", "Cer-adult-Mural",
+                    "Cer-adult-Leuko")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>%
       dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
                                           `0` = "Cer-adult-ExN", 
                                           `1` = "Cer-adult-Olig",
-                                          `2` = "Cer-adult-BGli?",
+                                          `2` = "Cer-adult-BGli",
                                           `3` = "Cer-adult-OPC",
                                           `4` = "Cer-adult-InN-1",
                                           `5` = "Cer-adult-MG",
                                           `6` = "Cer-adult-Ast",
-                                          `7` = "Cer-adult-Endo?",
+                                          `7` = "Cer-adult-Fibro",
                                           `8` = "Cer-adult-UBC",
-                                          `9` = "Cer-adult-Pericyte?",
+                                          `9` = "Cer-adult-Mural",
                                           `10` = "Cer-adult-InN-2",
-                                          `11` = "Cer-adult-Leuko?",
+                                          `11` = "Cer-adult-Leuko",
                                           `12` = "Cer-adult-InN-3")) %>%
       pull(clust_recode)}
   
@@ -852,7 +858,7 @@ recode_cluster_ids <- function(
                     "FC-adult-InN-2", "FC-adult-InN-3", "FC-adult-InN-4", 
                     "FC-adult-InN-5", "FC-adult-InN-6", "FC-adult-InN-7", 
                     "FC-adult-InN-8", "FC-adult-Olig", "FC-adult-OPC", 
-                    "FC-adult-Ast", "FC-adult-MG", "FC-adult-Undef")
+                    "FC-adult-Ast", "FC-adult-MG", "FC-adult-Endo")
     
     clusters_recode <- seurat_obj@meta.data %>% 
       tibble::as_tibble() %>% 
@@ -877,7 +883,7 @@ recode_cluster_ids <- function(
                                           `17` = "FC-adult-ExN-8",
                                           `18` = "FC-adult-MG",
                                           `19` = "FC-adult-InN-8",
-                                          `20` = "FC-adult-Undef")) %>%
+                                          `20` = "FC-adult-Endo")) %>%
       pull(clust_recode)}
   
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
@@ -893,6 +899,7 @@ recode_cluster_ids <- function(
 #' @param umap_reduct A string stating the umap reduction you would like to plot.
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' @param genes A vector, or factor, of genes to plot in violin plot.
+#' @param plot_title A string to title the plot(s).
 #' @param col_pal_umap A palette of colours for umap plot.
 #' @param col_pal_vln A palette of colours for violin plot.
 #' 
@@ -907,6 +914,7 @@ plot_paired_umap_vln <- function(
   umap_reduct = NULL,
   meta_id = NULL,
   genes = NULL,
+  plot_title = NULL,
   col_pal_umap = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
                    "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
                    "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
@@ -934,13 +942,15 @@ plot_paired_umap_vln <- function(
                           cols = col_pal_umap, pt.size = 0.1,
                           label = T, label.size = 3, label.box = T, repel = T,
                           raster = F) + 
-    NoLegend()
+    xlab('UMAP 1') + ylab('UMAP 2') +
+    NoLegend() + ggtitle(plot_title)
+  
   vln <- create_stacked_vln_plot(seurat_obj, meta_id, genes,
-                                 toupper(region), col_pal_vln)
+                                 plot_title, col_pal_vln)
   
   
-  umap | vln
-  
+  #umap | vln
+  cowplot::plot_grid(umap, vln, labels = 'AUTO', label_size = 20, axis = 'b')
 } 
 
 #' Plot 2 stacked violin plots to compare genes expressed
