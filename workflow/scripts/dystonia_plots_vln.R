@@ -242,7 +242,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     #   facet_wrap(~feature,  ncol = 1, strip.position = "left") +
     #   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
-    mid_plot <- create_stacked_vln_plot(adult_object, 
+    mid_plot <- create_stacked_vln_plot(new_cer_obj, 
                                         'cellIDs', 
                                         dystonia_genes,
                                         adult_title, 
