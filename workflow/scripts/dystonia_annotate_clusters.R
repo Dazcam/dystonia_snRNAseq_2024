@@ -55,11 +55,13 @@ umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object,
                                               get(paste0(region, '_umap_cols_recode')), 
                                               get(paste0(region, '_vln_cols_recode')))
 
-create_stacked_vln_plot(seurat_object, 
-                        paste0(region, '_clusters'), 
-                        dystonia_genes,
-                        adult_title, 
-                        get(paste0(region, '_vln_cols_recode')))
+
+
+# create_stacked_vln_plot(seurat_object, 
+#                         paste0(region, '_clusters'), 
+#                         dystonia_genes,
+#                         adult_title, 
+#                         get(paste0(region, '_vln_cols_recode')))
 
 #DimPlot(seurat_object, group.by = 'cell_type', reduction = 'umap.harmony')
 
@@ -103,12 +105,16 @@ umap_vln_plots_rna <- plot_paired_umap_vln(seurat_object,
                                            get(paste0(region, '_umap_cols_recode')), 
                                            get(paste0(region, '_vln_cols_recode')))
 
+saveRDS(umap_vln_plots_rna, paste0(R_dir, '03seurat_umap_vln_plt_rna', region, '.rds'))
+
 # Plot dystonia genes
 dystonia_plot_rna <- create_stacked_vln_plot(seurat_object, 
                                              'cellIDs', 
                                              dystonia_genes,
                                              toupper(region),
                                              get(paste0(region, '_vln_cols_recode')))
+
+
 
 
 ## Find differential expressed marker genes in clusters  ------------------------------
