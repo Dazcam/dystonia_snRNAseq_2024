@@ -89,7 +89,7 @@ seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independ
 message("Recode cluster IDs ... ")
 seurat_object$cellIDs <- recode_cluster_ids(seurat_object, region, 'cluster_full')
 Idents(seurat_object) <- seurat_object$cellIDs
-message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
+message('Any NAs in Idents: ', anyNA(Idents(seurat_object)))
 
 # Plot paired vln
 vln_plots_rna <- plot_paired_vlns(seurat_object, 

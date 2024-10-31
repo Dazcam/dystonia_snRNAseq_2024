@@ -35,7 +35,7 @@ seurat_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
 message('\nChanging to RNA object ...\n')
 DefaultAssay(seurat_object) <- 'RNA'
 seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independently
-message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
+message('Any NAs in Idents: ', anyNA(Idents(seurat_object)))
 
 # # Recode cluster IDs - sketch object 
 # seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 

@@ -155,7 +155,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   adult_object <- JoinLayers(adult_object)
   message('\nSetting idents ...\n')
   Idents(adult_object) <- adult_object$cellIDs
-  message('Number of NAs in Idents: ', anyNA(Idents(adult_object)))
+  message('Any NAs in Idents: ', anyNA(Idents(adult_object)))
   
   # message("Recode cluster IDs ... ")
   # adult_object$cellIDs <- recode_cluster_ids(adult_object, region, 'cluster_full')
