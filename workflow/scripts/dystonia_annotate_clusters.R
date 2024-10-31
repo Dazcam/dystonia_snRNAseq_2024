@@ -51,8 +51,18 @@ umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object,
                                               'umap.harmony',
                                               paste0(region, '_clusters'), 
                                               get(paste0(region, '_final_genes')),
+                                              adult_title,
                                               get(paste0(region, '_umap_cols_recode')), 
                                               get(paste0(region, '_vln_cols_recode')))
+
+create_stacked_vln_plot(seurat_object, 
+                        paste0(region, '_clusters'), 
+                        dystonia_genes,
+                        adult_title, 
+                        get(paste0(region, '_vln_cols_recode')))
+
+#DimPlot(seurat_object, group.by = 'cell_type', reduction = 'umap.harmony')
+
 
 # Plot dystonia genes
 dystonia_plot_sketch <- create_stacked_vln_plot(seurat_object, 
@@ -146,3 +156,6 @@ dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_g
   slice_head(n = 30) %>%
     pull(gene))
   
+
+seurat_object@meta.data |>
+  as_tibble() 
