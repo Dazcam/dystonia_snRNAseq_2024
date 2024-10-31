@@ -48,20 +48,20 @@ message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
 
 # Calculate aggregate and average expression - adult
 ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
-av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
-
-ag_fetal_mat <- calculate_aggregated_expression(seurat_fetal, dystonia_genes)
-av_fetal_mat <- calculate_average_expression(seurat_fetal, dystonia_genes)
-
-colnames(ag_fetal_mat) <- str_replace(colnames(ag_fetal_mat), '-', '-fetal-')
-colnames(av_fetal_mat) <- str_replace(colnames(av_fetal_mat), '-', '-fetal-')
+# av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
+# 
+# ag_fetal_mat <- calculate_aggregated_expression(seurat_fetal, dystonia_genes)
+# av_fetal_mat <- calculate_average_expression(seurat_fetal, dystonia_genes)
+# 
+# colnames(ag_fetal_mat) <- str_replace(colnames(ag_fetal_mat), '-', '-fetal-')
+# colnames(av_fetal_mat) <- str_replace(colnames(av_fetal_mat), '-', '-fetal-')
 
 # Save - note for snakemake fetal ge is called fetal str
 message('\nSaving objects ...\n')
 saveRDS(ag_adult_mat, paste0(R_dir, 'seurat_aggr_adult_', region, '.rds'))
-saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
+#saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
 saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
-saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
+#saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
