@@ -82,8 +82,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     
   }
   
-  lhs_plot <- VlnPlot(fcx_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                      cols = fcx_fetal_cols,
+  lhs_plot <- VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = ge_fetal_cols,
                       same.y.lims = TRUE, fill.by = 'ident') +
     theme(legend.position = "none",
           plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
@@ -98,12 +98,12 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           strip.text.y.left = element_text(angle = 0, size = 16)) +
-    ggtitle('Fetal Frontal Cortex') +
+    ggtitle('Fetal Ganglionic Eminences') +
     facet_wrap(~feature,  ncol = 1, strip.position = "left") +
     scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
   
-  mid_plot <- VlnPlot(cer_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                      cols = cer_fetal_cols,
+  mid_plot <- VlnPlot(fcx_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = fcx_fetal_cols,
                       same.y.lims = TRUE, fill.by = 'ident') + 
     theme(legend.position = "none",
           plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
@@ -118,12 +118,12 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
           axis.title.y = element_blank(),
           strip.text = element_blank(),
           strip.background = element_blank()) +  
-    ggtitle('Fetal Cerebellum') +
+    ggtitle('Fetal Frontal Cortex') +
     facet_wrap(~feature, ncol = 1, strip.position = "left") +
     scale_y_continuous(position = "right", limits = c(-0.00004, 5), breaks = 4)
   
-  rhs_plot <- VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                      cols = ge_fetal_cols,
+  rhs_plot <- VlnPlot(cer_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+                      cols = cer_fetal_cols,
                       same.y.lims = TRUE, fill.by = 'ident') +
     theme(legend.position = "none",
           plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
@@ -136,7 +136,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
           axis.title.x = element_blank(),
           axis.title.y = element_text(size = 14),
           strip.text.y.left = element_blank()) +
-    ggtitle('Fetal Ganglionic Eminences') +
+    ggtitle('Fetal Cerebellum') +
     facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
     scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
@@ -165,8 +165,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     
     message('Plotting ', region, ' plot ...')
     lhs_plot <- VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
-                        cols = plot_cols,
-                        same.y.lims = TRUE, fill.by = 'ident') +
+                        cols = plot_cols, same.y.lims = TRUE, fill.by = 'ident') +
       theme(legend.position = "none",
             plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
             panel.grid.major = element_blank(), 
@@ -215,24 +214,23 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     
     message('Plotting ', region, ' plot ...')
     mid_plot <- VlnPlot(new_cer_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
-                        cols = plot_cols,
-                        same.y.lims = TRUE, fill.by = 'ident') + 
+                        cols = plot_cols, same.y.lims = TRUE, fill.by = 'ident') +
       theme(legend.position = "none",
-            plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+            plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
             panel.grid.major = element_blank(), 
             panel.grid.minor = element_blank(),
             plot.title = element_text(hjust = 0.5, size = 16),
+            text = element_text(size = 12),
             axis.text.x  = element_text(colour = "#000000", size = 12),
-            axis.text.y  = element_blank(),  # Hides y-axis text
-            axis.ticks.y = element_blank(),  # Hides y-axis ticks
+            axis.text.y  = element_blank(),
             axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+            axis.ticks.y = element_blank(),
             axis.title.x = element_blank(),
             axis.title.y = element_blank(),
-            strip.text = element_blank(),
-            strip.background = element_blank()) +  
+            strip.text.y.left = element_text(angle = 0, size = 16)) +
       ggtitle('Cerebellum') +
-      facet_wrap(~feature, ncol = 1, strip.position = "left") +
-      scale_y_continuous(position = "right", limits = c(-0.00004, 5), breaks = 4)
+      facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+      scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
     saveRDS(mid_plot, paste0(R_dir, region, '_vln_plot.rds'))}
   
@@ -243,56 +241,106 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     rhs_plot <- VlnPlot(adult_object, dystonia_genes, stack = TRUE, flip = TRUE,  
                         cols = plot_cols, same.y.lims = TRUE, fill.by = 'ident') +
       theme(legend.position = "none",
-            plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm"),
+            plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
             panel.grid.major = element_blank(), 
             panel.grid.minor = element_blank(),
             plot.title = element_text(hjust = 0.5, size = 16),
             text = element_text(size = 12),
             axis.text.x  = element_text(colour = "#000000", size = 12),
-            axis.text.y  = element_text(colour = "#000000", size = 12),
+            axis.text.y  = element_blank(),
+            axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+            axis.ticks.y = element_blank(),
             axis.title.x = element_blank(),
-            axis.title.y = element_text(size = 14),
-            strip.text.y.left = element_blank()) +
+            axis.title.y = element_blank(),
+            strip.text.y.left = element_text(angle = 0, size = 16)) +
       ggtitle('Striatum') +
-      facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
+      facet_wrap(~feature,  ncol = 1, strip.position = "left") +
       scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
     saveRDS(rhs_plot, paste0(R_dir, region, '_vln_plot.rds'))}
   
 }
 
-# Join y-axes
-#egg::ggarrange(fetal_plot, adult_plot, nrow = 1)
 
-# # Add summary stats
-# for (sum_stat in c('mean', 'median')) {
-#   
-#   fetal_stat_plot <- fetal_plot +
-#     stat_summary(fun = sum_stat, colour = "red", size = 2.5, # Adds text statistic
-#                  geom = "text", aes(label = round(after_stat(y), 2)),
-#                  position = position_nudge(x = 0.25, y = 2)) 
-#   #  stat_summary(fun = median, geom = "point",  # Adds median line
-#   #               size = 5, colour = "white", shape = 95) +
-#   
-#   adult_stat_plot <- adult_plot +
-#     stat_summary(fun = sum_stat, colour = "red", size = 2.5,
-#                  geom = "text", aes(label = round(after_stat(y), 2)),
-#                  position = position_nudge(x = 0.25, y = 2)) 
-#   #  stat_summary(fun = median, geom = "point", 
-#   #               size = 5, colour = "white", shape = 95) +
-#   
-#   # Join y-axes
-#   vln_stat_plt <- egg::ggarrange(fetal_stat_plot, adult_stat_plot, nrow = 1)
-#   
-#   ggsave(filename = paste0(R_dir, region, "_vln_plt_with_", sum_stat, ".svg"),
-#          plot = vln_stat_plt, 
-#          width = 40, 
-#          height = 30, 
-#          dpi = 300, 
-#          units = "cm")
-# } 
+agg_tbl <- read_excel(paste0(R_dir, 'aggr_exp_all_regions_norm.xlsx'), sheet = 'adult_aggr_fcx')
+sum_tbl <- agg_tbl |>
+  rowwise() |>
+  mutate(ExN_log10 = log10(sum(c_across(contains('ExN'))))) |>
+  mutate(InN_log10 = log10(sum(c_across(contains('InN'))))) |>
+  mutate(Oligo_log10 = log10(sum(c_across(contains('Olig'))))) |>
+  mutate(Astro_log10 = log10(sum(c_across(contains('Ast'))))) |>
+  mutate(Micro_log10 = log10(sum(c_across(contains('MG'))))) |>
+  ungroup() |>
+  select(gene, ExN_log10, InN_log10, Oligo_log10, Astro_log10, Micro_log10) |>
+  mutate(across(everything(), ~ ifelse(. == -Inf, 0, .)))
+  
 
 
+# Generate bar charts with facet wrap for each cell type
+ggplot(sum_tbl, aes(x = ExN_log10, y = gene, fill = '#00B6EB')) +
+  geom_segment(aes(x = ExN_log10, xend = ExN_log10, y = as.numeric(gene) - 0.2, yend = as.numeric(gene) + 0.2), 
+               color = "#1f77b4", size = 1) +
+  facet_wrap(~cell_type, ncol = 1, strip.position = "left") +
+  scale_fill_manual(values = cell_type_colors) +
+  labs(title = "Fetal Cerebellum", x = "Log10 Aggregated Expression", y = "") +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5, size = 16),
+    text = element_text(size = 12),
+    axis.text.x = element_text(colour = "#000000", size = 12),
+    axis.text.y = element_text(colour = "#000000", size = 12),
+    axis.title.x = element_text(size = 14),
+    strip.text.y.left = element_blank(),
+    plot.margin = unit(c(0.5, 0.5, 0.5, 0), "cm")
+  ) +
+  scale_x_continuous(position = "top", limits = c(-0.00004, 20), breaks = seq(0, 20, by = 5))
+
+
+for (cell_abbr in c('ExN', 'InN', 'Oligo', 'Astro', 'Micro')) {
+  
+  x_var <- paste0(cell_abbr, '_log10')
+  title <- case_when(
+    cell_abbr == 'ExN' ~ 'Excitatory Neurons',
+    cell_abbr == 'InN' ~ 'Inhibitory Neurons',
+    cell_abbr == 'Oligo' ~ 'Oligodendrocytes',
+    cell_abbr == 'Astro' ~ 'Astrocytes',
+    cell_abbr == 'Micro' ~ 'Microglia',
+    .default = as.character(cell_abbr)
+  )
+  color <- case_when(
+      cell_abbr == 'ExN' ~ "#1f77b4",
+      cell_abbr == 'InN' ~ '#3CBB75FF',
+      cell_abbr == 'Oligo' ~ '#FDE725FF',
+      cell_abbr == 'Astro' ~ '#FF5959',
+      cell_abbr == 'Micro' ~ '#F58231',
+      .default = as.character(cell_abbr)
+    )
+  
+  if (cell_abbr %in% c('ExN', 'InN')) y_size <- 11 else y_size <- 10
+  
+  plt <- ggplot(sum_tbl, aes(x = .data[[x_var]], y = fct_reorder(gene, .data[[x_var]]))) +
+    geom_point(fill = color, size = 2, shape = 23) +
+    labs(x = expression("Log"[10]*" aggregated expression"), 
+         y = "") +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5, size = 16),
+          axis.text.y = element_text(size = y_size),
+          axis.text.x = element_text(colour = "#000000", size = 11),
+          axis.title.x = element_text(size = 12, vjust = -1)) +
+    scale_x_continuous(limits = c(0, 6), breaks = seq(0, 6, by = 2)) +
+    ggtitle(title)
+  
+  assign(paste0(cell_abbr, '_plt'), plt)
+
+}
+
+nrns_plt <- cowplot::plot_grid(ExN_plt, InN_plt, ncol = 1, labels = c('B', 'C'), label_size = 20, scale = c(0.9, 0.9))
+glia_plt <- cowplot::plot_grid(Oligo_plt, Astro_plt, Micro_plt, ncol = 1, 
+                               labels = c('D', 'E', 'F'), label_size = 20, scale = c(0.95, 0.95, 0.95))
+cell_plt <- cowplot::plot_grid(nrns_plt, glia_plt, ncol = 2)
+comb_plt <- cowplot::plot_grid(lhs_plot, cell_plt, ncol = 2, 
+                               labels = c('A', ''), label_size = 20, rel_widths = c(2,3))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
