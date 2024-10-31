@@ -60,7 +60,7 @@ ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
 message('\nSaving objects ...\n')
 saveRDS(ag_adult_mat, paste0(R_dir, 'seurat_aggr_adult_', region, '.rds'))
 #saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
-saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
+#saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
 #saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
 
 #--------------------------------------------------------------------------------------
