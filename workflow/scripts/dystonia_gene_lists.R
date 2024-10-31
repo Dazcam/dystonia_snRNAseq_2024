@@ -43,23 +43,23 @@ small_populations <- c('VTN', 'KCNJ8', 'ABCC9', 'ART3',  # Pericytes
                        'TM4SF1', 'SLC38A5', 'CYTL1', 'BMX', 'MGP',    # Endothelial
                        'FBLN5', 'ELN', 'IGFBP4', 'CLU')
 
-str_final_genes <- factor(c('GAD1', 'GAD2', 'SLC6A1', 'DRD1', 'DRD2', 
-                            'SST', 'NPY', 'CALB2', 'VIP', 'NPY', 'CHAT', 
-                            'SLC17A7','GFAP', 'AQP4', 'SOX9', 'OLIG1', 
-                            'OLIG2', 'MBP', 'OLIG1', 'OLIG2', 'C3', 'C1QB'))
+str_final_genes <- factor(c('GAD1', 'GAD2', 'DRD1', 'DRD2', 'CALB2', 
+                            'CCK', 'VIP', 'NPY','SST', 'NPY', 
+                            'GFAP', 'AQP4', 'FOXJ1', 'OLIG1', 'OLIG2', 
+                            'C3'))
 
 str_umap_cols_recode <- c("Str-adult-InN-1" = '#708238', "Str-adult-InN-2" = '#31C53F', "Str-adult-InN-3" = '#3CBB75FF', 
                           "Str-adult-InN-4" = '#9DC183', "Str-adult-InN-5" = '#006400', "Str-adult-InN-6" = '#95D840FF', 
                           "Str-adult-InN-7" = '#2FF18B', "Str-adult-InN-8" = '#B7FFB7', "Str-adult-InN-9" = '#3CBB75FF',
-                          "Str-adult-Ast-1" = '#FF5959', "Str-adult-Ast-2" = '#FF5959', "Str-adult-Olig-1" = '#FDE725FF', 
-                          "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231', "Str-adult-ExN" = '#00B6EB', 
+                          "Str-adult-InN-10" = '#3CBB75FF', "Str-adult-Ast" = '#FF5959', "Str-adult-Ependy" = '#c19adf', 
+                          "Str-adult-Olig-1" = '#FDE725FF', "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231',  
                           "Str-adult-Misc-1" = '#CCCCCC')
 
 str_vln_cols_recode <- c("Str-adult-InN-1" = '#3CBB75FF', "Str-adult-InN-2" = '#3CBB75FF', "Str-adult-InN-3" = '#3CBB75FF', 
                          "Str-adult-InN-4" = '#3CBB75FF', "Str-adult-InN-5" = '#3CBB75FF', "Str-adult-InN-6" = '#3CBB75FF', 
                          "Str-adult-InN-7" = '#3CBB75FF', "Str-adult-InN-8" = '#3CBB75FF', "Str-adult-InN-9" = '#3CBB75FF',
-                         "Str-adult-Ast-1" = '#FF5959', "Str-adult-Ast-2" = '#FF5959', "Str-adult-Olig-1" = '#FDE725FF', 
-                         "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231', "Str-adult-ExN" = '#00B6EB', 
+                         "Str-adult-InN-10" = '#3CBB75FF', "Str-adult-Ast" = '#FF5959', "Str-adult-Ependy" = '#c19adf',
+                         "Str-adult-Olig-1" = '#FDE725FF', "Str-adult-OPC" = '#FDE725FF', "Str-adult-MG" = '#F58231', 
                          "Str-adult-Misc-1" = '#CCCCCC')
 
 ## Cer -----
@@ -73,23 +73,22 @@ cer_genes <- c('MFAP4', 'MGP', 'RBFOX3', 'RELN',         # Granule cells
                'AIF1', 'C1QB',                           # Microglia 
                'EOMES')                                  # Unipolar brush cell (UBC)
 
-cer_final_genes <- factor(c('GAD1', 'GAD2', 'PVALB', 'SLC17A7',
-                            'RBFOX3', 'RELN', 'EOMES', 'PAX3', 'GFAP',
-                            'SOX9', 'AQP4', 'OLIG1', 'OLIG2', 'MBP',
-                            'C3', 'C1QB', 'EBF1', 'ABCB1', 'APOD'))
+cer_final_genes <- factor(c('SLC17A7', 'EOMES', 'RELN', 'GAD1', 'GAD2', 'PVALB', 
+                            'GFAP', 'AQP4', 'LINC01727', 'OLIG1', 'OLIG2', 'C3', 
+                            'C1QB', 'COL15A1', 'ABCC9', 'RGS5', 'CCL5'))
 
 
 cer_umap_cols_recode <- c("Cer-adult-ExN" = '#00B6EB', "Cer-adult-UBC" = '#CEE5FD', "Cer-adult-InN-1" = '#95D840FF', 
-                          "Cer-adult-InN-2" = '#31C53F', "Cer-adult-InN-3" = '#3CBB75FF', "Cer-adult-BGli?" = '#6F2DA8', 
+                          "Cer-adult-InN-2" = '#31C53F', "Cer-adult-InN-3" = '#3CBB75FF', "Cer-adult-BGli" = '#6F2DA8', 
                           "Cer-adult-Olig" = '#FDE725FF', "Cer-adult-OPC" = '#FFBF00', "Cer-adult-Ast" = '#FF5959', 
-                          "Cer-adult-MG" = '#F58231', "Cer-adult-Endo?" = '#9A6324', "Cer-adult-Pericyte?" = '#CCCCCC',
-                          "Cer-adult-Leuko?" = "#F032E6")
+                          "Cer-adult-MG" = '#F58231', "Cer-adult-Fibro" = '#b57e1d', "Cer-adult-Mural" = '#993300',
+                          "Cer-adult-Leuko" = "#F032E6")
 
 cer_vln_cols_recode <- c("Cer-adult-ExN" = '#00B6EB', "Cer-adult-UBC" = '#00B6EB', "Cer-adult-InN-1" = '#3CBB75FF', 
-                         "Cer-adult-InN-2" = '#3CBB75FF', "Cer-adult-InN-3" = '#3CBB75FF', "Cer-adult-BGli?" = '#6F2DA8', 
+                         "Cer-adult-InN-2" = '#3CBB75FF', "Cer-adult-InN-3" = '#3CBB75FF', "Cer-adult-BGli" = '#6F2DA8', 
                          "Cer-adult-Olig" = '#FDE725FF', "Cer-adult-OPC" = '#FFBF00', "Cer-adult-Ast" = '#FF5959', 
-                         "Cer-adult-MG" = '#F58231', "Cer-adult-Endo?" = '#9A6324', "Cer-adult-Pericyte?" = '#CCCCCC',
-                         "Cer-adult-Leuko?" = "#F032E6")
+                         "Cer-adult-MG" = '#F58231', "Cer-adult-Fibro" = '#b57e1d', "Cer-adult-Mural" = '#993300',
+                         "Cer-adult-Leuko" = "#F032E6")
 
 ## FCX  ----
 fcx_genes <- c('CUX3', #L2/3
@@ -115,8 +114,7 @@ fcx_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
 
 fcx_final_genes <- factor(c('SLC17A7', 'RORB', 'TLE4', 'GAD1', 'GAD2', 
                             'PVALB', 'SST', 'CALB2','VIP',  'OLIG1', 
-                           'OLIG2', 'MBP', 'GFAP', 'SOX9', 'AQP4', 
-                            'C3', 'C1QB', 'EBF1', 'ABCB1', 'APOD'))
+                           'OLIG2', 'GFAP', 'AQP4','C3', 'C1QB', 'CLDN5'))
 
 fcx_umap_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#CEE5FD', "FC-adult-ExN-3" = '#598BAF',
                           "FC-adult-ExN-4" = '#6693F5', "FC-adult-ExN-5" = '#89CFEF', "FC-adult-ExN-6" = '#95C8D8', 
@@ -124,7 +122,7 @@ fcx_umap_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#CEE
                           "FC-adult-InN-2" = '#31C53F', "FC-adult-InN-3" = '#3CBB75FF', "FC-adult-InN-4" = '#9DC183', 
                           "FC-adult-InN-5" = '#006400', "FC-adult-InN-6"= '#95D840FF', "FC-adult-InN-7" = '#2FF18B', 
                           "FC-adult-InN-8" = '#B7FFB7', "FC-adult-Olig" = '#FDE725FF', "FC-adult-OPC" = '#FFBF00', 
-                          "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Undef" = '#CCCCCC')
+                          "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Endo" = '#9A6324')
 
 
 fcx_vln_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#00B6EB', "FC-adult-ExN-3" = '#00B6EB',
@@ -133,7 +131,7 @@ fcx_vln_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#00B6
                          "FC-adult-InN-2" = '#3CBB75FF', "FC-adult-InN-3" = '#3CBB75FF', "FC-adult-InN-4" = '#3CBB75FF', 
                          "FC-adult-InN-5" = '#3CBB75FF', "FC-adult-InN-6"= '#3CBB75FF', "FC-adult-InN-7" = '#3CBB75FF', 
                          "FC-adult-InN-8" = '#3CBB75FF', "FC-adult-Olig" = '#FDE725FF', "FC-adult-OPC" = '#FFBF00', 
-                         "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Undef" = '#CCCCCC')
+                         "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Endo" = '#9A6324')
   
 # Fetal gene sets
 fetal_fcx_vln_recode <- c("FC-fetal-ExN-1" = '#00B6EB', "FC-fetal-ExN-2" = '#00B6EB', "FC-fetal-ExN-3" = '#00B6EB', 
@@ -167,6 +165,31 @@ ExN_blues <- c('#76B5C5', '#00BDD2', '#CEE5FD', '#00B6EB', '#ABDBE3',
 reds <- c('#FAA0A0', '#FF5959', '#F75151', '#EF0029', '#D2042D')
 
 purples <- c('#B200ED',  '#DCBEFF', '#6F2DA8')
+
+# general
+fibroblast <- c('SLC38A2', 'SLC4A10', 'SLC26A2', 'SLC47A1', 'FXYD5', 
+                'ATP1B1', 'COL4A1', 'COL4A2', 'COL15A1', 'COLA1',
+                'COL3A1')
+
+endothelial <- c('TM4SF1', 'SLC38A5', 'CYTL1', 'BMX', 'MGP',
+                 'FBLN5', 'ELN', 'IGFBP4', 'CLU')
+
+pericytes <- c('VTN', 'KCNJ8', 'ABCC9', 'ART3')
+
+bergmann <- c('NPY', 'TNC', 'LINC01727', 'FST', 'MT2A', 'PIFO', 'RSPH1')
+kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3', 
+              'PTPRK', 'PRKCD', 'NXPH1', 'CDH22', 'KLHL1', 'ALDH1A3', 'SLC6A5', 'HTR2A', 'EDIL3',
+              'DCN', 'KCNJ8', 'MRC1', 'FIT1', 'FOXJ1', 'SLC6A5', 'GRM2', 'SST', 'PTPRC')
+leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8", 
+           "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11", 
+           "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
+           "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
+           "ZC3HAV1")
+
+dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
+       filter(cluster == 'Cer-adult-Leuko?') %>%
+       slice_head(n = 30) %>%
+       pull(gene))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
