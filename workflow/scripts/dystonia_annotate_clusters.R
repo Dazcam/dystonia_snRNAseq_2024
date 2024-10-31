@@ -50,6 +50,7 @@ vln_plots_sketch <- plot_paired_vlns(seurat_object,
                                      paste0(region, '_clusters'), 
                                      general_genes,
                                      get(paste0(region, '_genes')), 
+                                     adult_title,
                                      get(paste0(region, '_vln_cols_recode')))
 
 # Plot paired umap and vln
@@ -76,7 +77,7 @@ umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object,
 dystonia_plot_sketch <- create_stacked_vln_plot(seurat_object, 
                                                 paste0(region, '_clusters'), 
                                                 dystonia_genes,
-                                                toupper(region), 
+                                                adult_title, 
                                                 get(paste0(region, '_vln_cols_recode')))
 
 ##  Plots for whole object  ----------
@@ -96,6 +97,7 @@ vln_plots_rna <- plot_paired_vlns(seurat_object,
                                   'cellIDs', 
                                   general_genes,
                                   get(paste0(region, '_genes')), 
+                                  adult_title,
                                   get(paste0(region, '_vln_cols_recode')))
 
 # Plot paired umap and vln

@@ -959,6 +959,7 @@ plot_paired_umap_vln <- function(
 #' @param meta_id A vector of cluster ids for each cell, i.e. a col from Seurat object metadata.
 #' @param genes_a A vector, or factor, of genes to plot in plot a.
 #' @param genes_a A vector, or factor, of genes to plot in plot b.
+#' @param title A string specifing title for plots.
 #' @param col_pal A palette of colours for violin plot.
 #' 
 #' @returns A patchwork object of 2 violin plots.
@@ -972,6 +973,7 @@ plot_paired_vlns <- function(
   meta_id = NULL,
   genes_a = NULL,
   genes_b =NULL,
+  title = NULL,
   col_pal = c("#FF7373", "#CC4E3D", "#993617", "#FF5C00", "#CC925C", "#996E2E", 
               "#FFC226", "#CCAB00", "#999645", "#F1FF4D", "#A9CC1F", "#689900", 
               "#C1FF73", "#7CCC3D", "#419917", "#33FF00", "#65CC5C", "#2E9932", 
@@ -986,9 +988,9 @@ plot_paired_vlns <- function(
   
   message('Creating Vlns to compare markers:\n')
   vln_a <- create_stacked_vln_plot(seurat_obj, meta_id, genes_a,
-                                   toupper(region), col_pal)
+                                   title, col_pal)
   vln_b <- create_stacked_vln_plot(seurat_obj, meta_id, genes_b,
-                                   toupper(region), col_pal)
+                                   title, col_pal)
   
   vln_a | vln_b
   
