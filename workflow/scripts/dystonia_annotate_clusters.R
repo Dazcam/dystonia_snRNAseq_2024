@@ -78,13 +78,19 @@ DefaultAssay(seurat_object) <- 'RNA'
 seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independently
 
 # Recode cluster IDs - sketch object 
-seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
-                                                                   region, 
-                                                                   'cluster_full')
+message("Recode cluster IDs ... ")
+seurat_object$cellIDs <- recode_cluster_ids(seurat_object, region, 'cluster_full')
+Idents(seurat_object) <- seurat_object$cellIDs
+message('Number of NAs in Idents: ', anyNA(Idents(seurat_object)))
+
+# Recode cluster IDs - sketch object 
+DefaultAssay(seurat_object) <- 'RNA'
+seurat_object <- JoinLayers(seurat_object)
+
 
 # Plot paired vln
 vln_plots_rna <- plot_paired_vlns(seurat_object, 
-                                  paste0(region, '_clusters'), 
+                                  'cellIDs', 
                                   general_genes,
                                   get(paste0(region, '_genes')), 
                                   get(paste0(region, '_vln_cols_recode')))
@@ -92,14 +98,14 @@ vln_plots_rna <- plot_paired_vlns(seurat_object,
 # Plot paired umap and vln
 umap_vln_plots_rna <- plot_paired_umap_vln(seurat_object, 
                                            'umap.full',
-                                           paste0(region, '_clusters'), 
+                                           'cellIDs', 
                                            get(paste0(region, '_final_genes')),
                                            get(paste0(region, '_umap_cols_recode')), 
                                            get(paste0(region, '_vln_cols_recode')))
 
 # Plot dystonia genes
 dystonia_plot_rna <- create_stacked_vln_plot(seurat_object, 
-                                             paste0(region, '_clusters'), 
+                                             'cellIDs', 
                                              dystonia_genes,
                                              toupper(region),
                                              get(paste0(region, '_vln_cols_recode')))
@@ -107,7 +113,7 @@ dystonia_plot_rna <- create_stacked_vln_plot(seurat_object,
 
 ## Find differential expressed marker genes in clusters  ------------------------------
 message('\nCalculating diff exp markers ...\n')
-Idents(seurat_object) <- paste0(region, '_clusters')
+Idents(seurat_object) <- 'cellIDs'
 marker_genes <- FindAllMarkers(seurat_object)
 readr::write_tsv(marker_genes, paste0(R_dir, region, '_marker_genes.tsv'))
 
@@ -135,27 +141,21 @@ saveRDS(seurat_object, paste0(R_dir, '03seurat_', region, '.rds'))
 # 
 # vln_pair | clust / stiletti
 
-vln_plots_sketch <- plot_paired_vlns(seurat_object, 
-                                     paste0(region, '_clusters'), 
-                                     cholinergic_genes,
-                                     small_populations, 
-                                     get(paste0(region, '_vln_cols_recode')))
-
-bergmann <- c('NPY', 'TNC', 'LINC01727', 'FST', 'MT2A', 'PIFO', 'RSPH1')
-kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3', 
-              'PTPRK', 'PRKCD', 'NXPH1', 'CDH22', 'KLHL1', 'ALDH1A3', 'SLC6A5', 'HTR2A', 'EDIL3',
-              'DCN', 'KCNJ8', 'MRC1', 'FIT1', 'FOXJ1', 'SLC6A5', 'GRM2', 'SST', 'PTPRC')
-leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8", 
-           "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11", 
-           "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
-           "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
-           "ZC3HAV1")
-
-dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
-  filter(cluster == 'Cer-adult-Leuko?') %>%
-  slice_head(n = 30) %>%
-    pull(gene))
-  
-
-seurat_object@meta.data |>
-  as_tibble() 
+# bergmann <- c('NPY', 'TNC', 'LINC01727', 'FST', 'MT2A', 'PIFO', 'RSPH1')
+# kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3', 
+#               'PTPRK', 'PRKCD', 'NXPH1', 'CDH22', 'KLHL1', 'ALDH1A3', 'SLC6A5', 'HTR2A', 'EDIL3',
+#               'DCN', 'KCNJ8', 'MRC1', 'FIT1', 'FOXJ1', 'SLC6A5', 'GRM2', 'SST', 'PTPRC')
+# leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8", 
+#            "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11", 
+#            "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
+#            "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
+#            "ZC3HAV1")
+# 
+# dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
+#   filter(cluster == 'Cer-adult-Leuko?') %>%
+#   slice_head(n = 30) %>%
+#     pull(gene))
+#   
+# 
+# seurat_object@meta.data |>
+#   as_tibble() 
