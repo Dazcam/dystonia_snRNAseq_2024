@@ -18,7 +18,7 @@ output: html_document
 + Left: General brain gene set
 + Right: More region specific gene set
 
-```{r paired_vln_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r paired_vln_sketch, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 vln_plots_sketch
 ```
 
@@ -30,7 +30,7 @@ vln_plots_sketch
 
 + Broad agreement between Stiletti annotations (see qc html) and ours 
 
-```{r umap_vln_plots_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r umap_vln_plots_sketch, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 umap_vln_plots_sketch
 ```
 
@@ -40,7 +40,7 @@ umap_vln_plots_sketch
 
 ***
 
-```{r cluster_umap_sketch, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r cluster_umap_sketch, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 dystonia_plot_sketch
 ```
 
@@ -56,7 +56,7 @@ dystonia_plot_sketch
 + Left: General brain gene set
 + Right: More region specific gene set
 
-```{r paired_vln_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r paired_vln_rna, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 vln_plots_rna
 ```
 
@@ -68,7 +68,7 @@ vln_plots_rna
 
 + Broad agreement between Stiletti annotations (see qc html) and ours 
 
-```{r umap_vln_plots_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r umap_vln_plots_rna, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 umap_vln_plots_rna
 ```
 
@@ -78,7 +78,7 @@ umap_vln_plots_rna
 
 ***
 
-```{r cluster_umap_rna, results='asis', fig.dim = c(10,10), echo=FALSE}
+```{r cluster_umap_rna, results='asis', fig.dim = c(10,10), echo=FALSE, warning=FALSE}
 dystonia_plot_rna
 ```
 
@@ -88,7 +88,25 @@ dystonia_plot_rna
 
 ***
 
-+ Striatal genes: [Anderson et al (2023)](10.1038/s41598-023-36255-5)
-+ Cer genes: [Zhong et al (2023)](https://doi.org/10.1038/s41467-023-43568-6)
++ Striatal genes (see WD 2024-03-25 and 2024-04-15 for details):
+
+  + [Anderson et al (2023)](10.1038/s41598-023-36255-5)
+  + [Konopka 2023](https://doi.org/10.1038/s41598-023-36255-5)
+  + [Lozovaya 2023](https://www.nature.com/articles/s42003-023-05068-7#:~:text=Introduction,activation%20of%20nicotinic%20receptors1.)
+  + [Assous and Tepper 2019](https://doi.org/10.1111%2Fejn.13881)
+  + [Morgenstern 2022](https://doi.org/10.1126/sciadv.abh4315)
+  + [Anderson et al. 2020](https://www.cell.com/cell-reports/fulltext/S2211-1247(20)30191-1?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2211124720301911%3Fshowall%3Dtrue)
+  + [Saunders et al 2018](https://www.cell.com/cell/fulltext/S0092-8674(18)30955-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0092867418309553%3Fshowall%3Dtrue)
+  + [Schaaf 2014](https://doi.org/10.1038/gim.2014.9)
+  
++ Cer genes (see WD 2024-04-17 for details): 
+
+  + [Yang et al 2024](https://www.nature.com/articles/s41421-024-00656-1?fromPaywallRec=false)
+  + [Sepp et al 2023](https://www.nature.com/articles/s41586-023-06884-x?fromPaywallRec=false)
+  + [Zhong et al (2023)](https://doi.org/10.1038/s41467-023-43568-6)
+  + [Kozareva et al 2021](https://www.nature.com/articles/s41586-021-03220-z)
+  + [Aldinger et al 2021](https://www.nature.com/articles/s41593-021-00872-y?fromPaywallRec=false)
+  + [Buffo and Rossi 2013](https://www.sciencedirect.com/science/article/pii/S0301008213000701?via%3Dihub)
+  
 
 ***
