@@ -31,6 +31,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 ## Load Data --------------------------------------------------------------------------
+message('Root dir set to:', root_dir)
+message('\nLoading R object ...\n')
 seurat_object <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))
 
 ##  Plots for sketch object  ----------

@@ -186,10 +186,10 @@ leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8",
            "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
            "ZC3HAV1")
 
-dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
-       filter(cluster == 'Cer-adult-Leuko?') %>%
-       slice_head(n = 30) %>%
-       pull(gene))
+# dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
+#        filter(cluster == 'Cer-adult-Leuko?') %>%
+#        slice_head(n = 30) %>%
+#        pull(gene))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
