@@ -140,7 +140,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     facet_wrap(~feature,  ncol = 1, strip.position = "left", drop = F) +
     scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
     
-  # Join y-axes
+  # Join y-axes: Add code to export plot
   egg::ggarrange(lhs_plot, mid_plot, rhs_plot, nrow = 1)
 
   # Create adult plots on Hawk
@@ -368,5 +368,40 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                  labels = c('A', ''), label_size = 20, rel_widths = c(2,3))
 
 }
+
+
+ge_fetal_obj@meta.data <- ge_fetal_obj@meta.data |>
+  mutate(cellIDs_broad = case_when(
+    str_detect(cellIDs, "InN") ~ "Inhibitory neurons",
+    str_detect(cellIDs, "RG") ~ "Glia",
+    .default =  ~ 'Other'
+  ))
+
+glimpse(ge_fetal_obj@meta.data)
+unique(ge_fetal_obj$cellIDs_broad)
+  
+VlnPlot(ge_fetal_obj, dystonia_genes, stack = TRUE, flip = TRUE,  
+        cols = ge_fetal_cols, same.y.lims = TRUE, fill.by = 'ident', ) +
+  facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+  facet_col(facets = vars(cellIDs_broad), scales = "free", space = "free", strip.position = "top")
+  
+  theme(legend.position = "none",
+        plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 16),
+        text = element_text(size = 12),
+        axis.text.x  = element_text(colour = "#000000", size = 12),
+        axis.text.y  = element_blank(),
+        axis.line.y.right = element_blank(),  # Removes the y-axis line on the right
+        axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        strip.text.y.left = element_text(angle = 0, size = 16)) +
+  ggtitle('Fetal Ganglionic Eminences') +
+  facet_wrap(~feature,  ncol = 1, strip.position = "left") +
+  scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
+  
+
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

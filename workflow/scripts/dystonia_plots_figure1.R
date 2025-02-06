@@ -27,7 +27,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ## Load Data --------------------------------------------------------------------------
 source(paste0(script_dir, 'dystonia_brain_span_analysis.R'))
-deg_a_tbl <- read_delim(paste0(bulk_dir, 'FUMA_A/gtex_v8_ts_DEG.txt')) |>
+# Note we used P values here and not adjusted Ps and manually applied BF correction for 54 tests
+deg_a_tbl <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/gtex_v8_ts_DEG.txt')) |>
   mutate(negLog10 = -log10(p),
          GeneSet = str_replace_all(GeneSet, "_", " ")) |>
   group_by(Category) |>
@@ -35,7 +36,7 @@ deg_a_tbl <- read_delim(paste0(bulk_dir, 'FUMA_A/gtex_v8_ts_DEG.txt')) |>
   ungroup() 
   
 
-deg_gen_tbl <- read_delim(paste0(bulk_dir, 'FUMA_A/gtex_v8_ts_general_DEG.txt')) |>
+deg_gen_tbl <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/gtex_v8_ts_general_DEG.txt')) |>
   mutate(negLog10 = -log10(p),
          GeneSet = str_replace_all(GeneSet, "_", " ")) |>
   group_by(Category) |>
