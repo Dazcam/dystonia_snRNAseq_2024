@@ -30,7 +30,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   
 }
 
-chick_genes <- c('STAG1', 'ZNF136', 'SLC6A1', 'PCLO', 'ZMYND11', 'BCL2','KLC1', 'CGREF1')
+chick_genes <- c('STAG1', 'ZNF136', 'SLC6A1', 'PCLO', 'ZMYND11', 'BSCL2','KLC1', 'CGREF1')
 
 ## Load Data --------------------------------------------------------------------------
 # R_dir <- '../results/01R_objects/'
