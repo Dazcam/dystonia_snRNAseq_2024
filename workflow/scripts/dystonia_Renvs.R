@@ -29,14 +29,22 @@ library(egg)
 library(tidyverse)
 library(cowplot)
 library(patchwork)
-library(WGCNA)
-library(hdWGCNA)
+#library(WGCNA)
+#library(hdWGCNA)
 
 library(kableExtra)
 
-library(enrichR)
-library(GeneOverlap)
+#library(enrichR)
+#library(GeneOverlap)
 library(rmarkdown)
+
+# Only need these package locally
+if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
+  library(pheatmap)
+  library(grid)
+  library(ComplexHeatmap)
+  library(biomaRt)
+}
 
 ## Set variables  ---------------------------------------------------------------------
 if (exists("snakemake")) { 
@@ -63,7 +71,11 @@ results_dir <- paste0(root_dir, 'results/')
 stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
 fetal_dir <- paste0(data_dir, 'public_data/cameron_2023/')
 R_dir <- paste0(results_dir, '01R_objects/')
+bulk_dir <- paste0(results_dir, '02Bulk_data/')
+sheets_dir <- paste0(root_dir, 'resources/sheets/')
+brain_span_dir <- paste0(data_dir, 'public_data/brain_span/genes_matrix_csv/')
 wgcna_dir <- paste0(results_dir, '03wgcna/')
+specificity_dir <- paste0(root_dir, 'resources/Source_Data_v241210/Specificity_per_cell_type/')
 markdown_prep_doc <- paste0(script_dir, 'dystonia_qc.Rmd')
 markdown_prep_html <- paste0('dystonia_qc_', region, '.html')
 markdown_ann_doc <- paste0(script_dir, 'dystonia_ann.Rmd')
@@ -76,10 +88,6 @@ str_anns <- c('CaB', 'Pu')
 cer_anns <- c('CBL', 'CBV', 'CbDN')
 all_anns <- c(fcx_anns, str_anns, cer_anns)
 anns_table <- read_excel(paste0(data_dir, 'sheets/Stiletti_downloads_table.xlsx'))
-dystonia_genes <- read_excel(paste0(data_dir, 'sheets/Dystonia_Genes_Clinical_5.0.xlsx'), 
-                             range = 'D1:D26') %>%
-  arrange(GeneName) %>%
-  pull(GeneName)
 sample_split <- 'sample_id' # Meta_id col to split seurat object by for qc
 resolution_set <- seq(0.1, 0.8, 0.1) # Set of res params to test
 pc_thresh <- ifelse(region == 'fcx', 50, 30) # Set PC thresh
@@ -89,13 +97,21 @@ options(digits = 1) # Set default decimal points
 options(scipen = 999) # Prevents wonky scientific notation
 options(ggrepel.max.overlaps = Inf) # For DimPlots
 
+dystonia_genes <- c("ACTB", "ADCY5", "ANO3", "AOPEP", "ATP1A3", "BCAP31", "CACNA1A", 
+                    "COX20", "DDC", "DNAJC12", "EIF2AK2", "FITM2", "FOXG1", "GCH1", 
+                    "GNAL", "GNAO1", "GNB1", "HPCA", "KCNA1", "KCNMA1", "KCTD17", 
+                    "KMT2B", "MECR", "PNKD", "PRKRA", "RHOBTB2", "SCN8A", "SERAC1", 
+                    "SGCE", "SLC2A1", "SLC6A3", "SPR", "SQSTM1", "TAF1", "TH", "THAP1", 
+                    "TIMM8A", "TMEM151A", "TOR1A", "TSPOAP1", "TUBB4A", "VAC14", 
+                    "VPS16", "YY1")
+message(length(dystonia_genes), ' genes in dystonia hgnc_hg38 gene list.')
+
 # Set num of cells per sample to create sketch object of ~60K
 # Note FCX sample 10X418_6 only has 366 cells
 sketch_num <- dplyr::case_when(
   region == "fcx" ~ 1100, # 56 samples (56 * 1100 = 61600 cells)
   region == "str" ~ 5000, # 12 samples (12 * 5000 = 60000 cells)
   region == "cer" ~ 2100) # 28 samples (28 * 2200 = 60200 cells)
-
 
 ### For final violin plots
 
@@ -128,6 +144,11 @@ gene_select <- 'fraction'
 set_k <- 25
 aggregate_cells <- FALSE
 aggregate_misc <- FALSE
+
+### For Brain span
+brain_levels <- c("PFC", "PMSC", "NPFC", "Str", "Cer", "Hip", "Tha", "Amy")
+dev_levels <- c("EarlyFetal", "MidFetal", "LateFetal", "Infancy", "Childhood",
+                "Adolescence", "Adulthood")
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
