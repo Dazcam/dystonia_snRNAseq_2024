@@ -193,7 +193,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         adult_title, 
                                         get(paste0(region, '_vln_cols_recode')))
     
-    saveRDS(lhs_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+    saveRDS(lhs_plot, paste0(R_dir, region, '_vln_plot.rds'))
+    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
   
   if (region == 'cer') {
     
@@ -248,7 +249,9 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         adult_title, 
                                         get(paste0(region, '_vln_cols_recode')))
     
-    saveRDS(mid_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+    saveRDS(mid_plot, paste0(R_dir, region, '_vln_plot.rds'))
+    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
+
   
   if (region == 'str') {
     
@@ -279,7 +282,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         adult_title, 
                                         get(paste0(region, '_vln_cols_recode')))
     
-    saveRDS(rhs_plot, paste0(R_dir, region, '_vln_plot.rds'))}
+    saveRDS(rhs_plot, paste0(R_dir, region, '_vln_plot.rds'))
+    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
   
 }
 
@@ -402,6 +406,11 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 #   facet_wrap(~feature,  ncol = 1, strip.position = "left") +
 #   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
   
+
+str_vln_plot <- readRDS(paste0(R_dir, 'str_vln_plot.rds'))
+cer_vln_plot <- readRDS(paste0(R_dir, 'cer_vln_plot.rds'))
+fcx_vln_plot <- readRDS(paste0(R_dir, 'fcx_vln_plot.rds'))
+ggsave(paste0(R_dir, 'str_vln_plot.png'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
