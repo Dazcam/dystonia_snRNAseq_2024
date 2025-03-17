@@ -51,7 +51,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ##  Load Data  ------------------------------------------------------------------------
 expr_tbl <- readRDS(paste0(bulk_dir, 'dystonia_brain_span_clean_tbl.rds')) %>%
-  dplyr::select(donor, region, dev_stage, ethnicity, rin, sex, sort(names(.)[7:31]))
+  dplyr::select(donor, region, dev_stage, ethnicity, rin, sex, sort(names(.)[7:dim(.)[2]]))
 
 ##  Step 1  ---------------------------------------------------------------------------
 all_yeojohn_lm_lst <- list()
@@ -59,7 +59,7 @@ all_yeojohn_lm_res_lst <- list()
 
 # yeojohn transform 
 exp_yeojohn_tbl <- expr_tbl |> 
-  mutate(across(ADCY5:VPS16, ~ yeojohnson(.x)$x.t))
+  mutate(across(ACTB:YY1, ~ yeojohnson(.x)$x.t))
 
 for (gene in c(dystonia_genes)) {
   
@@ -79,7 +79,7 @@ step1_yeoJohn_tbl <- expr_tbl |>
   dplyr::select(dev_stage, region, donor) |>
   bind_cols(all_yeojohn_lm_res_lst |> as_tibble()) |> # Add step 1 residuals to tbl
   pivot_longer(ADCY5_res:VPS16_res, names_to = "gene", values_to = "step1_residuals") 
-glimpse(step1_tbl)
+glimpse(step1_yeoJohn_tbl)
 
 step1_yeoJohn_tbl <- model.matrix(~ dev_stage - 1, data = step1_yeoJohn_tbl) |>
   as_tibble() |>
@@ -125,26 +125,37 @@ plt_data <- bind_rows(dev_stage_lms) |>
   mutate(neglog10p = -log10(P_fdr)) |>
   mutate(neglog10p = ifelse(estimate < 0, -neglog10p, neglog10p)) |>
   mutate(dev_stage = factor(dev_stage, levels = rev(dev_levels))) |>
-  select(-term) |>
-  relocate(dev_stage)
+  dplyr::select(-term) |>
+  relocate(dev_stage) |>
+  mutate(dev_stage = factor(if_else(dev_stage %in% c("EarlyFetal", "MidFetal", "LateFetal"), 
+                                    str_replace(dev_stage, "([A-Za-z]+)(Fetal)", "\\1-Fetal"), 
+                                    dev_stage), 
+                            levels = c("Adulthood", "Adolescence", "Childhood", "Infancy", 
+                                       "Late-Fetal", "Mid-Fetal", "Early-Fetal")))
 
 dev_stage_plt <- plt_data |>
   ggplot(aes(x = dev_stage, y = neglog10p)) +
-  geom_col(aes(fill = P_fdr_bool)) +
+  geom_col(aes(fill = P_fdr_bool), color = 'black') +
   coord_flip() +  # Flip the coordinates for better readability
-  labs(x = "", y = "-log10(Padj) x sgn(B)") +
+  labs(x = "", y = expression("-log"[10] * "(P"[adj] * ") sgn(" * beta * ")")) +
+  
   theme_minimal() +
-  geom_hline(yintercept = 0, color = "black") +
-  theme(panel.grid.major.x = element_blank(),
+  geom_hline(yintercept = 0, color = "black", linewidth = 1) +
+  theme(panel.grid.minor.x = element_blank(),
         panel.spacing = unit(1, "lines"),
         strip.text = element_text(size = 13),
-        axis.text = element_text(size = 12)) +
+        axis.text = element_text(size = 13, colour = 'black'),
+        axis.title.x = element_text(size = 14, vjust = -1),
+        ) +
   # scale_fill_manual(values = "#00BFC4") + # Need to add this as everything is sig.
-  ylim(-125, 125) +
+  ylim(-140, 140) +
   Seurat::NoLegend()
 
 
 print(dev_stage_plt)
+
+bind_rows(plt_data) |>
+  write_csv(paste0(table_dir, 'brain_span_lm.csv'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

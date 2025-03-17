@@ -21,7 +21,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   library(yaml)
   root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
   yaml_file <- yaml.load_file(paste0(root_dir, 'config/config.yaml'))
-  region <- yaml.load(yaml_file$wgcna_region) # Note this is different from other scripts
+  region <- yaml.load(yaml_file$region) # Note this is different from other scripts
   
   source(paste0(root_dir, 'workflow/scripts/dystonia_functions.R'))
   source(paste0(root_dir, 'workflow/scripts/dystonia_Renvs.R'))
@@ -46,7 +46,9 @@ set.seed(12345)
 if (stringr::str_detect(region, 'fetal')) {
   seurat_obj <- readRDS(paste0(fetal_dir, 'seurat_', region,'.rds'))
 } else { 
-  seurat_obj <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))}
+  seurat_obj <- readRDS(paste0(R_dir, '02seurat_', region, '.rds'))}
+
+
 
 # Note hdWGCNA cannot handle BPCell or sketch objects
 message("Converting BPCells counts and data matrix to in memory format for hdWGCNA ...")
@@ -85,9 +87,12 @@ if (region == 'fcx') {
     as.character()
   
   seurat_obj <- subset(seurat_obj, subset = cellIDs %in% cells_keep)
+              # subset(seurat_obj, idents = cells_keep)
+              # subset(seurat_obj, cells = WhichCells(seurat_obj, idents = cells_keep))
+  
+  
   message("Cells after subset: ", ncol(seurat_obj))
 }
-
 
 # Set up object for WGCNA to get metacells
 seurat_obj <- create_wgcna_metacells(seurat_obj, gene_select, paste0(region, '_wgcna'))
