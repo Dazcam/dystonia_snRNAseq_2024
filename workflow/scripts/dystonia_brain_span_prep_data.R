@@ -14,17 +14,17 @@
 # Genes: 52376
 
 ##  Load Packages  --------------------------------------------------------------------
-library(dlookr)
-library(GWalkR)
+#library(dlookr)
+#library(GWalkR)
 library(tidyverse)
 library(tabulapdf) # Extract tables from pdf
-library(gtsummary)
+#library(gtsummary)
 library(readxl)
-library(pheatmap)
-library(cowplot)
-library(reshape2)
-library(performance) # LM diagnostic plots
-library(explore)
+#library(pheatmap)
+#library(cowplot)
+#library(reshape2)
+#library(performance) # LM diagnostic plots
+#library(explore)
 
 root_dir <- '~/Desktop/dystonia_snRNAseq_2024/'
 results_dir <- paste0(root_dir, 'results/')
@@ -32,10 +32,26 @@ bulk_dir <- paste0(results_dir, '02Bulk_data/')
 sheets_dir <- paste0(root_dir, 'resources/sheets/')
 resources_dir <- paste0(root_dir, 'resources/sheets/')
 brain_span_dir <- paste0(root_dir, 'resources/public_data/brain_span/genes_matrix_csv/')
-dystonia_genes <- c("ADCY5", "ANO3", "ATP1A3", "DNAJC12", "EIF2AK2", "GCH1", "GNAL", 
-                    "GNAO1", "HPCA", "KCNA1", "KCNMA1", "KCTD17", "KMT2B", "PNKD", 
-                    "PRKRA", "PRRT2", "SCN8A", "SGCE", "SLC2A1", "SPR", "TH", "THAP1", 
-                    "TOR1A", "TUBB4A", "VPS16")
+# dystonia_genes <- c("ADCY5", "ANO3", "ATP1A3", "DNAJC12", "EIF2AK2", "GCH1", "GNAL", 
+#                     "GNAO1", "HPCA", "KCNA1", "KCNMA1", "KCTD17", "KMT2B", "PNKD", 
+#                     "PRKRA", "PRRT2", "SCN8A", "SGCE", "SLC2A1", "SPR", "TH", "THAP1", 
+#                     "TOR1A", "TUBB4A", "VPS16")
+dystonia_genes <- c("ACTB", "ADCY5", "ANO3", "AOPEP", "ATP1A3", "BCAP31", "CACNA1A", 
+                    "COX20", "DDC", "DNAJC12", "EIF2AK2", "FITM2", "FOXG1", "GCH1", 
+                    "GNAL", "GNAO1", "GNB1", "HPCA", "KCNA1", "KCNMA1", "KCTD17", 
+                    "KMT2B", "MECR", "PNKD", "PRKRA", "RHOBTB2", "SCN8A", "SERAC1", 
+                    "SGCE", "SLC2A1", "SLC6A3", "SPR", "SQSTM1", "TAF1", "TH", "THAP1", 
+                    "TIMM8A", "TMEM151A", "TOR1A", "TSPOAP1", "TUBB4A", "VAC14", 
+                    "VPS16", "YY1")
+
+# Alias genes in Brain Span, Brain Span in keys
+alias_dct <- c(
+  "C9orf3"= "AOPEP", 
+  "FAM36A"= "COX20", 
+  "BZRAP1"= "TSPOAP1", 
+  "MLL2"= "KMT2B")
+
+# Genes not expressed in Brain Span c("AOPEP", "COX20", "KMT2B", "TSPOAP1")
 region_levels <- c("PFC", "PMSC", "NPFC", "Str", "Cer", "Hip", "Tha", "Amy")
 dev_stage_levels <- c("EarlyFetal", "LateFetal", "MidFetal", "Infancy", "Childhood", 
                       "Adolescence", "Adulthood")
@@ -46,10 +62,10 @@ col_meta_tbl <- read_csv(paste0(brain_span_dir, 'columns_metadata.csv')) |>
   mutate(col_age = str_replace_all(age, c(' pcw' = 'PCW',  # Recode age to match across tbls
                                           ' mos' = 'M', 
                                           ' yrs' = 'Y'))) |>
-  rename(col_donor_name = donor_name,
+  dplyr::rename(col_donor_name = donor_name,
          col_gender = gender) |>
   relocate(column_num, col_donor_name, structure_acronym, structure_name, col_age) |>
-  rename(col_meta_id = structure_acronym,
+  dplyr::rename(col_meta_id = structure_acronym,
          col_meta_region_name = structure_name) |> 
   mutate(peall_region = case_match(
     col_meta_id ,
@@ -83,21 +99,24 @@ col_meta_tbl <- read_csv(paste0(brain_span_dir, 'columns_metadata.csv')) |>
 row_meta_tbl <- read_csv(paste0(brain_span_dir, 'rows_metadata.csv'))
 dystonia_genes_ensembl <- dput(
   row_meta_tbl |>
-    filter(gene_symbol %in% c(dystonia_genes, 'MLL2')) |> 
+    filter(gene_symbol %in% c(dystonia_genes, names(alias_dct))) |> 
     mutate(gene_symbol = recode(gene_symbol, "MLL2" = "KMT2B")) |> 
+    mutate(gene_symbol = recode(gene_symbol, "BZRAP1" = "TSPOAP1")) |>
+    mutate(gene_symbol = recode(gene_symbol, "C9orf3" = "AOPEP")) |>
+    mutate(gene_symbol = recode(gene_symbol, "FAM36A" = "COX20")) |>
     arrange(gene_symbol) |> 
     pull(ensembl_gene_id))
 
 pdf_tbl <- extract_tables(paste0(brain_span_dir, 'Human_Brain_Seq_Stages_Sample_Metadata.pdf'))
-ethnicity_tbl <- bind_rows(pdf_tbl[[1]] |> select(-PMI), pdf_tbl[[2]] |> select(-PMI)) |>
-  rename(donor_name = `Internal ID`) |>
+ethnicity_tbl <- bind_rows(pdf_tbl[[1]] |> dplyr::select(-PMI), pdf_tbl[[2]] |> dplyr::select(-PMI)) |>
+  dplyr::rename(donor_name = `Internal ID`) |>
   mutate(eth_age = str_replace(Age, ' ', '')) |>  # Recode age to match across tbls
   mutate(eth_age = str_replace(eth_age, 'PM', 'M')) |>
   mutate(age = str_replace(eth_age, '22PCW', '24PCW')) |> # Mismatch in col, rin, eth
-  select(-`External ID`, -Age, -pH) |>
-  rename(eth_gender = Gender, 
-         ethnicity = Ethn.,
-         eth_donor_id = donor_name)
+  dplyr::select(-`External ID`, -Age, -pH) |>
+  dplyr::rename(eth_gender = Gender, 
+                ethnicity = Ethn.,
+                eth_donor_id = donor_name)
   
 ## Create rin tbl from groups of PDFs  ------------------------------------------------
 # Raw rin_tbl: 575 rows. col_meta_tbl: 524 rows.
@@ -114,8 +133,8 @@ for (i in seq(3, 17, 1)) {
   tbl_raw <- pdf_tbl[[i]]
   tbl_clean <- tbl_raw |>
     tail(-2) |>
-    select(...3:...9) |>
-    rename(brain_code = ...3,
+    dplyr::select(...3:...9) |>
+    dplyr::rename(brain_code = ...3,
            donor_id = ...4,
            age = ...5,
            region = ...6,
@@ -135,10 +154,10 @@ for (i in seq(3, 17, 1)) {
 rin_tbl <- rin_tbl |> 
   mutate(age = str_replace(age, '12M', '1Y')) |> # Recode months to year
   mutate(age = str_replace(age, '22PCW', '24PCW')) |> # Mismatch in col, rin, eth
-  rename(rin_age = age,
-         rin_donor_id = donor_id,
-         rin_region = region) |>
-  select(-dissection_score, -hemisphere, -brain_code) |>
+  dplyr::rename(rin_age = age,
+                rin_donor_id = donor_id,
+                rin_region = region) |>
+  dplyr::select(-dissection_score, -hemisphere, -brain_code) |>
   mutate(rin_row_num = row_number()) |>
   mutate(rin_region_recode = case_match(
     rin_region,
@@ -189,8 +208,8 @@ right_join_tbl <- col_meta_tbl |>
                                    col_meta_id  == rin_region_recode)) |>
   relocate(column_num, rin_row_num, col_donor_name, col_meta_id, col_meta_region_name) |>
   filter(if_any(everything(), is.na)) |>
-  select(rin_row_num, col_donor_name, col_meta_id) |>
-  rename(rin_region_recode = col_meta_id)
+  dplyr::select(rin_row_num, col_donor_name, col_meta_id) |>
+  dplyr::rename(rin_region_recode = col_meta_id)
 
 # 73 samples in col tbl but not in rin tbl
 left_join_tbl <- col_meta_tbl |>
@@ -250,38 +269,41 @@ mismatch_recode_tbl <- mismatch_tbl |>
     'TCx' ~ 'NPFC')) |>
   mutate(across(rin_row_num, as.integer)) |>
   inner_join(rin_tbl, by = "rin_row_num") |>
-  select(col_donor_name = donor,
-         column_num, col_meta_id, col_meta_region_name, col_age, peall_region, rin)
+  dplyr::select(col_donor_name = donor, column_num, col_meta_id, 
+                col_meta_region_name, col_age, peall_region, rin)
 
 # 460 samples after adding 10 samples due to meta data recode
 add_mismatch_tbl <- inner_join_tbl |>
-  select(col_donor_name, column_num, col_meta_id, col_meta_region_name, col_age, peall_region, rin) |>
+  dplyr::select(col_donor_name, column_num, col_meta_id, col_meta_region_name, col_age, peall_region, rin) |>
   rbind(mismatch_recode_tbl) 
 
 ## Remove RIN: 447 rows; 39 donors; Join with ethinicity tbl  -------------------------
 all_join_tbl <- add_mismatch_tbl |>
   filter(rin >= 7) |>
   inner_join(ethnicity_tbl, by = join_by(col_donor_name == eth_donor_id)) |>
-  select(col_donor_name, column_num, col_meta_id, col_meta_region_name, col_age, peall_region, rin,
+  dplyr::select(col_donor_name, column_num, col_meta_id, col_meta_region_name, col_age, peall_region, rin,
          sex = eth_gender, ethnicity) |> 
   mutate(across(column_num, as.integer))
   
 # Compare the brain region annotations and counts across col and rin tables
 col_region_cnts <- col_meta_tbl |> 
   group_by(col_meta_id, col_meta_region_name, peall_region) |> 
-  count(name = 'col_meta_n') 
+  dplyr::count(name = 'col_meta_n') 
 
 rin_region_cnts <- rin_tbl |> 
   group_by(rin_region, rin_region_recode) |> 
-  count(name = 'rin_meta_n')
+  dplyr::count(name = 'rin_meta_n')
 
 ## Annotate gene meta to expr table  --------------------------------------------------
 # Need to recode MLL2 to KMT2B (MLL4 also present in data)
 reads_tbl2 <- reads_tbl |>
   inner_join(row_meta_tbl, by = join_by('X1' == 'row_num')) |>
-  filter(gene_symbol %in% c(dystonia_genes, 'MLL2')) |> 
-  mutate(gene_symbol = recode(gene_symbol, "MLL2" = "KMT2B")) |>
   relocate(gene_symbol, gene_id, ensembl_gene_id, entrez_id) |>
+  filter(gene_symbol %in% c(dystonia_genes, names(alias_dct))) |> 
+  mutate(gene_symbol = recode(gene_symbol, "MLL2" = "KMT2B")) |> 
+  mutate(gene_symbol = recode(gene_symbol, "BZRAP1" = "TSPOAP1")) |>
+  mutate(gene_symbol = recode(gene_symbol, "C9orf3" = "AOPEP")) |>
+  mutate(gene_symbol = recode(gene_symbol, "FAM36A" = "COX20")) |>
   dplyr::select(-gene_id, -ensembl_gene_id, -entrez_id, -X1) |>
   as.data.frame()
 
@@ -310,13 +332,13 @@ expr_tbl <- reads_tbl2 |>
     c('1Y', '2Y', '3Y', '4Y', '8Y', '11Y') ~ 'Childhood',
     c('13Y', '15Y', '18Y', '19Y') ~ 'Adolescence',
     c('21Y', '23Y', '30Y', '36Y', '37Y', '40Y') ~ 'Adulthood')) |>
-  select(donor = col_donor_name,
-         region = peall_region,
-         dev_stage,
-         ethnicity,
-         rin,
+  dplyr::select(donor = col_donor_name,
+                region = peall_region,
+                dev_stage,
+                ethnicity,
+                rin,
          sex,
-         EIF2AK2:VPS16) |>
+         all_of(dystonia_genes)) |>
   mutate(region = factor(region, levels = region_levels)) |>
   mutate(dev_stage = factor(dev_stage, levels = dev_stage_levels))
 
@@ -330,43 +352,45 @@ expr_tbl |> select(dev_stage) |> group_by(dev_stage) |> count()
 expr_tbl |> select(region, donor) |> group_by(region, donor) |> count() 
 expr_tbl |> select(dev_stage, donor) |> group_by(dev_stage, donor) |> count()
 
+#### OLD CODE BELOW REMOVE??
+
 # Extract full expr_tbl as I want to keep all genes for variance stabilization  -------
 # Need to recode MLL2 to KMT2B (MLL4 also present in data)
-reads_tbl3 <- reads_tbl |>
-  inner_join(row_meta_tbl, by = join_by('X1' == 'row_num')) |>
-  mutate(gene_symbol = recode(gene_symbol, "MLL2" = "KMT2B")) |>
-  relocate(ensembl_gene_id, gene_id, ensembl_gene_id, entrez_id) |>
-  dplyr::select(-gene_id, -gene_symbol, -entrez_id, -X1) |>
-  as.data.frame()
+# reads_tbl3 <- reads_tbl |>
+#   inner_join(row_meta_tbl, by = join_by('X1' == 'row_num')) |>
+#   mutate(gene_symbol = recode(gene_symbol, "MLL2" = "KMT2B")) |>
+#   relocate(ensembl_gene_id, gene_id, ensembl_gene_id, entrez_id) |>
+#   dplyr::select(-gene_id, -gene_symbol, -entrez_id, -X1) |>
+#   as.data.frame()
 
 ## Transpose df to join col_meta_data -------------------------------------------------
 # Need to use ensembl_id as gene_symbol has duplicates
-rownames(reads_tbl3) <- reads_tbl3$ensembl_gene_id
-expr_all_tbl <- reads_tbl3 |>
-  dplyr::select(-ensembl_gene_id) |>
-  t() |>
-  as.data.frame() |>
-  as_tibble() |>
-  mutate(column_num = row_number()) |>
-  inner_join(all_join_tbl, by = 'column_num') |>
-  relocate(column_num:ethnicity) |>
-  mutate(dev_stage = case_match(col_age,
-                                c('8PCW', '9PCW', '12PCW', '13PCW') ~ 'EarlyFetal',
-                                c('16PCW', '17PCW', '19PCW', '21PCW') ~ 'MidFetal',
-                                c('24PCW', '25PCW', '26PCW') ~ 'LateFetal', # Check donor H376.IV.50 recode
-                                c('4M', '10M') ~ 'Infancy',
-                                c('1Y', '2Y', '3Y', '4Y', '8Y', '11Y') ~ 'Childhood',
-                                c('13Y', '15Y', '18Y', '19Y') ~ 'Adolescence',
-                                c('21Y', '23Y', '30Y', '36Y', '37Y', '40Y') ~ 'Adulthood')) |>
-  select(donor = col_donor_name,
-         region = peall_region,
-         dev_stage,
-         ethnicity,
-         rin,
-         sex,
-         starts_with("ENSG")) |> # 41 rows are encoded as rat genome ENGR!
-  mutate(region = factor(region, levels = region_levels)) |>
-  mutate(dev_stage = factor(dev_stage, levels = dev_stage_levels))
+# rownames(reads_tbl3) <- reads_tbl3$ensembl_gene_id
+# expr_all_tbl <- reads_tbl3 |>
+#   dplyr::select(-ensembl_gene_id) |>
+#   t() |>
+#   as.data.frame() |>
+#   as_tibble() |>
+#   mutate(column_num = row_number()) |>
+#   inner_join(all_join_tbl, by = 'column_num') |>
+#   relocate(column_num:ethnicity) |>
+#   mutate(dev_stage = case_match(col_age,
+#                                 c('8PCW', '9PCW', '12PCW', '13PCW') ~ 'EarlyFetal',
+#                                 c('16PCW', '17PCW', '19PCW', '21PCW') ~ 'MidFetal',
+#                                 c('24PCW', '25PCW', '26PCW') ~ 'LateFetal', # Check donor H376.IV.50 recode
+#                                 c('4M', '10M') ~ 'Infancy',
+#                                 c('1Y', '2Y', '3Y', '4Y', '8Y', '11Y') ~ 'Childhood',
+#                                 c('13Y', '15Y', '18Y', '19Y') ~ 'Adolescence',
+#                                 c('21Y', '23Y', '30Y', '36Y', '37Y', '40Y') ~ 'Adulthood')) |>
+#   select(donor = col_donor_name,
+#          region = peall_region,
+#          dev_stage,
+#          ethnicity,
+#          rin,
+#          sex,
+#          starts_with("ENSG")) |> # 41 rows are encoded as rat genome ENGR!
+#   mutate(region = factor(region, levels = region_levels)) |>
+#   mutate(dev_stage = factor(dev_stage, levels = dev_stage_levels))
 
 
 saveRDS(expr_all_tbl, paste0(bulk_dir, 'dystonia_brain_span_clean_all_tbl.rds'))
