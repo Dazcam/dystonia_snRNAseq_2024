@@ -51,8 +51,8 @@ message('Any NAs in Idents: ', anyNA(Idents(seurat_object)))
 # Usage
 med_adult_exp <- calculate_median_expression(seurat_object, dystonia_genes)
 ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
-# av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
-# 
+av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
+
 # ag_fetal_mat <- calculate_aggregated_expression(seurat_fetal, dystonia_genes)
 # av_fetal_mat <- calculate_average_expression(seurat_fetal, dystonia_genes)
 # 
@@ -62,8 +62,8 @@ ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
 # Save - note for snakemake fetal ge is called fetal str
 message('\nSaving objects ...\n')
 saveRDS(med_adult_mat, paste0(R_dir, 'seurat_median_adult_', region, '.rds'))
+saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
 saveRDS(ag_adult_mat, paste0(R_dir, 'seurat_aggr_adult_', region, '.rds'))
-#saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
 #saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
 #saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
 

@@ -107,7 +107,12 @@ dystonia_genes_44_tbl <- dystonia_genes_44_hg38 |>
                                       )) | is.na(ensembl_hg19)) |> 
   print(n = Inf)
 
-
+# Genes for additional GO analyses
+omit_genes <- c('SPR', 'GCH1', 'TH')
+dystonia_genes_44_tbl |> 
+  filter(!hgnc_hg38 %in% omit_genes)|>
+  pull(ensembl_hg38) |>
+  cat(sep = '\n')
 
 lookup_hg38 |>
   filter(hgnc_symbol %in% dystonia_genes_44_alias$Alias) |>
@@ -119,5 +124,7 @@ lookup_hg38 |>
   distinct() |>
   print(n = Inf) 
 
+dystonia_genes <- dystonia_genes_44_tbl |> pull(hgnc_hg38)
+dput(dystonia_genes)
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
