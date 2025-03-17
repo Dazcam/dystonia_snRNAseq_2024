@@ -26,10 +26,15 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 }
 
 ## Load Data --------------------------------------------------------------------------
+#fuma_dir_pre_review1 <- 'FUMA_gene2func555089_111124'
+fuma_dir <- 'FUMA_44_genes_050225/'
 
 #paste0(bulk_dir, 'FUMA_A/gtex_v8_ts_avg_log2TPM_exp.txt') # Old: no KMT2B
-data <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/gtex_v8_ts_avg_log2TPM_exp.txt')) |>
+data <- read_delim(paste0(bulk_dir, fuma_dir, 'gtex_v8_ts_avg_log2TPM_exp.txt')) |>
   rename_with(~ str_replace_all(., "_", "-")) |>
+  mutate(symbol = recode(symbol, "C9orf3" = "AOPEP")) |>
+  mutate(symbol = recode(symbol, "BZRAP1" = "TSPOAP1")) |>
+  arrange(symbol) |>
   mutate(Gene = case_when(
     symbol %in% c("ADCY5", "PRRT2", "KCTD17", "SLC2A1") ~ "Set A",
     symbol %in% c("SGCE", "PNKD", "PRKRA", "VPS16", "KMT2B") ~ "Set B", 
@@ -52,7 +57,7 @@ tissue_annotations <- colnames(data_matrix) %>%
     col_name %in% c("Brain-Caudate-basal-ganglia", "Brain-Putamen-basal-ganglia", "Brain-Nucleus-accumbens-basal-ganglia") ~ "Striatum",
     TRUE ~ ""  # Label for any other tissue
   )) %>%
-  select(-col_name) 
+  dplyr::select(-col_name) 
 
 group_annotations <- colnames(data_matrix) %>%
   as_tibble() %>%
@@ -65,7 +70,7 @@ group_annotations <- colnames(data_matrix) %>%
     col_name %in% c("Brain-Hypothalamus","Brain-Substantia-nigra", "Brain-Spinal-cord-cervical-c-1") ~ "Group 2",
     TRUE ~ ""  # Label for any other tissue
   )) %>%
-  select(-col_name) 
+  dplyr::select(-col_name) 
 
 # Create a data frame for column annotations
 annotation_col <- as.data.frame(cbind(tissue_annotations, group_annotations))

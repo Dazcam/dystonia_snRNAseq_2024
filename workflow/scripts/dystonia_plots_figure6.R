@@ -27,7 +27,13 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 
 ## Load Data --------------------------------------------------------------------------
-go_tbl_a <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/GS.txt')) |>
+#fuma_dir_pre_review1 <- 'FUMA_gene2func555089_111124'
+fuma_dir <- 'FUMA_44_genes_050225/'
+fuma_dir2<- 'FUMA_44_genes_no_SPR_GCH1_TH_110225/'
+omit_sets <- c('Kegg Folate Biosynthesis', 'WIKIPATHWAYS', 'TF:TARGETS', 'REACTOME',
+               'CANONICAL:PATHWAYS', 'CURATED:GENE:SETS')
+
+go_tbl_a <- read_delim(paste0(bulk_dir, fuma_dir, 'GS.txt')) |>
   mutate(negLog10 = -log10(adjP),
          Proportion = N_overlap / N_genes,
          GeneSet = str_replace_all(GeneSet, "_", " "),
@@ -38,21 +44,25 @@ go_tbl_a <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/GS.txt')) |
          Category = str_to_upper(Category),
          Category = str_replace_all(Category, "CELL:TYPE:SIGNATURE", "CT-SIG"),
          Category = str_remove(Category, "GO:")) |>
-  filter(GeneSet != 'Kegg Folate Biosynthesis')
+  filter(GeneSet != 'Kegg Folate Biosynthesis') |>
+  filter(!Category %in% omit_sets)
 
-go_tbl_b <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555124_no_SPR_GCH1_TH_111124/GS.txt')) |>
+go_tbl_b <- read_delim(paste0(bulk_dir, fuma_dir2, 'GS.txt')) |>
   mutate(negLog10 = -log10(adjP),
          Proportion = N_overlap / N_genes,
          GeneSet = str_replace_all(GeneSet, "_", " "),
          GeneSet = str_to_title(GeneSet),
+         GeneSet = str_remove(GeneSet, "Gobp "),
          GeneSet = str_remove(GeneSet, "Gocc "),
          Category = str_replace_all(Category, "_", ":"),
          Category = str_to_upper(Category),
-         Category = str_remove(Category, "GO:"),
-         GeneSet = str_replace(GeneSet, "Plasma Membrane Protein Complex", # Padding to help with plot alignment below
-                               str_pad("Plasma Membrane Protein Complex", 
-                                       width = 43, side = "left"))) |>
-  filter(GeneSet != 'Kegg Folate Biosynthesis')
+         Category = str_replace_all(Category, "CELL:TYPE:SIGNATURE", "CT-SIG"),
+         Category = str_remove(Category, "GO:")) |>
+#         GeneSet = str_replace(GeneSet, "Plasma Membrane Protein Complex", # Padding to help with plot alignment below
+#                               str_pad("Plasma Membrane Protein Complex", 
+#                                       width = 43, side = "left"))) |>
+  filter(GeneSet != 'Kegg Folate Biosynthesis') |>
+  filter(!Category %in% omit_sets)
 
 # Calculate the range of Proportion and -log[10]*P[adj] across both datasets
 # common_proportion_range <- range(c(go_tbl_a$Proportion, go_tbl_b$Proportion), na.rm = TRUE)
@@ -66,7 +76,7 @@ for (i in c('a', 'b')) {
   go_tbl <- get(paste0('go_tbl_', i))
   
   data_long <- go_tbl %>%
-    select(GeneSet, Proportion, negLog10, Category) %>%
+    dplyr::select(GeneSet, Proportion, negLog10, Category) %>%
     pivot_longer(cols = c(Proportion, negLog10), names_to = "Metric", values_to = "Value") %>%
     mutate(Value = ifelse(Metric == "Proportion", -Value, Value),
            Metric = ifelse(Metric == "negLog10", "-log[10]*P[adj]","Proportion"),
@@ -114,15 +124,15 @@ for (i in c('a', 'b')) {
     ggh4x::facetted_pos_scales(
       y = list(
         `Proportion` = scale_y_continuous(
-          limits = c(-0.2, 0),  # Set limits to ensure proper space for the bars
-          breaks = c(0, -0.05, -0.10, -0.15),  # Define specific breaks for Proportion
+          limits = c(-0.34, 0),  # Set limits to ensure proper space for the bars
+          breaks = c(0, -0.1, -0.2, -0.3),  # Define specific breaks for Proportion
           expand = expansion(mult = c(0.04, 0.04)), 
           labels = function(x) signif(abs(x), 3),  # Flip the axis values to show positive values
           
         ),
         `-log[10]*P[adj]` = scale_y_continuous(
-          limits = c(0, 3.4),  
-          breaks = c(0, 1, 2, 3), 
+          limits = c(0, 4.4),  
+          breaks = c(0, 1, 2, 3, 4), 
           expand = expansion(mult = c(0.04, 0.04)), 
           labels = function(x) signif(x, 3)
         )
@@ -148,20 +158,20 @@ for (i in c('a', 'b')) {
   # Select only relevant cols to avoid conflicts
   # Keep GeneSet, Category, and genes only
   gene_presence_tbl <- expanded_genes %>%
-    select(GeneSet, Category, genes) %>%  # Only keep necessary columns
+    dplyr::select(GeneSet, Category, genes) %>%  # Only keep necessary columns
     mutate(present = 1) %>%               # Create a presence indicator
     pivot_wider(names_from = genes, values_from = present, values_fill = 0)  # Fill absence with 0
   
-  if (i == 'b') {
-    
-    # Add genes in A that are not in B for continuity
-    gene_presence_tbl <- gene_presence_tbl |>
-      mutate("ADCY5" = 0,
-             "GCH1" = 0 ,
-             "TH" = 0,
-             "DNAJC12" = 0)
-  }
-  
+  # if (i == 'b') {
+  #   
+  #   # Add genes in A that are not in B for continuity
+  #   gene_presence_tbl <- gene_presence_tbl |>
+  #     mutate("ADCY5" = 0,
+  #            "GCH1" = 0 ,
+  #            "TH" = 0,
+  #            "DNAJC12" = 0)
+  # }
+  # 
   # Step 3: Pivot to long format for plotting, keeping GeneSet and Category
   heatmap_data <- gene_presence_tbl %>%
     pivot_longer(cols = -c(GeneSet, Category), names_to = "Gene", values_to = "Presence") |>

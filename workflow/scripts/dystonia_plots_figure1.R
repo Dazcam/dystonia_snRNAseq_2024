@@ -1,6 +1,6 @@
 #--------------------------------------------------------------------------------------
 #
-#    Dystonia - Create figure 2 - Heatmap
+#    Dystonia - Create figure 1 - Brain Span and FUMA barcharts
 #
 #--------------------------------------------------------------------------------------
 
@@ -27,24 +27,28 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ## Load Data --------------------------------------------------------------------------
 source(paste0(script_dir, 'dystonia_brain_span_analysis.R'))
+#fuma_dir_pre_review1 <- 'FUMA_gene2func555089_111124'
+fuma_dir <- 'FUMA_44_genes_050225/'
+
 # Note we used P values here and not adjusted Ps and manually applied BF correction for 54 tests
-deg_a_tbl <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/gtex_v8_ts_DEG.txt')) |>
+deg_a_tbl <- read_delim(paste0(bulk_dir, fuma_dir, 'gtex_v8_ts_DEG.txt')) |>
   mutate(negLog10 = -log10(p),
          GeneSet = str_replace_all(GeneSet, "_", " ")) |>
   group_by(Category) |>
   arrange(p) |>
   ungroup() 
   
-
-deg_gen_tbl <- read_delim(paste0(bulk_dir, 'FUMA_gene2func555089_111124/gtex_v8_ts_general_DEG.txt')) |>
+# Note we used P values here and not adjusted Ps and manually applied BF correction for 30 tests
+deg_gen_tbl <- read_delim(paste0(bulk_dir, fuma_dir, 'gtex_v8_ts_general_DEG.txt')) |>
   mutate(negLog10 = -log10(p),
          GeneSet = str_replace_all(GeneSet, "_", " ")) |>
   group_by(Category) |>
   arrange(p) |>
   ungroup() 
 
-
 for (i in c("a", 'gen')) {
+  
+  bf_corr = ifelse(i == 'a', 54, 30)
   
   deg_tbl <- get(paste0("deg_", i,"_tbl"))
   
@@ -54,12 +58,12 @@ for (i in c("a", 'gen')) {
     pull(GeneSet)
 
   data_long <- deg_tbl %>%
-    select(GeneSet, negLog10, Category) %>%
+    dplyr::select(GeneSet, negLog10, Category) %>%
     pivot_longer(cols = c(negLog10), names_to = "Metric", values_to = "negLog10") |>
     mutate(GeneSet = factor(GeneSet, levels = gene_order),
            Category = str_replace_all(Category, "\\.", " "),
            Category = factor(Category, levels = c("DEG up", "DEG twoside", "DEG down"),),
-           sig = ifelse(negLog10 > (-log10(0.05 / 54)), TRUE, FALSE))
+           sig = ifelse(negLog10 > (-log10(0.05 / bf_corr)), TRUE, FALSE))
 
   deg_plot <-  ggplot(data_long, aes(x = GeneSet, y = negLog10, fill = sig)) + 
     facet_grid(
@@ -73,7 +77,7 @@ for (i in c("a", 'gen')) {
       panel.grid.major = element_blank(), 
       panel.grid.minor = element_blank(),
       panel.background = element_blank(),
-      panel.border = element_rect(colour = "black", size = 1, fill = NA),
+      panel.border = element_rect(colour = "black", linewidth = 1, fill = NA),
       plot.title = element_text(hjust = 0.5, face = 'bold'),
       axis.title.x = element_text(colour = "#000000", size = 14),
       axis.title.y = element_text(colour = "#000000", size = 14),
