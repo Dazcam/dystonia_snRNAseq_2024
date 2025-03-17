@@ -1036,6 +1036,27 @@ calculate_aggregated_expression <- function(
   
 }
 
+calculate_median_expression <- function(
+    seurat_obj = NULL,
+    gene_list = NULL,
+    layer = 'data'
+) {
+  message('Calculating median expression ...')
+  # Extract expression matrix and convert from BPCells to dense matrix
+  exp_mat <- as.matrix(LayerData(seurat_obj, assay = "RNA", layer = layer)[gene_list, , drop = FALSE])
+  # Get cell type annotations
+  cell_types <- seurat_obj$cell_type  # Adjust to your metadata column
+  # Calculate median per gene per cell type
+  med_exp_mat <- t(aggregate(t(exp_mat), list(cell_types), median, na.rm = TRUE))
+  colnames(med_exp_mat) <- med_exp_mat[1, ]
+  med_exp_mat <- med_exp_mat[-1, ]
+  rownames(med_exp_mat) <- gene_list
+  med_exp_mat <- as.matrix(med_exp_mat)
+  mode(med_exp_mat) <- "numeric"
+  
+  return(med_exp_mat)
+}
+
 #' Project Seurat sketch object data onto entire Seurat object 
 #' 
 #' @param seurat_obj An uncorrected Seurat object.
