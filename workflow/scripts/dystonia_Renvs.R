@@ -44,6 +44,8 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   library(grid)
   library(ComplexHeatmap)
   library(biomaRt)
+  library(EWCE)
+  library(ewceData)
 }
 
 ## Set variables  ---------------------------------------------------------------------
@@ -72,6 +74,7 @@ stiletti_dir <- paste0(data_dir, 'public_data/stiletti_2023/')
 fetal_dir <- paste0(data_dir, 'public_data/cameron_2023/')
 R_dir <- paste0(results_dir, '01R_objects/')
 bulk_dir <- paste0(results_dir, '02Bulk_data/')
+table_dir <- paste0(results_dir, '05tables/')
 sheets_dir <- paste0(root_dir, 'resources/sheets/')
 brain_span_dir <- paste0(data_dir, 'public_data/brain_span/genes_matrix_csv/')
 wgcna_dir <- paste0(results_dir, '03wgcna/')
