@@ -38,15 +38,18 @@ seurat_object <- JoinLayers(seurat_object) # Do this for sketch and RNA independ
 message('Any NAs in Idents: ', anyNA(Idents(seurat_object)))
 
 # # Recode cluster IDs - sketch object 
-# seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object, 
-#                                                                    region, 
-#                                                                    'cluster_full')
-# 
-# # Set Idents 
-# message("Any NAs after recode of cluster IDs ?",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
-# #Idents(seurat_object) <- seurat_object[[paste0(region, '_clusters')]]
+seurat_object[[paste0(region, '_clusters')]] <- recode_cluster_ids(seurat_object,
+                                                                   region,
+                                                                   'cluster_full')
+
+# Set Idents
+message("Any NAs after recode of cluster IDs? ",  seurat_object[[paste0(region, '_clusters')]] |> anyNA())
+Idents(seurat_object) <- paste0(region, '_clusters')
+message('Any NAs in Idents: ', anyNA(Idents(seurat_object)))
 
 # Calculate aggregate and average expression - adult
+# Usage
+med_adult_exp <- calculate_median_expression(seurat_object, dystonia_genes)
 ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
 # av_adult_mat <- calculate_average_expression(seurat_object, dystonia_genes)
 # 
@@ -58,10 +61,15 @@ ag_adult_mat <- calculate_aggregated_expression(seurat_object, dystonia_genes)
 
 # Save - note for snakemake fetal ge is called fetal str
 message('\nSaving objects ...\n')
+saveRDS(med_adult_mat, paste0(R_dir, 'seurat_median_adult_', region, '.rds'))
 saveRDS(ag_adult_mat, paste0(R_dir, 'seurat_aggr_adult_', region, '.rds'))
 #saveRDS(av_adult_mat, paste0(R_dir, 'seurat_aver_adult_', region, '.rds'))
 #saveRDS(ag_fetal_mat, paste0(R_dir, 'seurat_aggr_fetal_', region, '.rds'))
 #saveRDS(av_fetal_mat, paste0(R_dir, 'seurat_aver_fetal_', region, '.rds'))
+
+
+
+
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
