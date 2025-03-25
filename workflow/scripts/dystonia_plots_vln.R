@@ -407,10 +407,10 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 #   scale_y_continuous(position = "right", limits=c(-0.00004, 5), breaks = 4)
   
 
-str_vln_plot <- readRDS(paste0(R_dir, 'str_vln_plot.rds'))
-cer_vln_plot <- readRDS(paste0(R_dir, 'cer_vln_plot.rds'))
-fcx_vln_plot <- readRDS(paste0(R_dir, 'fcx_vln_plot.rds'))
-ggsave(paste0(R_dir, 'str_vln_plot.png'))
+#str_vln_plot <- readRDS(paste0(R_dir, 'str_vln_plot.rds'))
+#cer_vln_plot <- readRDS(paste0(R_dir, 'cer_vln_plot.rds'))
+#fcx_vln_plot <- readRDS(paste0(R_dir, 'fcx_vln_plot.rds'))
+#ggsave(paste0(R_dir, 'str_vln_plot.png'))
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
