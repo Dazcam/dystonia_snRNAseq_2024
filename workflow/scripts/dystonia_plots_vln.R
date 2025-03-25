@@ -194,7 +194,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         get(paste0(region, '_vln_cols_recode')))
     
     saveRDS(lhs_plot, paste0(R_dir, region, '_vln_plot.rds'))
-    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
+    ggsave(paste0(R_dir, region, '_vln_plot.png'), width = 10, height = 12, dpi = 300, units = "in", bg = "white")}
   
   if (region == 'cer') {
     
@@ -250,7 +250,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         get(paste0(region, '_vln_cols_recode')))
     
     saveRDS(mid_plot, paste0(R_dir, region, '_vln_plot.rds'))
-    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
+    ggsave(paste0(R_dir, region, '_vln_plot.png'), width = 10, height = 12, dpi = 300, units = "in", bg = "white")}
 
   
   if (region == 'str') {
@@ -283,7 +283,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
                                         get(paste0(region, '_vln_cols_recode')))
     
     saveRDS(rhs_plot, paste0(R_dir, region, '_vln_plot.rds'))
-    ggsave(paste0(R_dir, region, '_vln_plot.png'))}
+    ggsave(paste0(R_dir, region, '_vln_plot.png'), width = 10, height = 12, dpi = 300, units = "in", bg = "white")}
   
 }
 
@@ -410,7 +410,9 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 #str_vln_plot <- readRDS(paste0(R_dir, 'str_vln_plot.rds'))
 #cer_vln_plot <- readRDS(paste0(R_dir, 'cer_vln_plot.rds'))
 #fcx_vln_plot <- readRDS(paste0(R_dir, 'fcx_vln_plot.rds'))
-#ggsave(paste0(R_dir, 'str_vln_plot.png'))
+#ggsave(paste0(R_dir, 'str_vln_plot.png'), width = 10, height = 12, dpi = 300, units = "in", bg = "white")
+
+
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
