@@ -25,11 +25,10 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   
 }
 
-
 ## Load Data --------------------------------------------------------------------------
 #fuma_dir_pre_review1 <- 'FUMA_gene2func555089_111124'
 fuma_dir <- 'FUMA_44_genes_050225/'
-fuma_dir2<- 'FUMA_44_genes_no_SPR_GCH1_TH_110225/'
+fuma_dir2<- 'FUMA_44_genes_no_GCH1_TH_SPR_DDC_SLC6A3_25032025/'
 omit_sets <- c('Kegg Folate Biosynthesis', 'WIKIPATHWAYS', 'TF:TARGETS', 'REACTOME',
                'CANONICAL:PATHWAYS', 'CURATED:GENE:SETS')
 
@@ -214,6 +213,7 @@ join_b_plt <- plot_grid(go_b_plt, tile_b_plt, axis = 'tblr', align = 'h',
 plot_grid(join_a_plt, join_b_plt, rel_heights = c(1.8,1), axis = 'lr', ncol = 1, align = 'v',
           labels = 'AUTO', label_size = 20)
 
+ggsave(paste0(fig_dir, 'dystonia_44_brainspan_fuma_barcharts.png'), width = 20, height = 15, dpi = 300, units = "in", bg = "white")
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
 

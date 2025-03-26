@@ -392,3 +392,10 @@ bupu_colors <- brewer.pal(9, "BuPu")[3:9]
 
 colorRamp2(seq(min(ctd[[1]]$specificity), max(ctd[[1]]$specificity), length.out = 11), 
            c("white", bupu_colors))
+
+# readRDS('Desktop/temp/seurat_median_adult_cer.rds') |>
+#   write.csv(paste0(table_dir, 'median_adult_cer.csv'))
+# readRDS('Desktop/temp/seurat_median_adult_fcx.rds') |>
+#   write.csv(paste0(table_dir, 'median_adult_fcx.csv'))
+# readRDS('Desktop/temp/seurat_median_adult_str.rds') |>
+#   write.csv(paste0(table_dir, 'median_adult_str.csv'))

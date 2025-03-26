@@ -51,33 +51,25 @@ rownames(data_matrix) <- data$symbol
 tissue_annotations <- colnames(data_matrix) %>%
   as_tibble() %>%
   dplyr::rename(col_name = value) %>%  # Rename to something meaningful
-  mutate(Tissue = case_when(
-    col_name %in% c("Brain-Frontal-Cortex-BA9", "Brain-Cortex", "Brain-Anterior-cingulate-cortex-BA24") ~ "Cortex",   # Assign Set A to gene X
-    col_name %in% c("Brain-Cerebellum", "Brain-Cerebellar-Hemisphere") ~ "Cerebellum",   # Assign Set B to gene Y
+  mutate(Region = case_when(
+    col_name %in% c("Brain-Frontal-Cortex-BA9", "Brain-Cortex", "Brain-Anterior-cingulate-cortex-BA24") ~ "Cortex", 
+    col_name %in% c("Brain-Cerebellum", "Brain-Cerebellar-Hemisphere") ~ "Cerebellum",  
     col_name %in% c("Brain-Caudate-basal-ganglia", "Brain-Putamen-basal-ganglia", "Brain-Nucleus-accumbens-basal-ganglia") ~ "Striatum",
-    TRUE ~ ""  # Label for any other tissue
-  )) %>%
-  dplyr::select(-col_name) 
-
-group_annotations <- colnames(data_matrix) %>%
-  as_tibble() %>%
-  dplyr::rename(col_name = value) %>%  # Rename to something meaningful
-  mutate(Group = case_when(
-    col_name %in% c("Brain-Frontal-Cortex-BA9", "Brain-Cortex", "Brain-Anterior-cingulate-cortex-BA24",
-                    "Brain-Cerebellum", "Brain-Cerebellar-Hemisphere", "Brain-Caudate-basal-ganglia", 
-                    "Brain-Putamen-basal-ganglia", "Brain-Nucleus-accumbens-basal-ganglia", "Brain-Amygdala",
-                    "Brain-Hippocampus") ~ "Group 1",  
-    col_name %in% c("Brain-Hypothalamus","Brain-Substantia-nigra", "Brain-Spinal-cord-cervical-c-1") ~ "Group 2",
+    col_name %in% c("Brain-Amygdala", "Brain-Cerebellar-Hemisphere") ~ "Amygdala",  
+    col_name %in% c("Brain-Cerebellum", "Brain-Substantia-nigra") ~ "Substantia Nigra",  
+    col_name %in% c("Brain-Cerebellum", "Brain-Hippocampus") ~ "Hippocampus",  
     TRUE ~ ""  # Label for any other tissue
   )) %>%
   dplyr::select(-col_name) 
 
 # Create a data frame for column annotations
-annotation_col <- as.data.frame(cbind(tissue_annotations, group_annotations))
+annotation_col <- as.data.frame(cbind(tissue_annotations))
 rownames(annotation_col) <- colnames(data_matrix)
 
 col_range <- 1:ncol(data_matrix)  # Use all columns (or a specific subset of columns)
 row_range <- 1:nrow(data_matrix) 
+
+colnames(data_matrix) <- str_replace_all(colnames(data_matrix), '-', ' ')
 
 # Create heatmap with both row and column annotations
 ht <- ComplexHeatmap::pheatmap(data_matrix, 
@@ -85,41 +77,47 @@ ht <- ComplexHeatmap::pheatmap(data_matrix,
                row_names_side = "left",
                name = 'Expression',
                clustering_method = "average",
-               annotation_row = data.frame(Gene = data$Gene),  # Add annotation for gene sets
                annotation_col = annotation_col,  # Add column annotations
-               annotation_colors = list(Gene = c("Set A" = "blue", "Set B" = "green", "Set C" = "red"),
-                                        Tissue = c("Cortex" = "purple", "Cerebellum" = "orange", "Striatum" = "pink"),
-                                        Group = c("Group 1" = "yellow", "Group 2" = "cyan")))  # Set colors for each tissue type
-
-ComplexHeatmap::draw(ht) 
+               annotation_colors = list(Region = c("Cortex" = "purple", "Cerebellum" = "orange", "Striatum" = "pink", 
+                                                   "Amygdala" = "yellow", "Substantia Nigra"  = "cyan" , "Hippocampus"  = "green")),
+               border = FALSE,                
+               fontsize_row = 12,             
+               fontsize_col = 12,             
+               border_color = "black",        
+               fontsize = 12,
+               cellwidth = 12,               
+               cellheight = 12
+)
+               
+ComplexHeatmap::draw(ht)
 heatmap_name <- ht@name  # Retrieve the internal name used by ComplexHeatmap 
 ht@column_title <- ""
 
 # Use the internal name in decorate_heatmap_body and adjust coordinates
-decorate_heatmap_body(heatmap_name, { 
-  
-  grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
-            y = unit(1 - (row_range[1] + 2.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
-            width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
-            height = unit((diff(row_range) + 3) / nrow(data_matrix), "npc"),  # Adjust height 
-            just = c("left", "top"), 
-            gp = gpar(col = "darkgreen", fill = NA, lwd = 2))  # Transparent center with red border 
-  
-  grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
-            y = unit(1 - (row_range[1] + 9.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
-            width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
-            height = unit((diff(row_range) + 4) / nrow(data_matrix), "npc"),  # Adjust height 
-            just = c("left", "top"), 
-            gp = gpar(col = "darkgreen", fill = NA, lwd = 2)) 
-  
-  grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
-            y = unit(1 - (row_range[1] + 18.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
-            width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
-            height = unit((diff(row_range) + 4) / nrow(data_matrix), "npc"),  # Adjust height 
-            just = c("left", "top"), 
-            gp = gpar(col = "darkgreen", fill = NA, lwd = 2)) 
-  
-})
+# decorate_heatmap_body(heatmap_name, { 
+#   
+#   grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
+#             y = unit(1 - (row_range[1] + 2.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
+#             width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
+#             height = unit((diff(row_range) + 3) / nrow(data_matrix), "npc"),  # Adjust height 
+#             just = c("left", "top"), 
+#             gp = gpar(col = "darkgreen", fill = NA, lwd = 2))  # Transparent center with red border 
+#   
+#   grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
+#             y = unit(1 - (row_range[1] + 9.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
+#             width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
+#             height = unit((diff(row_range) + 4) / nrow(data_matrix), "npc"),  # Adjust height 
+#             just = c("left", "top"), 
+#             gp = gpar(col = "darkgreen", fill = NA, lwd = 2)) 
+#   
+#   grid.rect(x = unit((col_range[1] - 1.5) / ncol(data_matrix), "npc") + unit(0.5 / ncol(data_matrix), "npc"),  # X start 
+#             y = unit(1 - (row_range[1] + 18.5) / nrow(data_matrix), "npc") - unit(0.5 / nrow(data_matrix), "npc"), # Y start 
+#             width = unit((diff(col_range) + 14) / ncol(data_matrix), "npc"),   # Adjust width 
+#             height = unit((diff(row_range) + 4) / nrow(data_matrix), "npc"),  # Adjust height 
+#             just = c("left", "top"), 
+#             gp = gpar(col = "darkgreen", fill = NA, lwd = 2)) 
+#   
+# })
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------

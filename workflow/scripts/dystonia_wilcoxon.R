@@ -135,6 +135,43 @@ superclust_wlcxn_tbl <- superclust_wlcxn_tbl |>
 # View results
 print(superclust_wlcxn_tbl, n = Inf)
 
+test <- superclust_wlcxn_tbl |>
+  mutate(Cluster = str_replace_all(Cluster, '_', ' ')) |>
+  mutate(Cluster = factor(Cluster, 
+                            levels = c("Vascular", "Upper rhombic lip", "Upper layer intratelencephalic", 
+                                       "Thalamic excitatory", "Splatter", "Oligodendrocyte precursor", 
+                                       "Oligodendrocyte", "Miscellaneous", "Midbrain derived inhibitory", 
+                                       "Microglia", "Medium spiny neuron", "Mammillary body", "MGE interneuron", 
+                                       "Lower rhombic lip", "LAMP5 LHX6 and Chandelier", "Hippocampal dentate gyrus", 
+                                       "Hippocampal CA4", "Hippocampal CA1 3", "Fibroblast", "Ependymal", 
+                                       "Eccentric medium spiny neuron", "Deep layer near projecting", 
+                                       "Deep layer intratelencephalic", "Deep layer corticothalamic and 6b", 
+                                       "Committed oligodendrocyte precursor", "Choroid plexus", "Cerebellar inhibitory", 
+                                       "CGE interneuron", "Bergmann glia", "Astrocyte", "Amygdala excitatory"
+                            ))) |>
+  mutate(P_fdr_bool = ifelse(FDR < 0.05, TRUE, FALSE)) |>
+  mutate(neglog10p = -log10(p_value)) |>
+  ggplot(aes(x = Cluster, y = neglog10p)) +
+  geom_col(aes(fill = P_fdr_bool), color = 'black') +
+  coord_flip() +  # Flip the coordinates for better readability
+  labs(x = "", y = '-log10P') +
+  
+  theme_minimal() +
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+  theme(plot.margin = margin(t = 20, r = 20, b = 20, l = 20, unit = "pt"),
+        panel.grid.minor.x = element_blank(),
+        panel.spacing = unit(1, "lines"),
+        strip.text = element_text(size = 13),
+        axis.text.x =  element_text(size = 15, colour = 'black'),
+        axis.text.y =  element_text(size = 15, colour = 'black'),
+        axis.title.x = element_text(size = 15, vjust = -1),
+  ) +
+  Seurat::NoLegend() +
+  xlab("") + 
+  ylab(expression('-log'[10]*'(P)')) +
+  ylim(0, 3)
+
+
 # Compute Spearman and Pearson correlations
 # cor_spearman <- cor.test(superclust_wlcxn_tbl$n_genes, superclust_wlcxn_tbl$FDR, method = "spearman")
 # cor_pearson <- cor.test(superclust_wlcxn_tbl$n_genes, superclust_wlcxn_tbl$FDR, method = "pearson")
@@ -151,6 +188,12 @@ print(superclust_wlcxn_tbl, n = Inf)
 #        x = "Number of Genes",
 #        y = "FDR") +
 #   theme_minimal()
+# 
+# dystonia_genes_44_tbl |>
+#   dplyr::select(hgnc_hg38, ensembl_hg38) |>
+#   filter(!hgnc_hg38 %in% c('GCH1', 'TH', 'SPR', 'DDC', 'SLC6A3')) |>
+#   pull(ensembl_hg38) |>
+#   cat(sep = '\n')
 
 #--------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------
