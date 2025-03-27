@@ -38,14 +38,15 @@ library(kableExtra)
 #library(GeneOverlap)
 library(rmarkdown)
 
+library(EWCE)
+library(ewceData)
+
 # Only need these package locally
 if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
   library(pheatmap)
   library(grid)
   library(ComplexHeatmap)
   library(biomaRt)
-  library(EWCE)
-  library(ewceData)
 }
 
 ## Set variables  ---------------------------------------------------------------------
