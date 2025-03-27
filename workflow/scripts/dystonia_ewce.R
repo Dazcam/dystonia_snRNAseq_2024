@@ -46,13 +46,13 @@ message('Any NAs in Idents: ', anyNA(Idents(adult_object)))
 ## Prepare annotations  ---------------------------------------------------------------
 message('Prepping annotations ...')
 annotations <- adult_object@meta.data |>
-  dplyr::select(level2 = cellIDs) |>
+  select(level2 = cellIDs) |>
   mutate(level1 = level2) |>
   mutate(level1 = case_when(
-    str_detect(level2, "ExN|UBC") ~ str_replace(level1, "^([A-Za-z]+(?:_[a-z]+)?-[A-Za-z]+).*", "\\1"),
-    str_detect(level2, "InN") ~ str_replace(level1, "^([A-Za-z]+(?:_[a-z]+)?-[A-Za-z]+).*", "\\1"),
+    str_detect(level2, "ExN|UBC") ~ str_replace(level2, "-?(ExN|UBC).*", "-ExN"),
+    str_detect(level2, "InN") ~ str_replace(level2, "-?(InN).*", "-InN"),
     TRUE ~ level2
-  )) 
+  ))
 head(annotations)
       
 ## Prep Exp matrix and create CTD object  ---------------------------------------------
@@ -72,7 +72,7 @@ ctd <- EWCE::generate_celltype_data(exp = gex_mat_filt,
                                     groupName = region,
                                     savePath = R_dir,
                                     no_cores = 7)
-
+load(ctd)
 
 ## Run GSE Tests  ---------------------------------------------------------------------
 message('Running bootstrap GSE lvl 1 ...')
