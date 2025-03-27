@@ -31,6 +31,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 
 ##  Load data  ------------------------------------------------------------------------
 set.seed(1234)
+message('Loading data ...')
 adult_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
 
 # Recode cluster IDs - Make sure were using whole, joined GeX gene matrix -------------
@@ -43,15 +44,19 @@ message('Any NAs in Idents: ', anyNA(Idents(adult_object)))
 
 
 ## Prepare annotations  ---------------------------------------------------------------
+message('Prepping annotations ...')
 annotations <- adult_object@meta.data |>
   dplyr::select(level2 = cellIDs) |>
+  mutate(level1 = level2) |>
   mutate(level1 = case_when(
     str_detect(level2, "ExN|UBC") ~ str_replace(level1, "^([A-Za-z]+(?:_[a-z]+)?-[A-Za-z]+).*", "\\1"),
     str_detect(level2, "InN") ~ str_replace(level1, "^([A-Za-z]+(?:_[a-z]+)?-[A-Za-z]+).*", "\\1"),
     TRUE ~ level2
   )) 
-
+head(annotations)
+      
 ## Prep Exp matrix and create CTD object  ---------------------------------------------
+message('Prepping GeX matrix ...')
 gex_mat <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
 gex_mat_norm <- EWCE::sct_normalize(gex_mat)
 gex_mat_filt <- EWCE::drop_uninformative_genes(
@@ -61,6 +66,7 @@ gex_mat_filt <- EWCE::drop_uninformative_genes(
   level2annot = annotations$level2,
   no_cores = 7)
 
+message('Creating ctd ...')
 ctd <- EWCE::generate_celltype_data(exp = gex_mat_filt, 
                                     annotLevels = annotations, 
                                     groupName = region,
@@ -69,6 +75,7 @@ ctd <- EWCE::generate_celltype_data(exp = gex_mat_filt,
 
 
 ## Run GSE Tests  ---------------------------------------------------------------------
+message('Running bootstrap GSE lvl 1 ...')
 results_lvl1 <- bootstrap_enrichment_test(
   sct_data = ctd,
   hits = dystonia_genes,
@@ -81,6 +88,7 @@ results_lvl1 <- bootstrap_enrichment_test(
   store_gene_data = FALSE
 )
 
+message('Running bootstrap GSE lvl 2 ...')
 results_lvl2 <- bootstrap_enrichment_test(
   sct_data = ctd,
   hits = dystonia_genes,
@@ -94,6 +102,7 @@ results_lvl2 <- bootstrap_enrichment_test(
 )
 
 ## Extract tables and plots  ----------------------------------------------------------
+message('Running bootstrap GSE lvl 2 ...')
 write_tsv(results_lvl1$results |> as_tibble(), paste0(table_dir, region, '_adult_ewce_lvl1.tsv'))
 write_tsv(results_lvl2$results |> as_tibble(), paste0(table_dir, region, '_adult_ewce_lvl2.tsv'))
 
