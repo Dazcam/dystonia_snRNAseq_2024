@@ -35,7 +35,8 @@ message('Loading data ...')
 adult_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
 message("Dystonia genes: ", length(dystonia_genes))
 message(paste0(dystonia_genes, collapse = ', '))
-cores <- 40
+cores <- 8
+run_norm <- F
 
 # Recode cluster IDs - Make sure were using whole, joined GeX gene matrix -------------
 message('\nChanging to RNA object ...\n')
@@ -62,16 +63,30 @@ head(annotations)
 message('Prepping GeX matrix ...')
 gex_mat <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
 
-# Normalisation: Note fcx fails here 
-message('Normalizing with SCTransform...')
-gex_mat_norm <- EWCE::sct_normalize(gex_mat)
-message("Memory after normalization: ", format(object.size(gex_mat_norm), units = "GB"))
-gc()
+if (run_norm) {
+  # Normalisation: Note fcx fails here: Error: cannot allocate vector of size 73.4 Gb
+  # Tried 8 cores, 370GB; 40 cores, 380GB (latter is pretty much max for a single core)
+  message('Normalizing with SCTransform...')
+  gex_mat <- EWCE::sct_normalize(gex_mat)
+  message("Memory after normalization: ", format(object.size(gex_mat), units = "GB"))
+  gc()}
+
+## To get FCX through I may have to consider following
+# Pre-filter genes
+# keep_genes <- rowSums(gex_mat > 0) >= 10
+# gex_mat <- gex_mat[keep_genes, ]
+# message("Genes after pre-filtering: ", nrow(gex_mat))
+# 
+# # Downsample cells
+# cells_to_keep <- sample(colnames(gex_mat), size = 50000, replace = FALSE)
+# gex_mat <- gex_mat[, cells_to_keep]
+# annotations <- annotations[cells_to_keep, , drop = FALSE]
+# message("Cells after downsampling: ", ncol(gex_mat))
 
 # Normalisation: Note fcx fails here
 message('Dropping uninformative genes...')
 gex_mat_filt <- EWCE::drop_uninformative_genes(
-  exp = gex_mat_norm,
+  exp = gex_mat,
   input_species = "human",
   output_species = "human",
   sctSpecies_origin = "human",
@@ -79,6 +94,7 @@ gex_mat_filt <- EWCE::drop_uninformative_genes(
   no_cores = cores)
 message("Genes after filtering: ", nrow(gex_mat_filt))
 message("Memory after filtering: ", format(object.size(gex_mat_filt), units = "GB"))
+rm(gex_mat)
 gc()
 
 
@@ -88,6 +104,8 @@ ctd <- EWCE::generate_celltype_data(exp = gex_mat_filt,
                                     groupName = region,
                                     savePath = R_dir,
                                     no_cores = 7)
+rm(gex_mat_filt)
+gc()
 load(ctd)
 
 ## Run GSE Tests  ---------------------------------------------------------------------
