@@ -33,6 +33,9 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
 set.seed(1234)
 message('Loading data ...')
 adult_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
+message("Dystonia genes: ", length(dystonia_genes))
+message(paste0(dystonia_genes, collapse = ', '))
+cores <- 40
 
 # Recode cluster IDs - Make sure were using whole, joined GeX gene matrix -------------
 message('\nChanging to RNA object ...\n')
@@ -41,7 +44,6 @@ adult_object <- JoinLayers(adult_object)
 message('\nSetting idents ...\n')
 Idents(adult_object) <- adult_object$cellIDs
 message('Any NAs in Idents: ', anyNA(Idents(adult_object)))
-
 
 ## Prepare annotations  ---------------------------------------------------------------
 message('Prepping annotations ...')
@@ -52,19 +54,33 @@ annotations <- adult_object@meta.data |>
     str_detect(level2, "ExN|UBC") ~ str_replace(level2, "-?(ExN|UBC).*", "-ExN"),
     str_detect(level2, "InN") ~ str_replace(level2, "-?(InN).*", "-InN"),
     TRUE ~ level2
-  ))
+  )) |>
+  relocate(level1)
 head(annotations)
       
 ## Prep Exp matrix and create CTD object  ---------------------------------------------
 message('Prepping GeX matrix ...')
 gex_mat <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
+
+# Normalisation: Note fcx fails here 
+message('Normalizing with SCTransform...')
 gex_mat_norm <- EWCE::sct_normalize(gex_mat)
+message("Memory after normalization: ", format(object.size(gex_mat_norm), units = "GB"))
+gc()
+
+# Normalisation: Note fcx fails here
+message('Dropping uninformative genes...')
 gex_mat_filt <- EWCE::drop_uninformative_genes(
   exp = gex_mat_norm,
   input_species = "human",
   output_species = "human",
+  sctSpecies_origin = "human",
   level2annot = annotations$level2,
-  no_cores = 7)
+  no_cores = cores)
+message("Genes after filtering: ", nrow(gex_mat_filt))
+message("Memory after filtering: ", format(object.size(gex_mat_filt), units = "GB"))
+gc()
+
 
 message('Creating ctd ...')
 ctd <- EWCE::generate_celltype_data(exp = gex_mat_filt, 
@@ -83,7 +99,7 @@ results_lvl1 <- bootstrap_enrichment_test(
   genelistSpecies = "human",
   sctSpecies = "human",
   reps = 10000,
-  no_cores = 7,
+  no_cores = cores,
   annotLevel = 1,
   store_gene_data = FALSE
 )
@@ -96,7 +112,7 @@ results_lvl2 <- bootstrap_enrichment_test(
   genelistSpecies = "human",
   sctSpecies = "human",
   reps = 10000,
-  no_cores = 7,
+  no_cores = cores,
   annotLevel = 2,
   store_gene_data = FALSE
 )
@@ -112,7 +128,7 @@ lvl1_plt <- EWCE::ewce_plot(total_res = results_lvl1$results, mtc_method = "BH")
 lvl2_plt <- EWCE::ewce_plot(total_res = results_lvl2$results, mtc_method = "BH")$plain +
   theme(plot.margin = margin(t = 10, r = 10, b = 10, l = 10, unit = "pt"))
 comb_plt <- plot_grid(lvl1_plt + ggtitle('Level 1'), lvl2_plt + ggtitle('Level 2'))
-ggsave(paste0(fig_dir, region, '_ewce.png'), comb_plt, width = 7, height = 5, 
+ggsave(paste0(fig_dir, region, '_adult_ewce.png'), comb_plt, width = 7, height = 5, 
        dpi = 300, units = "in", bg = "white")
 
 #--------------------------------------------------------------------------------------
