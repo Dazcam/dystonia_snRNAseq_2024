@@ -76,14 +76,14 @@ if (run_norm) {
 # keep_genes <- rowSums(gex_mat > 0) >= 10
 # gex_mat <- gex_mat[keep_genes, ]
 # message("Genes after pre-filtering: ", nrow(gex_mat))
-# 
-# # Downsample cells
-# cells_to_keep <- sample(colnames(gex_mat), size = 50000, replace = FALSE)
-# gex_mat <- gex_mat[, cells_to_keep]
-# annotations <- annotations[cells_to_keep, , drop = FALSE]
-# message("Cells after downsampling: ", ncol(gex_mat))
 
-# Normalisation: Note fcx fails here
+# Downsample cells
+cells_to_keep <- sample(colnames(gex_mat), size = 150000, replace = FALSE)
+gex_mat <- gex_mat[, cells_to_keep]
+annotations <- annotations[cells_to_keep, , drop = FALSE]
+message("Cells after downsampling: ", ncol(gex_mat))
+
+# Drop uninformative genes
 message('Dropping uninformative genes...')
 gex_mat_filt <- EWCE::drop_uninformative_genes(
   exp = gex_mat,
