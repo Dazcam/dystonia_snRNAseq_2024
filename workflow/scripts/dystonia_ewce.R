@@ -36,7 +36,7 @@ adult_object <- readRDS(paste0(R_dir, '03seurat_', region, '.rds'))
 message("Dystonia genes: ", length(dystonia_genes))
 message(paste0(dystonia_genes, collapse = ', '))
 cores <- 8
-run_norm <- F
+run_norm <- T
 
 # Recode cluster IDs - Make sure were using whole, joined GeX gene matrix -------------
 message('\nChanging to RNA object ...\n')
@@ -63,14 +63,6 @@ head(annotations)
 message('Prepping GeX matrix ...')
 gex_mat <- as(object = adult_object[["RNA"]]$counts, Class = "dgCMatrix")
 
-if (run_norm) {
-  # Normalisation: Note fcx fails here: Error: cannot allocate vector of size 73.4 Gb
-  # Tried 8 cores, 370GB; 40 cores, 380GB (latter is pretty much max for a single core)
-  message('Normalizing with SCTransform...')
-  gex_mat <- EWCE::sct_normalize(gex_mat)
-  message("Memory after normalization: ", format(object.size(gex_mat), units = "GB"))
-  gc()}
-
 ## To get FCX through I may have to consider following
 # Pre-filter genes
 # keep_genes <- rowSums(gex_mat > 0) >= 10
@@ -78,10 +70,19 @@ if (run_norm) {
 # message("Genes after pre-filtering: ", nrow(gex_mat))
 
 # Downsample cells
-cells_to_keep <- sample(colnames(gex_mat), size = 150000, replace = FALSE)
-gex_mat <- gex_mat[, cells_to_keep]
-annotations <- annotations[cells_to_keep, , drop = FALSE]
-message("Cells after downsampling: ", ncol(gex_mat))
+if (region == 'fcx') {
+  cells_to_keep <- sample(colnames(gex_mat), size = 150000, replace = FALSE)
+  gex_mat <- gex_mat[, cells_to_keep]
+  annotations <- annotations[cells_to_keep, , drop = FALSE]
+  message("Cells after downsampling: ", ncol(gex_mat))}
+
+if (run_norm) {
+  # Normalisation: Note fcx fails here: Error: cannot allocate vector of size 73.4 Gb
+  # Tried 8 cores, 370GB; 40 cores, 380GB (latter is pretty much max for a single core)
+  message('Normalizing with SCTransform...')
+  gex_mat <- EWCE::sct_normalize(gex_mat)
+  message("Memory after normalization: ", format(object.size(gex_mat), units = "GB"))
+  gc()}
 
 # Drop uninformative genes
 message('Dropping uninformative genes...')
