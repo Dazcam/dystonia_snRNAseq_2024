@@ -1,4 +1,4 @@
-## Dystonia project - Kathryn Peall
+## Dystonia project - In Review
 
 ## Regions of interest
   + Striatum (Merge Caudate and Putamen)
