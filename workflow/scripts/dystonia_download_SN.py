@@ -17,7 +17,7 @@ import os
 # Configuration
 dataset_uuid = "fd4b7829-283f-4906-8dc4-7846731894e9"
 h5ad_url = f"https://datasets.cellxgene.cziscience.com/{dataset_uuid}.h5ad"
-out_dir = "/Users/darren/Desktop/test/"  # Adjust to your path
+out_dir = snakemake.params.out_dir
 out_file = os.path.join(out_dir, "SN.h5ad")
 
 # Create output dir if it doesn't exist
@@ -45,13 +45,13 @@ print("Loading SN h5ad file into AnnData object...")
 adata = sc.read(out_dir + 'SN.h5ad')
 
 print('SN data columns:')
-adata.obs.columns
+print(adata.obs.columns)
 
 print('SN counts:')
-adata.X[10:20,10:20].todense()
+print(adata.X[10:20,10:20].todense())
 
 print('SN gene meta:')
-adata.var
+print(adata.var)
 
 # Export counts as mtx (note: adata.X is typically sparse; io.mmwrite handles it)
 print('Saving counts matrix to SN_counts.mtx ...')
