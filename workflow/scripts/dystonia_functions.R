@@ -52,6 +52,7 @@ get_dissection_data <- function(
     if (region_abbr == 'SN') {
       
       # Load pre-exported files for SN
+      message('Access counts matrix and metadata ... ')
       counts_file <- paste0(out_dir, "SN_counts.mtx")
       cell_meta_file <- paste0(out_dir, "SN_cell_meta.csv")
       gene_meta_file <- paste0(out_dir, "SN_gene_meta.csv")
@@ -64,19 +65,22 @@ get_dissection_data <- function(
       rownames(counts) <- cellMeta$Barcode
       colnames(counts) <- geneMeta$ensembl_id
       
+      message('Creating Seurat object with count matrix ... ')
       seurat_obj <- CreateSeuratObject(counts = t(counts))
       
       # Set the meta data
+      message('Adding metadata to Seurat object ... ')
       seurat_obj@meta.data <- cbind(cellMeta, seurat_obj@meta.data)
       rownames(seurat_obj@meta.data) <- colnames(seurat_obj)
       
-      # Add dissection for consistency
-      seurat_obj@meta.data$dissection <- "SN"
+      # Add dissection for consistency - should already be there
+      #seurat_obj@meta.data$dissection <- "SN"
       
       # Remove data frames no longer needed
       rm(counts, geneMeta, cellMeta)
       
       # Save the Seurat object
+      message('Saving Seurat object ... ')
       saveRDS(seurat_obj, paste0(out_dir, region_abbr, file_format))
       
       message('Loaded and processed SN data from pre-exported files.')
