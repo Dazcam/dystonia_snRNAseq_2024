@@ -25,7 +25,7 @@ cholinergic_genes <- c('CHRNA2', 'CHRNA3', 'CHRNA4', 'CHRNA5', 'CHRNA6',  # Nico
                        'SLC18A3', # Vesicular acetylcholine transporter
                        'ZIC4', 'LHX6', 'GBX2', 'FGF8', 'FGF17', 'DBX1') # https://doi.org/10.3389/fnmol.2019.00204 
 
-sn_genes <- c('GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
+sng_genes <- c('GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
               'MOG', 'MOBP', 'PALM2', 'LGALS1', 'PPM1G', # ODCs (Agarwal)
               'RGS5', # Endo (Agarwal)
               'CSF1R', # Microglia (Agarwal)
