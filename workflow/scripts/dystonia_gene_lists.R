@@ -25,14 +25,20 @@ cholinergic_genes <- c('CHRNA2', 'CHRNA3', 'CHRNA4', 'CHRNA5', 'CHRNA6',  # Nico
                        'SLC18A3', # Vesicular acetylcholine transporter
                        'ZIC4', 'LHX6', 'GBX2', 'FGF8', 'FGF17', 'DBX1') # https://doi.org/10.3389/fnmol.2019.00204 
 
-sng_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
-                   'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
-                   'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
-                   'C3', 'C1QB',                           # MG markers
-                   'AQP4', 'SOX9', 'GFAP',        # Astrocytes 
-                   'OLIG1', 'OLIG2', 'MBP',                # Oligodendrocytes
-                   'PDGRFA', 'PMP2',
-                   'EOMES', 'EBF1', 'ABCB1') 
+sn_genes <- c('GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
+              'MOG', 'MOBP', 'PALM2', 'LGALS1', 'PPM1G', # ODCs (Agarwal)
+              'RGS5', # Endo (Agarwal)
+              'CSF1R', # Microglia (Agarwal)
+              'VCAN', # OPCs (Agarwal)
+              'TH', 'SLC6A3', 'LMX1B', 'KCNJ6', 'NR4A2', # DaNs (Agarwal)
+              'GAD1', 'GAD2', 'GABRA1', 'GABRA2', 'RYR2', # InN (Agarwal)
+              'AQP4', # Astrocytes (Kamath)
+              'SLC17A6', 'RBFOX3', 'SLC18A2', 'GALNTL6', 'RIT2', # Neurons (Kamath)
+              'C3', # Microglia (Kamath)
+              'DCC', # OPCs (Kamath)
+              'FLT1', # Endo (Kamath)
+              'PDGFRB', # Pericytes (Kamath)
+              'COL1A2') # Fibroblast-like cells (Kamath)
 
 ## Str  -------------------------------------------------------------------------------
 str_genes <- c('DRD1', 'DRD2', 'TAC1', 'PENK',
