@@ -154,10 +154,19 @@ create_BPCell_seurat_object <- function(
   for (i in 1:length(file_set)) {
     path <- paste0(file_dir, file_set[i], file_type)
     seurat_obj <- readRDS(path)
-    write_matrix_dir(
-      mat = seurat_obj[["RNA"]]$data, # Note Stiletti has raw counts in data layer
-      dir = paste0(gsub(file_type, "", path), "_BP"),
-      overwrite = TRUE)
+    
+    if (region != 'sng') {
+      write_matrix_dir(
+        mat = seurat_obj[["RNA"]]$data, # Note Stiletti has raw counts in data layer
+        dir = paste0(gsub(file_type, "", path), "_BP"),
+        overwrite = TRUE)
+    } else {
+      write_matrix_dir(
+        mat = seurat_obj[["RNA"]]$counts, # SN added in review counts in correct layer
+        dir = paste0(gsub(file_type, "", path), "_BP"),
+        overwrite = TRUE)
+      
+    }
     
     # Load in BP matrices
     mat <- open_matrix_dir(dir = paste0(gsub(file_type, "", path), "_BP"))
