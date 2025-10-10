@@ -147,7 +147,32 @@ fcx_vln_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#00B6
                          "FC-adult-InN-5" = '#3CBB75FF', "FC-adult-InN-6"= '#3CBB75FF', "FC-adult-InN-7" = '#3CBB75FF', 
                          "FC-adult-InN-8" = '#3CBB75FF', "FC-adult-Olig" = '#FDE725FF', "FC-adult-OPC" = '#FFBF00', 
                          "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Endo" = '#9A6324')
-  
+
+### Substantia Nigra 
+sng_umap_cols_recode <- c("SNg-adult-ExN" = '#00B6EB', "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#31C53F', 
+                          "SNg-adult-InN-3"  = '#006400', "SNg-adult-InN-4"  = '#2FF18B', "SNg-adult-InN-5"  = '#B7FFB7', 
+                          "SNg-adult-InN-6"  = '#95D840FF', "SNg-adult-InN-7"  = '#708238', "SNg-adult-Ast" = '#FF5959', 
+                          "SNg-adult-Olig-1" = '#FDE725FF', "SNg-adult-Olig-2" = '#FDE725FF', "SNg-adult-OPC" = '#FFBF00' ,
+                          "SNg-adult-MG" = '#F58231', "SNg-adult-Leuko" = "#F032E6", "SNg-adult-Endo" = '#9A6324', 
+                          "SNg-adult-Fibro" = '#b57e1d', "SNg-adult-Tcell" = '#6F2DA8')
+
+sng_vln_cols_recode <- c("SNg-adult-ExN" = '#00B6EB', "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#3CBB75FF', 
+                         "SNg-adult-InN-3"  = '#3CBB75FF', "SNg-adult-InN-4"  = '#3CBB75FF', "SNg-adult-InN-5"  = '#3CBB75FF', 
+                         "SNg-adult-InN-6"  = '#3CBB75FF', "SNg-adult-InN-7"  = '#3CBB75FF', "SNg-adult-Ast" = '#FF5959', 
+                         "SNg-adult-Olig-1" = '#FDE725FF', "SNg-adult-Olig-2" = '#FDE725FF', "SNg-adult-OPC" = '#FFBF00' ,
+                         "SNg-adult-MG" = '#F58231', "SNg-adult-Leuko" = "#F032E6", "SNg-adult-Endo" = '#9A6324', 
+                         "SNg-adult-Fibro" = '#b57e1d', "SNg-adult-Tcell" = '#6F2DA8')
+
+sng_final_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', 'RBFOX3',
+                     'GAD1', 'GAD2', 'SLC18A2', 'SLC6A12', 'SST', 'PVALB', 'CALB2',
+                     'GFAP', 'AQP4', 
+                     'OLIG1', 'MOG',
+                     'VCAN',
+                     'C3', 'CSF1R',
+                     'FLT1',
+                     'COL1A2',
+                     "SKAP1")
+
 # Fetal gene sets
 fetal_fcx_vln_recode <- c("FC-fetal-ExN-1" = '#00B6EB', "FC-fetal-ExN-2" = '#00B6EB', "FC-fetal-ExN-3" = '#00B6EB', 
                           "FC-fetal-ExN-4" = '#00B6EB', "FC-fetal-ExN-5" = '#00B6EB', "FC-fetal-InN-1" = '#3CBB75FF', 

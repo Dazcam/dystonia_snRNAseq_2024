@@ -940,6 +940,36 @@ recode_cluster_ids <- function(
                                           `20` = "FC-adult-Endo")) %>%
       pull(clust_recode)}
   
+  if (region == 'sng') {
+    
+    sng_levels <- c("SNg-adult-ExN", "SNg-adult-InN-1", "SNg-adult-InN-2", "SNg-adult-InN-3", 
+                    "SNg-adult-InN-4", "SNg-adult-InN-5", "SNg-adult-InN-6", "SNg-adult-InN-7",
+                    "SNg-adult-Ast", "SNg-adult-Olig-1", "SNg-adult-Olig-2", "SNg-adult-OPC",
+                    "SNg-adult-MG", "SNg-adult-Leuko", "SNg-adult-Endo", 
+                    "SNg-adult-Fibro", "SNg-adult-Tcell")
+    
+    clusters_recode <- seurat_obj@meta.data %>% 
+      tibble::as_tibble() %>%
+      dplyr::mutate(clust_recode = recode(.data[[meta_id]], 
+                                          `0` = "SNg-adult-Olig-1",
+                                          `1` = "SNg-adult-Olig-2",
+                                          `2` = "SNg-adult-MG",
+                                          `3` = "SNg-adult-Ast",
+                                          `4` = "SNg-adult-OPC",
+                                          `5` = "SNg-adult-InN-1",
+                                          `6` = "SNg-adult-InN-2",
+                                          `7` = "SNg-adult-InN-3",
+                                          `8` = "SNg-adult-InN-7",
+                                          `9` = "SNg-adult-Fibro",
+                                          `10` = "SNg-adult-InN-4",
+                                          `11` = "SNg-adult-InN-5",
+                                          `12` = "SNg-adult-Tcell",
+                                          `13` = "SNg-adult-Leuko",
+                                          `14` = "SNg-adult-Endo",
+                                          `15` = "SNg-adult-InN-6",
+                                          `16` = "SNg-adult-ExN")) %>%
+      pull(clust_recode)}
+  
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
   
   return(clusters_recode)

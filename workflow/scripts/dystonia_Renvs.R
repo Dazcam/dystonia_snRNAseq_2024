@@ -133,12 +133,14 @@ fetal_region <- dplyr::case_when(
 region_recode <- dplyr::case_when(
   region == "fcx" ~ "FC", 
   region == "str" ~ "GE", 
-  region == "cer" ~ "Cer")
+  region == "cer" ~ "Cer",
+  region == "sng" ~ "SNg")
 
 adult_title <- dplyr::case_when(
   region == "fcx" ~ "Frontal Cortex", 
   region == "str" ~ "Striatum", 
-  region == "cer" ~ "Cerebellum")
+  region == "cer" ~ "Cerebellum",
+  region == "sng" ~ "Substantia Nigra")
 
 fetal_title <- dplyr::case_when(
   region == "fcx" ~ "Fetal Frontal Cortex", 
