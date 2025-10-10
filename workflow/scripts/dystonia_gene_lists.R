@@ -25,6 +25,15 @@ cholinergic_genes <- c('CHRNA2', 'CHRNA3', 'CHRNA4', 'CHRNA5', 'CHRNA6',  # Nico
                        'SLC18A3', # Vesicular acetylcholine transporter
                        'ZIC4', 'LHX6', 'GBX2', 'FGF8', 'FGF17', 'DBX1') # https://doi.org/10.3389/fnmol.2019.00204 
 
+sng_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', # VGLUT1-3
+                   'SLC6A1', 'SLC6A13', 'SLC6A11', 'SLC6A12', # GABA transporters
+                   'SST', 'NPY', 'GAD1', 'GAD2', 'PVALB', 'CALB2', 'VIP', # InN markers
+                   'C3', 'C1QB',                           # MG markers
+                   'AQP4', 'SOX9', 'GFAP',        # Astrocytes 
+                   'OLIG1', 'OLIG2', 'MBP',                # Oligodendrocytes
+                   'PDGRFA', 'PMP2',
+                   'EOMES', 'EBF1', 'ABCB1') 
+
 ## Str  -------------------------------------------------------------------------------
 str_genes <- c('DRD1', 'DRD2', 'TAC1', 'PENK',
                'FOXP1', 'MYT1L', 'MEIS2', 'CSDE1',
