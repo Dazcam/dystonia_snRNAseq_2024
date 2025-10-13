@@ -146,31 +146,47 @@ saveRDS(seurat_object, paste0(R_dir, '03seurat_', region, '.rds'))
 
 
 # Code for working out cell types genes / cols
-# vln_pair <- plot_paired_vlns(seurat_object, 'harmony_clusters_0.1', general_genes,
-#                              get(paste0(region, '_genes')))
-# stiletti <- DimPlot_scCustom(seurat_object, group.by = 'cell_type',
-#                              alpha = 0.1, pt.size = 0.1,
-#                              repel = T)
+#  vln_pair <- plot_paired_vlns(seurat_object, 'harmony_clusters_0.1', general_genes,
+#                               get(paste0(region, '_genes')))
+#  stiletti <- DimPlot_scCustom(seurat_object, group.by = 'cell_type',
+#                               alpha = 0.1, pt.size = 0.1,
+#                               repel = T)
 # clust <- DimPlot_scCustom(seurat_object, group.by = 'harmony_clusters_0.1',
 #                           alpha = 0.1, pt.size = 0.1, label = T)
 # 
 # vln_pair | clust / stiletti
+# 
+# 
+# umap_vln_plots_sketch <- plot_paired_umap_vln(seurat_object, 
+#                                               'umap.harmony',
+#                                               paste0(region, '_clusters'), 
+#                                               sng_genes ,
+#                                               adult_title,
+#                                               get(paste0(region, '_umap_cols_recode')), 
+#                                               get(paste0(region, '_vln_cols_recode')))
+# 
+# vln_plots_sketch <- plot_paired_vlns(seurat_object, 
+#                                      paste0(region, '_clusters'), 
+#                                      general_genes,
+#                                      sng_genes, 
+#                                      adult_title,
+#                                      get(paste0(region, '_vln_cols_recode')))
 
 # bergmann <- c('NPY', 'TNC', 'LINC01727', 'FST', 'MT2A', 'PIFO', 'RSPH1')
-# kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3', 
+# kozareva <- c('PPP1R17', 'GABRA6', 'EOMES', 'LYPD6', 'PRKCD', 'SORC3',
 #               'PTPRK', 'PRKCD', 'NXPH1', 'CDH22', 'KLHL1', 'ALDH1A3', 'SLC6A5', 'HTR2A', 'EDIL3',
 #               'DCN', 'KCNJ8', 'MRC1', 'FIT1', 'FOXJ1', 'SLC6A5', 'GRM2', 'SST', 'PTPRC')
-# leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8", 
-#            "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11", 
-#            "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
-#            "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
+# leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8",
+#            "CD247", "TC2N", "IQGAP2", "FYB1", "SAMD3", "BCL11B", "CARD11",
+#            "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP",
+#            "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1",
 #            "ZC3HAV1")
-# 
+#
 # dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
 #   filter(cluster == 'Cer-adult-Leuko?') %>%
 #   slice_head(n = 30) %>%
 #     pull(gene))
-#   
-# 
+#
+#
 # seurat_object@meta.data |>
-#   as_tibble() 
+#   as_tibble()

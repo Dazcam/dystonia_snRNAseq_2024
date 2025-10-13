@@ -25,20 +25,25 @@ cholinergic_genes <- c('CHRNA2', 'CHRNA3', 'CHRNA4', 'CHRNA5', 'CHRNA6',  # Nico
                        'SLC18A3', # Vesicular acetylcholine transporter
                        'ZIC4', 'LHX6', 'GBX2', 'FGF8', 'FGF17', 'DBX1') # https://doi.org/10.3389/fnmol.2019.00204 
 
-sng_genes <- c('GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
-              'MOG', 'MOBP', 'PALM2', 'LGALS1', 'PPM1G', # ODCs (Agarwal)
-              'RGS5', # Endo (Agarwal)
-              'CSF1R', # Microglia (Agarwal)
-              'VCAN', # OPCs (Agarwal)
-              'TH', 'SLC6A3', 'LMX1B', 'KCNJ6', 'NR4A2', # DaNs (Agarwal)
-              'GAD1', 'GAD2', 'GABRA1', 'GABRA2', 'RYR2', # InN (Agarwal)
-              'AQP4', # Astrocytes (Kamath)
-              'SLC17A6', 'RBFOX3', 'SLC18A2', 'GALNTL6', 'RIT2', # Neurons (Kamath)
-              'C3', # Microglia (Kamath)
-              'DCC', # OPCs (Kamath)
-              'FLT1', # Endo (Kamath)
-              'PDGFRB', # Pericytes (Kamath)
-              'COL1A2') # Fibroblast-like cells (Kamath)
+sng_genes <- c('TH', 'SLC6A3', 'LMX1B', 'KCNJ6', 'NR4A2', # DaNs (Agarwal)
+               'GAD1', 'GAD2', 'GABRA1', 'GABRA2', 'RYR2', # InN (Agarwal)'GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
+               'SLC17A6', 'RBFOX3', 'SLC18A2', 'GALNTL6', 'RIT2', # Neurons (Kamath & Wang)
+               'SYT1', 'SNAP25', # Neurons (Martirosyan)
+               'GFAP', 'ORL1', 'GINS3', # Astrocytes (Agarwal)
+               'AQP4', # Astrocytes (Kamath and Wang)               
+               'MOG', 'MOBP', 'PALM2', 'LGALS1', 'PPM1G', # Oligos (Agarwal)
+               'DCC', # OPCs (Kamath)
+               'VCAN', # OPCs (Agarwal)
+               'CSF1R', # Microglia (Agarwal)
+               'C3', 'ITGAM', 'CD74', # Microglia (Kamath, Martirosyan and Wang)               
+               'RGS5', # Endo (Agarwal)
+               'FLT1', # Endo (Kamath)
+               'PDGFRB', # Pericytes (Kamath)
+               'COL1A2', # Fibroblast-like cells (Kamath and Wand)
+               'FLT', 'DCN', # Vascular cells (Martirosyan)
+               'THEMIS', 'CD2', # T-cells (Martirosyan),
+               'SKAP1' # T-cells (Wand)
+              ) 
 
 ## Str  -------------------------------------------------------------------------------
 str_genes <- c('DRD1', 'DRD2', 'TAC1', 'PENK',
@@ -149,22 +154,23 @@ fcx_vln_cols_recode <- c("FC-adult-ExN-1" = '#00B6EB', "FC-adult-ExN-2" = '#00B6
                          "FC-adult-Ast" = '#FF5959', "FC-adult-MG" = '#F58231', "FC-adult-Endo" = '#9A6324')
 
 ### Substantia Nigra 
-sng_umap_cols_recode <- c("SNg-adult-ExN" = '#00B6EB', "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#31C53F', 
-                          "SNg-adult-InN-3"  = '#006400', "SNg-adult-InN-4"  = '#2FF18B', "SNg-adult-InN-5"  = '#B7FFB7', 
-                          "SNg-adult-InN-6"  = '#95D840FF', "SNg-adult-InN-7"  = '#708238', "SNg-adult-Ast" = '#FF5959', 
+sng_umap_cols_recode <- c("SNg-adult-DaN-1"  = '#00B6EB',"SNg-adult-DaN-2" = '#CEE5FD', "SNg-adult-DaN-3" = '#598BAF',
+                          "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#31C53F', "SNg-adult-InN-3"  = '#006400', 
+                          "SNg-adult-InN-4"  = '#2FF18B', "SNg-adult-InN-5"  = '#B7FFB7', "SNg-adult-Ast" = '#FF5959', 
                           "SNg-adult-Olig-1" = '#FDE725FF', "SNg-adult-Olig-2" = '#FDE725FF', "SNg-adult-OPC" = '#FFBF00' ,
                           "SNg-adult-MG" = '#F58231', "SNg-adult-Leuko" = "#F032E6", "SNg-adult-Endo" = '#9A6324', 
                           "SNg-adult-Fibro" = '#b57e1d', "SNg-adult-Tcell" = '#6F2DA8')
 
-sng_vln_cols_recode <- c("SNg-adult-ExN" = '#00B6EB', "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#3CBB75FF', 
-                         "SNg-adult-InN-3"  = '#3CBB75FF', "SNg-adult-InN-4"  = '#3CBB75FF', "SNg-adult-InN-5"  = '#3CBB75FF', 
-                         "SNg-adult-InN-6"  = '#3CBB75FF', "SNg-adult-InN-7"  = '#3CBB75FF', "SNg-adult-Ast" = '#FF5959', 
+sng_vln_cols_recode <- c("SNg-adult-DaN-1"  = '#00B6EB', "SNg-adult-DaN-2"  = '#00B6EB', "SNg-adult-DaN-3"  = '#00B6EB', 
+                         "SNg-adult-InN-1"  = '#3CBB75FF', "SNg-adult-InN-2"  = '#3CBB75FF', "SNg-adult-InN-3"  = '#3CBB75FF', 
+                         "SNg-adult-InN-4"  = '#3CBB75FF', "SNg-adult-InN-5"  = '#3CBB75FF', "SNg-adult-Ast" = '#FF5959', 
                          "SNg-adult-Olig-1" = '#FDE725FF', "SNg-adult-Olig-2" = '#FDE725FF', "SNg-adult-OPC" = '#FFBF00' ,
                          "SNg-adult-MG" = '#F58231', "SNg-adult-Leuko" = "#F032E6", "SNg-adult-Endo" = '#9A6324', 
                          "SNg-adult-Fibro" = '#b57e1d', "SNg-adult-Tcell" = '#6F2DA8')
 
-sng_final_genes <- c('SLC17A7', 'SLC17A6', 'SLC17A8', 'RBFOX3',
-                     'GAD1', 'GAD2', 'SLC18A2', 'SLC6A12', 'SST', 'PVALB', 'CALB2',
+sng_final_genes <- c('SLC17A7', 'SLC17A6', 
+                     'GAD1', 'GAD2',
+                     'KCNJ6', 'NR4A2', 'LMX1B', 
                      'GFAP', 'AQP4', 
                      'OLIG1', 'MOG',
                      'VCAN',
@@ -225,6 +231,8 @@ leuko <- c("PTPRC", "SKAP1", "ARHGAP15", "PRKCH", "IKZF1", "STAT4", "DOCK8",
            "EMB", "ETS1", "HLA-E", "LCP1", "CD96", "THEMIS", "STK17B", "APBB1IP", 
            "IKZF3", "TNFAIP8", "CLEC2D", "GNG2", "CCL5", "CD53", "FLI1", 
            "ZC3HAV1")
+
+microglia <- c('ITGAM', 'C3', 'CD74')
 
 # dput(read_tsv('~/Desktop/dystonia_snRNAseq_2024/results/01R_objects/cer_marker_genes.tsv') %>%
 #        filter(cluster == 'Cer-adult-Leuko?') %>%

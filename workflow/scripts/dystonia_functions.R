@@ -942,8 +942,8 @@ recode_cluster_ids <- function(
   
   if (region == 'sng') {
     
-    sng_levels <- c("SNg-adult-ExN", "SNg-adult-InN-1", "SNg-adult-InN-2", "SNg-adult-InN-3", 
-                    "SNg-adult-InN-4", "SNg-adult-InN-5", "SNg-adult-InN-6", "SNg-adult-InN-7",
+    sng_levels <- c("SNg-adult-DaN-1", "SNg-adult-DaN-2", "SNg-adult-DaN-3", "SNg-adult-InN-1", 
+                    "SNg-adult-InN-2", "SNg-adult-InN-3", "SNg-adult-InN-4", "SNg-adult-InN-5", 
                     "SNg-adult-Ast", "SNg-adult-Olig-1", "SNg-adult-Olig-2", "SNg-adult-OPC",
                     "SNg-adult-MG", "SNg-adult-Leuko", "SNg-adult-Endo", 
                     "SNg-adult-Fibro", "SNg-adult-Tcell")
@@ -959,15 +959,15 @@ recode_cluster_ids <- function(
                                           `5` = "SNg-adult-InN-1",
                                           `6` = "SNg-adult-InN-2",
                                           `7` = "SNg-adult-InN-3",
-                                          `8` = "SNg-adult-InN-7",
+                                          `8` = "SNg-adult-DaN-1",
                                           `9` = "SNg-adult-Fibro",
                                           `10` = "SNg-adult-InN-4",
                                           `11` = "SNg-adult-InN-5",
                                           `12` = "SNg-adult-Tcell",
                                           `13` = "SNg-adult-Leuko",
                                           `14` = "SNg-adult-Endo",
-                                          `15` = "SNg-adult-InN-6",
-                                          `16` = "SNg-adult-ExN")) %>%
+                                          `15` = "SNg-adult-DaN-2",
+                                          `16` = "SNg-adult-DaN-3")) %>%
       pull(clust_recode)}
   
   clusters_recode <- factor(clusters_recode, get(paste0(region, '_levels')))
