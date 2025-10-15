@@ -253,7 +253,7 @@ if (Sys.info()[["nodename"]] == "Darrens-iMac-2.local") {
     ggsave(paste0(R_dir, region, '_vln_plot.png'), width = 10, height = 12, dpi = 300, units = "in", bg = "white")}
 
   
-  if (region == 'str') {
+  if (region == 'str' || region == 'sng') {
     
     message('Plotting ', region, ' plot ...')
   
